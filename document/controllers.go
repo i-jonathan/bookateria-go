@@ -11,7 +11,7 @@ import (
 var (
 	documents []Document
 	document Document
-	db = core.InitDatabase()
+	db = InitDatabase()
 )
 
 func GetDocuments(w http.ResponseWriter, _ *http.Request) {
