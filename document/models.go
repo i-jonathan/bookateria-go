@@ -1,10 +1,8 @@
 package document
 
-//import "encoding/json"
-
 type Document struct {
-	ID		string `json:"id"`
-	Title	string `json:"title"`
-	Author	string `json:"author"`
-	Summary	string `json:"summary"`
+	ID		uint 	`json:"id" gorm:"primaryKey;autoIncrement"`
+	Title	string 	`json:"title" gorm:"not null;unique"`
+	Author	string 	`json:"author"`
+	Summary	string 	`json:"summary"`
 }

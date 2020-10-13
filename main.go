@@ -17,7 +17,5 @@ func main()  {
 	subRouter.HandleFunc("/{id}", document.UpdateDocument).Methods("POST")
 	subRouter.HandleFunc("/{id}", document.DeleteDocument).Methods("DELETE")
 
-
 	log.Fatal(http.ListenAndServe(":5000", router))
 }
-
