@@ -1,7 +1,8 @@
 package document
 
 import (
-	"bookateria-api-go/core"
+	"bookateria-api-go/log"
+	"fmt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -16,9 +17,9 @@ type Document struct {
 func InitDatabase() *gorm.DB {
 	postgresConnection := "host=localhost port=5432 user=postgres dbname=bookateria-go password=postgres sslmode=disable"
 	db, err := gorm.Open(postgres.Open(postgresConnection), &gorm.Config{})
-	core.ErrHandler(err)
+	log.Handler("panic", "Couldn't connect to DB", []string{fmt.Sprintf("%v", err)})
 
 	err = db.AutoMigrate(&Document{})
-	core.ErrHandler(err)
+	log.Handler("warn", "Couldn't Migrate model to DB", []string{fmt.Sprintf("%v", err)})
 	return db
 }
