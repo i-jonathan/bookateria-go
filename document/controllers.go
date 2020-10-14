@@ -3,7 +3,6 @@ package document
 import (
 	"bookateria-api-go/log"
 	"encoding/json"
-	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
@@ -20,7 +19,7 @@ func GetDocuments(w http.ResponseWriter, _ *http.Request) {
 	// Load data from DB
 	db.Find(&documents)
 	err := json.NewEncoder(w).Encode(documents)
-	log.Handler("warning", "JSON encoder error", []string{fmt.Sprintf("%v", err)})
+	log.Handler("warning", "JSON encoder error", err)
 	return
 }
 
@@ -30,17 +29,17 @@ func GetDocument(w http.ResponseWriter, r *http.Request) {
 	documentID := params["id"]
 	db.First(&document, documentID)
 	err := json.NewEncoder(w).Encode(document)
-	log.Handler("warning", "JSON encoder error", []string{fmt.Sprintf("%v", err)})
+	log.Handler("warning", "JSON encoder error", err)
 	return
 }
 
 func PostDocument(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	err := json.NewDecoder(r.Body).Decode(&document)
-	log.Handler("warning", "JSON decoder error", []string{fmt.Sprintf("%v", err)})
+	log.Handler("warning", "JSON decoder error", err)
 	db.Create(&document)
 	err = json.NewEncoder(w).Encode(document)
-	log.Handler("warning", "JSON encoder error", []string{fmt.Sprintf("%v", err)})
+	log.Handler("warning", "JSON encoder error", err)
 	return
 }
 
@@ -48,10 +47,10 @@ func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	err := json.NewDecoder(r.Body).Decode(&document)
 
-	log.Handler("warning", "JSON decoder error", []string{fmt.Sprintf("%v", err)})
+	log.Handler("warning", "JSON decoder error", err)
 	db.Save(&document)
 	err = json.NewEncoder(w).Encode(document)
-	log.Handler("warning", "JSON encoder error", []string{fmt.Sprintf("%v", err)})
+	log.Handler("warning", "JSON encoder error", err)
 }
 
 func DeleteDocument(w http.ResponseWriter, r *http.Request) {
@@ -61,5 +60,5 @@ func DeleteDocument(w http.ResponseWriter, r *http.Request) {
 	idToDelete := uint(idInUint)
 	db.Where("document_id = ?", idToDelete).Delete(&Document{})
 	w.WriteHeader(http.StatusNoContent)
-	log.Handler("info", "Document deleted", []string{fmt.Sprintf("%v", id)})
+	log.Handler("info", "Document deleted", nil)
 }
