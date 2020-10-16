@@ -14,19 +14,19 @@ func InitLog() *zap.Logger {
 	return logger
 }
 
-func Handler(level string, text string, err []string) {
+func Handler(level string, text string, err error) {
 	if err != nil {
 		switch level {
 		case "info":
-			zap.S().Infow(text, "Message", err)
+			zap.S().Info(text, err)
 		case "warning":
-			zap.S().Warnw(text, "Message", err)
+			zap.S().Warn(text, err)
 		case "error":
-			zap.S().Errorw(text, "Message", err)
+			zap.S().Error(text, err)
 		case "panic":
-			zap.S().Panicw(text, "Message", err)
+			zap.S().Panic(text, err)
 		case "fatal":
-			zap.S().Fatalw(text, "Message", err)
+			zap.S().Fatal(text, err)
 		}
 	}
 }
