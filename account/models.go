@@ -42,6 +42,10 @@ type PasswordConfig struct {
 }
 
 func GeneratePasswordHash(password string) (string, error) {
+	// This function is for generating the hash that would be stored in the database.
+	// It takes the password as a string and using argon2id hash algorithm, sends output of
+	// the proper format for storing argon2 hashes.
+
 	salt := make([]byte, 16)
 	if _, err := rand.Read(salt); err != nil {
 		return "", err
@@ -56,12 +60,16 @@ func GeneratePasswordHash(password string) (string, error) {
 	b64Salt := base64.RawStdEncoding.EncodeToString(salt)
 	b64Hash := base64.RawStdEncoding.EncodeToString(hash)
 
+	// Format for storing argon2id in database: argon2 version, memory, time,
+	// number of threads, salt and hash encoded in base 64
 	format := "$argon2id$v=%d$m=%d,t=%d,p=%d$%s$%s"
 	full := fmt.Sprintf(format, argon2.Version, config.memory, config.time, config.threads, b64Salt, b64Hash)
 	return full, nil
 }
 
 func ComparePassword(password, hash string) (bool, error) {
+	// This function takes in the password and the hash stored in the database as strings
+	// to compare and confirm that the password is correct. Uses constant time compare to prevent timing attacks
 	parts := strings.Split(hash, "$")
 	config := &PasswordConfig{}
 
@@ -88,19 +96,27 @@ func ComparePassword(password, hash string) (bool, error) {
 }
 
 func commonPasswordValidator(password string) bool {
+	// This function makes sure that the password is not in a list of common passwords.
+	// The list has been trimmed down to save time. Since no password that is less than 8 characters
+	// is to be allowed, the list doesn't include them. Also all numeric passwords are not included.
+	// This implements a binary search to check if the password is common.
+	// Returns true if the password is common, false if it isn't
 	index := sort.Search(len(core.CommonPasswords), func(i int) bool {
 		return core.CommonPasswords[i] >= password
 	})
 
 	if index <= len(core.CommonPasswords) && core.CommonPasswords[index] == password {
-		// True means that the password is common
 		return true
 	}
 	return false
 }
 
 func PasswordValidator(password string) bool {
-
+	// Complete password validator. This aggregates all the conditions that a password needs to meet
+	// Length, common, uppercase, lowercase and number
+	// If the password is good to go, it returns true.
+	// And then the password can be hashed then saved.
+	// TODO include a validator that checks if the password is similar to the user information
 	var (
 		passLen   = len(password) >= 8
 		isNotCommon  = !commonPasswordValidator(password)
