@@ -2,11 +2,13 @@ package account
 
 import (
 	"bookateria-api-go/core"
+	"bookateria-api-go/log"
 	"crypto/rand"
 	"crypto/subtle"
 	"encoding/base64"
 	"fmt"
 	"golang.org/x/crypto/argon2"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"sort"
 	"strings"
@@ -111,12 +113,22 @@ func commonPasswordValidator(password string) bool {
 	return false
 }
 
+func SimilarToUser(firstName, lastName, username, password string) bool {
+	// Checks if the password is in any case similar to the inputted user information
+
+	containsFirst := strings.Contains(strings.ToLower(password), strings.ToLower(firstName))
+	containsLast := strings.Contains(strings.ToLower(password), strings.ToLower(lastName))
+	containsUser := strings.Contains(strings.ToLower(password), strings.ToLower(username))
+
+	return containsFirst && containsLast && containsUser
+}
+
 func PasswordValidator(password string) bool {
 	// Complete password validator. This aggregates all the conditions that a password needs to meet
 	// Length, common, uppercase, lowercase and number
 	// If the password is good to go, it returns true.
 	// And then the password can be hashed then saved.
-	// TODO include a validator that checks if the password is similar to the user information
+
 	var (
 		passLen   = len(password) >= 8
 		isNotCommon  = !commonPasswordValidator(password)
@@ -137,4 +149,26 @@ func PasswordValidator(password string) bool {
 	}
 
 	return passLen && isNotCommon && hasNumber && hasLower && hasUpper
+}
+
+func InitDatabase() *gorm.DB {
+	viperConfig := core.ReadViper()
+	var (
+		databaseName = viperConfig.Get("database.name")
+		port = viperConfig.Get("database.port")
+		pass = viperConfig.Get("database.pass")
+		user = viperConfig.Get("database.user")
+		host = viperConfig.Get("database.host")
+		ssl = viperConfig.Get("database.ssl")
+	)
+
+	postgresConnection := fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=%s",
+		host, port, user, databaseName, pass, ssl)
+	db, err := gorm.Open(postgres.Open(postgresConnection), &gorm.Config{})
+	log.Handler("panic", "Couldn't connect to DB", err)
+
+	err = db.AutoMigrate(&User{})
+	err = db.AutoMigrate(&Profile{})
+	log.Handler("warn", "Couldn't Migrate model to DB", err)
+	return db
 }
