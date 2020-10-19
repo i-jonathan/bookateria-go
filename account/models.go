@@ -10,6 +10,8 @@ import (
 	"golang.org/x/crypto/argon2"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"net"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -20,12 +22,13 @@ type User struct {
 	// For Returning Data, might have to create another struct that is used solely for reading from
 	// Seems there's no write only for json or gorm for that matter
 	gorm.Model
-	FirstName	string		`json:"first_name"`
-	LastName	string		`json:"last_name"`
-	Email		string		`json:"email"`
-	IsAdmin		bool		`json:"is_admin"`
+	FirstName	string		`json:"first_name" gorm:"not null"`
+	LastName	string		`json:"last_name" gorm:"not null"`
+	Email		string		`json:"email" gorm:"not null;unique"`
+	IsAdmin		bool		`json:"is_admin" gorm:"default:false"`
 	Password 	string		`json:"password"`
 	LastLogin	time.Time	`json:"last_login"`
+	IsActive	bool		`json:"is_active" gorm:"default:false"`
 }
 
 type Profile struct {
@@ -115,6 +118,7 @@ func commonPasswordValidator(password string) bool {
 
 func SimilarToUser(firstName, lastName, username, password string) bool {
 	// Checks if the password is in any case similar to the inputted user information
+	// Returns true if password is similar to first name, last name, user name
 
 	containsFirst := strings.Contains(strings.ToLower(password), strings.ToLower(firstName))
 	containsLast := strings.Contains(strings.ToLower(password), strings.ToLower(lastName))
@@ -149,6 +153,42 @@ func PasswordValidator(password string) bool {
 	}
 
 	return passLen && isNotCommon && hasNumber && hasLower && hasUpper
+}
+
+func UserDetails(firstName, lastName, email string) (string, string, string, bool) {
+	firstName = strings.ReplaceAll(firstName, " ", "")
+	lastName = strings.ReplaceAll(lastName, " ", "")
+	email = strings.ReplaceAll(email, " ", "")
+
+	if firstName == "" || lastName == "" || email == "" {
+		return firstName, lastName, email, false
+	}
+	firstName = strings.Title(firstName)
+	lastName = strings.Title(lastName)
+	email = strings.Title(email)
+
+	return firstName, lastName, email, true
+}
+
+func EmailValidator(email string) bool {
+	// This function does (currently) 2 checks on the email to ensure it is correct
+	// A regex check and an MX lookup that checks if the domain has MX records
+	// The regex check is ridiculously simple because.
+	// 1, We are still doing an MX lookup
+	// 2, We would still send a verification email. So why make it complex.
+	// Returns true if the email is good to go and false otherwise
+	re := regexp.MustCompile("^.+@.+\\..+$")
+	validity := re.MatchString(email)
+	if !validity {
+		return false
+	}
+	parts := strings.Split(email, "@")
+	mx, err := net.LookupMX(parts[1])
+	log.Handler("info", "MX failure", err)
+	if err != nil || len(mx) == 0 {
+		return false
+	}
+	return true
 }
 
 func InitDatabase() *gorm.DB {
