@@ -22,6 +22,7 @@ type User struct {
 	// For Returning Data, might have to create another struct that is used solely for reading from
 	// Seems there's no write only for json or gorm for that matter
 	gorm.Model
+	UserName	string		`json:"user_name"`
 	FirstName	string		`json:"first_name" gorm:"not null"`
 	LastName	string		`json:"last_name" gorm:"not null"`
 	Email		string		`json:"email" gorm:"not null;unique"`
@@ -156,6 +157,9 @@ func PasswordValidator(password string) bool {
 }
 
 func UserDetails(firstName, lastName, email string) (string, string, string, bool) {
+	// This attempts to normalize the user details. If they are not empty
+	// If empty, returns false
+	// Else, returns the details as Title case
 	firstName = strings.ReplaceAll(firstName, " ", "")
 	lastName = strings.ReplaceAll(lastName, " ", "")
 	email = strings.ReplaceAll(email, " ", "")
