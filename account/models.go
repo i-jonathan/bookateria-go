@@ -37,6 +37,7 @@ type Profile struct {
 	//Bio		string	`json:"bio"`
 	//Picture	string	`json:"picture"`
 	Points	int		`json:"points" gorm:"default:20"`
+	UserID	int		`json:"user_id"`
 	User	User	`json:"user" gorm:"constraints:OnDelete:CASCADE;not null;unique"`
 }
 
@@ -75,7 +76,9 @@ func GeneratePasswordHash(password string) (string, error) {
 
 func ComparePassword(password, hash string) (bool, error) {
 	// This function takes in the password and the hash stored in the database as strings
-	// to compare and confirm that the password is correct. Uses constant time compare to prevent timing attacks
+	// to compare and confirm that the password is correct.
+	// Uses constant time compare to prevent timing attacks
+	// Returns true, nil if password is correct
 	parts := strings.Split(hash, "$")
 	config := &PasswordConfig{}
 
@@ -169,7 +172,7 @@ func UserDetails(firstName, lastName, email string) (string, string, string, boo
 	}
 	firstName = strings.Title(firstName)
 	lastName = strings.Title(lastName)
-	email = strings.Title(email)
+	email = strings.ToLower(email)
 
 	return firstName, lastName, email, true
 }
@@ -206,7 +209,7 @@ func InitDatabase() *gorm.DB {
 		ssl = viperConfig.Get("database.ssl")
 	)
 
-	postgresConnection := fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=%s",
+	postgresConnection := fmt.Sprintf("host=%s port=%d user=%s dbname=%s password=%s sslmode=%s",
 		host, port, user, databaseName, pass, ssl)
 	db, err := gorm.Open(postgres.Open(postgresConnection), &gorm.Config{})
 	log.Handler("panic", "Couldn't connect to DB", err)

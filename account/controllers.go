@@ -18,7 +18,7 @@ type Response struct {
 	Message string `json:"message"`
 }
 
-func AllUsers(w http.ResponseWriter, r *http.Request) {
+func AllUsers(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	db.Find(&users)
 	err := json.NewEncoder(w).Encode(users)
@@ -38,7 +38,7 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func SignUp(w http.ResponseWriter, r *http.Request) {
+func PostUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	err := json.NewDecoder(r.Body).Decode(&user)
 	log.Handler("warning", "JSON decoder error", err)
@@ -110,4 +110,3 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 	log.Handler("warning", "JSON encoder error", err)
 	return
 }
-
