@@ -39,3 +39,7 @@ type AnswerUpvote struct {
 	Answer	Answer 		`json:"answer"`
 	User	user.User	`json:"user" gorm:"constraints:OnDelete:CASCADE"`
 }
+
+func InitDatabase(m)  {
+	
+}
