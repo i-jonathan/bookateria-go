@@ -47,6 +47,9 @@ func PostQuestion(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	err := json.NewDecoder(r.Body).Decode(&question)
 	log.Handler("warning", "JSON decoder error", err)
+	_, email := core.GetTokenEmail(w, r)
+	db.Find(&user, "email = ?", strings.ToLower(email))
+	question.User = user
 	db.Create(&question)
 	err = json.NewEncoder(w).Encode(question)
 	log.Handler("warning", "JSON encoder error", err)
@@ -57,6 +60,9 @@ func UpdateQuestion(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	err := json.NewDecoder(r.Body).Decode(&question)
 	log.Handler("warning", "JSON decoder error", err)
+	_, email := core.GetTokenEmail(w, r)
+	db.Find(&user, "email = ?", strings.ToLower(email))
+	question.User = user
 	db.Save(&question)
 	err = json.NewEncoder(w).Encode(question)
 	log.Handler("warning", "JSON encoder error", err)
@@ -136,6 +142,9 @@ func PostAnswer(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	err := json.NewDecoder(r.Body).Decode(&answer)
 	log.Handler("warning", "JSON decoder error", err)
+	_, email := core.GetTokenEmail(w, r)
+	db.Find(&user, "email = ?", strings.ToLower(email))
+	answer.User = user
 	db.Create(&answer)
 	err = json.NewEncoder(w).Encode(answer)
 	log.Handler("warning", "JSON encoder error", err)
@@ -146,6 +155,9 @@ func UpdateAnswer(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	err := json.NewDecoder(r.Body).Decode(&answer)
 	log.Handler("warning", "JSON decoder error", err)
+	_, email := core.GetTokenEmail(w, r)
+	db.Find(&user, "email = ?", strings.ToLower(email))
+	answer.User = user
 	db.Save(&answer)
 	err = json.NewEncoder(w).Encode(answer)
 	log.Handler("warning", "JSON encoder error", err)
