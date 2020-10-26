@@ -1,12 +1,12 @@
 package forum
 
 import (
+	"bookateria-api-go/account"
 	"bookateria-api-go/core"
 	"bookateria-api-go/log"
 	"fmt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"os/user"
 )
 
 type QuestionTag struct {
@@ -20,28 +20,28 @@ type Question struct {
 	Description		string			`json:"description"`
 	Tags			[]QuestionTag	`json:"tags"`
 	AcceptedAnswer	string			`json:"accepted_answer"`
-	User			user.User		`json:"user"`
+	User			account.User	`json:"user"`
 	UpVotes			int				`json:"up_votes"`
 }
 
 type Answer struct {
 	gorm.Model
-	Question	Question	`json:"question"`
-	Response	string		`json:"response"`
-	UpVotes		string		`json:"up_votes"`
-	User		user.User	`json:"user" gorm:"constraints:OnDelete:SET NULL"`
+	Question	Question		`json:"question"`
+	Response	string			`json:"response"`
+	UpVotes		string			`json:"up_votes"`
+	User		account.User	`json:"user" gorm:"constraints:OnDelete:SET NULL"`
 }
 
 type QuestionUpVote struct {
 	gorm.Model
-	Question	Question	`json:"question"`
-	User 		user.User	`json:"user" gorm:"constraints:OnDelete:CASCADE"`
+	Question	Question		`json:"question"`
+	User 		account.User	`json:"user" gorm:"constraints:OnDelete:CASCADE"`
 }
 
 type AnswerUpvote struct {
 	gorm.Model
-	Answer	Answer 		`json:"answer"`
-	User	user.User	`json:"user" gorm:"constraints:OnDelete:CASCADE"`
+	Answer	Answer 			`json:"answer"`
+	User	account.User	`json:"user" gorm:"constraints:OnDelete:CASCADE"`
 }
 
 func InitDatabase() *gorm.DB {
