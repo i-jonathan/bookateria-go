@@ -1,21 +1,27 @@
 package forum
 
 import (
+	"bookateria-api-go/account"
+	"bookateria-api-go/core"
 	"bookateria-api-go/log"
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 var (
 	answerUpVotes []AnswerUpvote
+	answerUpVote AnswerUpvote
 	answers []Answer
 	answer Answer
 	db = InitDatabase()
 	question Question
 	questions []Question
+	questionUpVote QuestionUpVote
 	questionUpVotes []QuestionUpVote
+	user account.User
 )
 
 func GetQuestion(w http.ResponseWriter, r *http.Request) {
@@ -80,7 +86,18 @@ func GetQuestionUpVotes(w http.ResponseWriter, r *http.Request) {
 
 func PostQuestionUpVote(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-
+	params := mux.Vars(r)
+	idInUint, _ := strconv.ParseUint(params["id"], 10, 64)
+	questionID := uint(idInUint)
+	db.First(&question, questionID)
+	_, email := core.GetTokenEmail(w, r)
+	db.Find(&user, "email = ?", strings.ToLower(email))
+	questionUpVote = QuestionUpVote{
+		Question: question,
+		User:     user,
+	}
+	db.Create(&questionUpVote)
+	return
 }
 
 // Answers
@@ -131,4 +148,31 @@ func DeleteAnswer(w http.ResponseWriter, r *http.Request) {
 	db.Delete(&Answer{}, idToDelete)
 	w.WriteHeader(http.StatusNoContent)
 	log.Handler("info", "Question deleted", nil)
+}
+
+func GetAnswerUpVotes(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+	idInUint, _ := strconv.ParseUint(params["id"], 10, 64)
+	answerID := uint(idInUint)
+	db.Where("answerupvote_answer_id = ?", answerID).Find(&answerUpVotes)
+	err := json.NewEncoder(w).Encode(answerUpVotes)
+	log.Handler("info", "JSON Encoder error", err)
+	return
+}
+
+func PostAnswerUpVote(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+	idInUint, _ := strconv.ParseUint(params["id"], 10, 64)
+	answerID := uint(idInUint)
+	db.First(&answer, answerID)
+	_, email := core.GetTokenEmail(w, r)
+	db.Find(&user, "email = ?", strings.ToLower(email))
+	answerUpVote = AnswerUpvote{
+		Answer: answer,
+		User:   user,
+	}
+	db.Create(&answerUpVote)
+	return
 }
