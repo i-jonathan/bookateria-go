@@ -100,7 +100,19 @@ func PostQuestionUpVote(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-// Answers
+func DeleteQuestionUpvote(w http.ResponseWriter, r *http.Request) {
+	_, email := core.GetTokenEmail(w, r)
+	params := mux.Vars(r)
+	idInUint, _ := strconv.ParseUint(params["id"], 10, 64)
+	questionID := uint(idInUint)
+	db.Find(&user, "email = ?", strings.ToLower(email))
+	db.Where("questionupvote_question_id = ?", questionID).Where(
+		"questionupvote_user_id = ?", user.ID).Delete(&QuestionUpVote{})
+	w.WriteHeader(http.StatusNoContent)
+	return
+}
+
+// Answers and Answer up votes
 
 func GetAnswer(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
@@ -174,5 +186,17 @@ func PostAnswerUpVote(w http.ResponseWriter, r *http.Request) {
 		User:   user,
 	}
 	db.Create(&answerUpVote)
+	return
+}
+
+func DeleteAnswerUpvote(w http.ResponseWriter, r *http.Request) {
+	_, email := core.GetTokenEmail(w, r)
+	params := mux.Vars(r)
+	idInUint, _ := strconv.ParseUint(params["id"], 10, 64)
+	answerID := uint(idInUint)
+	db.Find(&user, "email = ?", strings.ToLower(email))
+	db.Where("answerupvote_answer_id = ?", answerID).Where(
+		"answerupvote_user_id = ?", user.ID).Delete(&AnswerUpvote{})
+	w.WriteHeader(http.StatusNoContent)
 	return
 }
