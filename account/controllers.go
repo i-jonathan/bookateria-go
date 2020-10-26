@@ -84,8 +84,8 @@ func PostUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !safePassword {
-		// Issue with Email
-		//	Email couldn't be verified  or invalid email
+		// Issue with Password
+		//	Password doesn't go through the validator successfully
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		err := json.NewEncoder(w).Encode(Response{Message: "Unsafe Password"})
 		log.Handler("info", "Password is cheap", err)
