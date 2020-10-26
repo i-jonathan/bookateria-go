@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bookateria-api-go/account"
+	"bookateria-api-go/auth"
 	"bookateria-api-go/document"
 	"bookateria-api-go/log"
 	"github.com/gorilla/mux"
@@ -17,6 +19,9 @@ func main()  {
 	subRouter.HandleFunc("", document.PostDocument).Methods("POST")
 	subRouter.HandleFunc("/{id}", document.UpdateDocument).Methods("POST")
 	subRouter.HandleFunc("/{id}", document.DeleteDocument).Methods("DELETE")
+
+	account.Router(router.PathPrefix("/account").Subrouter())
+	auth.Router(router.PathPrefix("/auth").Subrouter())
 
 	loggerMgr := log.InitLog()
 	zap.ReplaceGlobals(loggerMgr)
