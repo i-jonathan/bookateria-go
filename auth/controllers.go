@@ -97,16 +97,16 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 		Value:  tokenString,
 		Expiry: expirationTime,
 	})
-	redisT, err := redisClient.Get(ctx, user.Email).Result()
-	if err != nil {
-		if err == redis.Nil {
-			fmt.Println("key does not exists")
-			return
-		}
-		panic(err)
-	}
-
-	fmt.Println(redisT)
+	//redisT, err := redisClient.Get(ctx, user.Email).Result()
+	//if err != nil {
+	//	if err == redis.Nil {
+	//		fmt.Println("key does not exists")
+	//		return
+	//	}
+	//	panic(err)
+	//}
+	//
+	//fmt.Println(redisT)
 	return
 }
 
@@ -164,31 +164,8 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 	// Make sure to delete the token on the frontend too
 
 	w.Header().Set("Content-Type", "application/json")
-	_, email := GetTokenEmail(w, r)
+	_, email := core.GetTokenEmail(w, r)
 	redisClient.Del(ctx, email)
 	_ = json.NewEncoder(w).Encode(Response{Message: "Successfully logged out"})
 	return
-}
-
-func GetTokenEmail(w http.ResponseWriter, r *http.Request) (*jwt.Token, string) {
-	authorization := r.Header.Get("Authorization")
-	if authorization == "" {
-		w.WriteHeader(http.StatusUnauthorized)
-		return nil, ""
-	}
-
-	token, _ := jwt.ParseWithClaims(authorization, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-		return jwtKey, nil
-	})
-
-	claims, ok := token.Claims.(*Claims)
-	if ok && token.Valid {
-	} else {
-		w.WriteHeader(http.StatusUnauthorized)
-		return nil, ""
-	}
-
-	email := claims.Email
-
-	return token, email
 }
