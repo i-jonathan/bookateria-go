@@ -11,48 +11,55 @@ import (
 
 type QuestionTag struct {
 	gorm.Model
-	Name	string	`json:"name"`
+	QuestionID int    `json:"question_id"`
+	Name       string `json:"name"`
 }
 
 type Question struct {
 	gorm.Model
-	Title			string			`json:"title"`
-	Description		string			`json:"description"`
-	Tags			[]QuestionTag	`json:"tags"`
-	AcceptedAnswer	string			`json:"accepted_answer"`
-	User			account.User	`json:"user"`
-	UpVotes			int				`json:"up_votes"`
+	Title        string        `json:"title"`
+	Description  string        `json:"description"`
+	QuestionTags []QuestionTag `json:"tags"`
+	UserID       int           `json:"user_id"`
+	User         account.User  `json:"user"`
+	UpVotes      int           `json:"up_votes"`
 }
 
 type Answer struct {
 	gorm.Model
-	Question	Question		`json:"question"`
-	Response	string			`json:"response"`
-	UpVotes		string			`json:"up_votes"`
-	User		account.User	`json:"user" gorm:"constraints:OnDelete:SET NULL"`
+	QuestionID int          `json:"question_id"`
+	Question   Question     `json:"question"`
+	Response   string       `json:"response"`
+	UpVotes    string       `json:"up_votes"`
+	UserID     int          `json:"user_id"`
+	User       account.User `json:"user" gorm:"constraints:OnDelete:SET NULL"`
 }
 
 type QuestionUpVote struct {
 	gorm.Model
-	Question	Question		`json:"question"`
-	User 		account.User	`json:"user" gorm:"constraints:OnDelete:CASCADE"`
+	QuestionID int          `json:"question_id"`
+	Question   Question     `json:"question"`
+	UserID     int          `json:"user_id"`
+	User       account.User `json:"user" gorm:"constraints:OnDelete:CASCADE"`
 }
 
 type AnswerUpvote struct {
 	gorm.Model
-	Answer	Answer 			`json:"answer"`
-	User	account.User	`json:"user" gorm:"constraints:OnDelete:CASCADE"`
+	AnswerID int          `json:"answer_id"`
+	Answer   Answer       `json:"answer"`
+	UserID   int          `json:"user_id"`
+	User     account.User `json:"user" gorm:"constraints:OnDelete:CASCADE"`
 }
 
 func InitDatabase() *gorm.DB {
 	viperConfig := core.ReadViper()
 	var (
 		databaseName = viperConfig.Get("database.name")
-		port = viperConfig.Get("database.port")
-		pass = viperConfig.Get("database.pass")
-		user = viperConfig.Get("database.user")
-		host = viperConfig.Get("database.host")
-		ssl = viperConfig.Get("database.ssl")
+		port         = viperConfig.Get("database.port")
+		pass         = viperConfig.Get("database.pass")
+		user         = viperConfig.Get("database.user")
+		host         = viperConfig.Get("database.host")
+		ssl          = viperConfig.Get("database.ssl")
 	)
 
 	postgresConnection := fmt.Sprintf("host=%s port=%d user=%s dbname=%s password=%s sslmode=%s",
