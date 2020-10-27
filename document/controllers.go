@@ -10,8 +10,8 @@ import (
 
 var (
 	documents []Document
-	document Document
-	db = InitDatabase()
+	document  Document
+	db        = InitDatabase()
 )
 
 func GetDocuments(w http.ResponseWriter, _ *http.Request) {

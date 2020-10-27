@@ -10,8 +10,8 @@ import (
 
 var (
 	users []User
-	user User
-	db = InitDatabase()
+	user  User
+	db    = InitDatabase()
 )
 
 type Response struct {
@@ -43,14 +43,14 @@ func PostUser(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&user)
 	log.Handler("warning", "JSON decoder error", err)
 	var (
-		email     = user.Email
-		lastName  = user.LastName
-		userName  = user.UserName
-		password  = user.Password
-		firstName = user.FirstName
-		safeNames bool
-		safeEmail = EmailValidator(email)
-		safePassword = PasswordValidator(password)
+		email         = user.Email
+		lastName      = user.LastName
+		userName      = user.UserName
+		password      = user.Password
+		firstName     = user.FirstName
+		safeNames     bool
+		safeEmail     = EmailValidator(email)
+		safePassword  = PasswordValidator(password)
 		similarToUser = SimilarToUser(firstName, lastName, userName, password)
 	)
 

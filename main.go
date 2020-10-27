@@ -11,7 +11,7 @@ import (
 	"net/http"
 )
 
-func main()  {
+func main() {
 	router := mux.NewRouter()
 	// Documentation route
 	fs := http.FileServer(http.Dir("./docs"))
@@ -28,7 +28,7 @@ func main()  {
 
 	account.Router(versionRouter.PathPrefix("/account").Subrouter())
 	auth.Router(versionRouter.PathPrefix("/auth").Subrouter())
-  forum.Router(versionRouter.PathPrefix("/forum").Subrouter())
+	forum.Router(versionRouter.PathPrefix("/forum").Subrouter())
 
 	loggerMgr := log.InitLog()
 	zap.ReplaceGlobals(loggerMgr)

@@ -12,16 +12,16 @@ import (
 )
 
 var (
-	answerUpVotes []AnswerUpvote
-	answerUpVote AnswerUpvote
-	answers []Answer
-	answer Answer
-	db = InitDatabase()
-	question Question
-	questions []Question
-	questionUpVote QuestionUpVote
+	answerUpVotes   []AnswerUpvote
+	answerUpVote    AnswerUpvote
+	answers         []Answer
+	answer          Answer
+	db              = InitDatabase()
+	question        Question
+	questions       []Question
+	questionUpVote  QuestionUpVote
 	questionUpVotes []QuestionUpVote
-	user account.User
+	user            account.User
 )
 
 func GetQuestion(w http.ResponseWriter, r *http.Request) {
