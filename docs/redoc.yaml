@@ -1,0 +1,247 @@
+swagger: '2.0'
+info:
+  description: >-
+    This is the initial version of Bookateria API in Golang. Documentation is
+    below. Please follow like your life depends on it. Cause it might.
+  version: '1.0'
+  title: Bookateria API
+  termsOfService: 'http://bookateria.net/terms/'
+  contact:
+    email: farinloyejonathan@gmail.com
+host: localhost:5000
+basePath: /v1
+tags:
+  - name: auth
+    description: Everything about authentication
+  - name: account
+    description: Operations on User accounts
+  - name: document
+    description: Everything Documents
+  - name: forum
+    description: Thing you can do on Forum. Netflix and chill stuff
+schemes:
+  - https
+  - http
+paths:
+  /auth/login:
+    post:
+      tags:
+        - auth
+      summary: Manage user login
+      description: ''
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description: 'User object that needs to be logged '
+          required: true
+          schema:
+            $ref: '#/definitions/Auth'
+      responses:
+        200:
+          description: A Token object
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                description: Authentication Type.
+              value:
+                type: string
+                description: The token of authenticated user.
+              expiry:
+                type: string
+                description: Token expiry time
+        401:
+          description: Unauthorized. Wrong Details
+
+  /auth/refresh:
+    get:
+      tags:
+        - auth
+      summary: Refreshes token of logged in user
+      description: Refreshes token within 30 seconds of expiry.
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          type: string
+      responses:
+        200:
+          description: A Token object
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                description: Authentication Type.
+              value:
+                type: string
+                description: The token of authenticated user.
+              expiry:
+                type: string
+                description: Token expiry time
+        401:
+          description: Unauthorized. Wrong Details
+      security:
+        - authorization: []
+
+  /auth/logout:
+    post:
+      tags:
+        - auth
+      summary: Log user out
+      description: Invalidate user token and prevent reuse of same token
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          type: string
+      responses:
+        200:
+          description: OK
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                description: Successfully logged user out
+        401:
+          description: User Authentication Failure
+      security:
+        - authorization: []
+
+  /account/all:
+    get:
+      tags:
+        - account
+      summary: Gets all signed up users
+      description: All users
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/User'
+
+  /account/{id}:
+    get:
+      tags:
+        - account
+      summary: Get user by id
+      description: ''
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/User'
+
+  /account:
+    post:
+      tags:
+        - account
+      summary: Create a new user
+      description: Submit user details for sign up
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          in: body
+          description: content for body
+          required: true
+          schema:
+            type: object
+            properties:
+              user_name:
+                type: string
+              first_name:
+                type: string
+              last_name:
+                type: string
+              email:
+                type: string
+              password:
+                type: string
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/User'
+        422:
+          description: Unprocessable entity
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              
+
+
+securityDefinitions:
+  authorization:
+    type: "apiKey"
+    name: "authorization"
+    in: "header"
+definitions:
+  Auth:
+    type: object
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+
+  User:
+    type: object
+    properties:
+      id:
+        type: integer
+      user_name:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      email:
+        type: string
+      is_admin:
+        type: boolean
+      password:
+        type: string
+      last_login:
+        type: string
+      is_active:
+        type: boolean
+
+  Profile:
+    type: object
+    properties:
+      id:
+        type: integer
+      points:
+        type: integer
+      user_id:
+        type: integer
+      user:
+        type: integer

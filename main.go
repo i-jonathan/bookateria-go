@@ -12,16 +12,21 @@ import (
 
 func main()  {
 	router := mux.NewRouter()
+	// Documentation route
+	fs := http.FileServer(http.Dir("./docs"))
+	router.PathPrefix("/docs/").Handler(http.StripPrefix("/docs/", fs))
+
 	// Routes for Documents
-	subRouter := router.PathPrefix("/document").Subrouter()
+	versionRouter := router.PathPrefix("/v1").Subrouter()
+	subRouter := versionRouter.PathPrefix("/document").Subrouter()
 	subRouter.HandleFunc("", document.GetDocuments).Methods("GET")
 	subRouter.HandleFunc("/{id}", document.GetDocument).Methods("GET")
 	subRouter.HandleFunc("", document.PostDocument).Methods("POST")
 	subRouter.HandleFunc("/{id}", document.UpdateDocument).Methods("POST")
 	subRouter.HandleFunc("/{id}", document.DeleteDocument).Methods("DELETE")
 
-	account.Router(router.PathPrefix("/account").Subrouter())
-	auth.Router(router.PathPrefix("/auth").Subrouter())
+	account.Router(versionRouter.PathPrefix("/account").Subrouter())
+	auth.Router(versionRouter.PathPrefix("/auth").Subrouter())
 
 	loggerMgr := log.InitLog()
 	zap.ReplaceGlobals(loggerMgr)
