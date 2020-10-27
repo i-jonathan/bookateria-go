@@ -97,16 +97,16 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 		Value:  tokenString,
 		Expiry: expirationTime,
 	})
-	redisT, err := redisClient.Get(ctx, user.Email).Result()
-	if err != nil {
-		if err == redis.Nil {
-			fmt.Println("key does not exists")
-			return
-		}
-		panic(err)
-	}
-
-	fmt.Println(redisT)
+	//redisT, err := redisClient.Get(ctx, user.Email).Result()
+	//if err != nil {
+	//	if err == redis.Nil {
+	//		fmt.Println("key does not exists")
+	//		return
+	//	}
+	//	panic(err)
+	//}
+	//
+	//fmt.Println(redisT)
 	return
 }
 
