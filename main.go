@@ -4,6 +4,7 @@ import (
 	"bookateria-api-go/account"
 	"bookateria-api-go/auth"
 	"bookateria-api-go/document"
+	"bookateria-api-go/forum"
 	"bookateria-api-go/log"
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
@@ -27,6 +28,7 @@ func main()  {
 
 	account.Router(versionRouter.PathPrefix("/account").Subrouter())
 	auth.Router(versionRouter.PathPrefix("/auth").Subrouter())
+  forum.Router(versionRouter.PathPrefix("/forum").Subrouter())
 
 	loggerMgr := log.InitLog()
 	zap.ReplaceGlobals(loggerMgr)
