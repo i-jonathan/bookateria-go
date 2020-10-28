@@ -11,15 +11,8 @@ import (
 )
 
 func main()  {
-	router := mux.NewRouter()
-	// Routes for Documents
-	subRouter := router.PathPrefix("/document").Subrouter()
-	subRouter.HandleFunc("", document.GetDocuments).Methods("GET")
-	subRouter.HandleFunc("/{id}", document.GetDocument).Methods("GET")
-	subRouter.HandleFunc("", document.PostDocument).Methods("POST")
-	subRouter.HandleFunc("/{id}", document.UpdateDocument).Methods("POST")
-	subRouter.HandleFunc("/{id}", document.DeleteDocument).Methods("DELETE")
-
+	router := mux.NewRouter()	
+	document.Router(router.PathPrefix("/document").Subrouter())
 	account.Router(router.PathPrefix("/account").Subrouter())
 	auth.Router(router.PathPrefix("/auth").Subrouter())
 
