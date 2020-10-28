@@ -4,6 +4,7 @@ import (
 	"bookateria-api-go/log"
 	"encoding/json"
 	"github.com/gorilla/mux"
+	"fmt"
 	"net/http"
 	"strconv"
 )
@@ -21,7 +22,7 @@ type Response struct {
 func GetDocuments(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	// Load data from DB
-	db.Find(&documents)
+	db.Find(&documents) 
 	err := json.NewEncoder(w).Encode(documents)
 	log.Handler("warning", "JSON encoder error", err)
 	return
@@ -31,6 +32,20 @@ func GetDocument(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 	documentID := params["id"]
+	documentExists, _ := FilterBy("id", documentID)
+
+	// Check If The Document Exists
+	if !documentExists {
+		// If The Document Doesn't Exist
+		// Users Shouldn't Be Allowed To Modify What Doesn't Exists
+
+		w.WriteHeader(http.StatusNotFound)
+		err := json.NewEncoder(w).Encode(Response{Message: "The document doesn't exist"})
+		log.Handler("info", "The Document To Be Updated Does Not Exists", err)
+		return
+
+	}
+
 	db.First(&document, documentID)
 	err := json.NewEncoder(w).Encode(document)
 	log.Handler("warning", "JSON encoder error", err)
@@ -64,6 +79,21 @@ func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	err := json.NewDecoder(r.Body).Decode(&document)
 	log.Handler("warning", "JSON decoder error", err)
+	documentID := fmt.Sprint(document.ID)
+	documentExists, _ := FilterBy("id", documentID)
+
+	// Check If The Document Exists
+	if !documentExists {
+		// If The Document Doesn't Exist
+		// Users Shouldn't Be Allowed To Modify What Doesn't Exists
+
+		w.WriteHeader(http.StatusNotFound)
+		err := json.NewEncoder(w).Encode(Response{Message: "The document doesn't exist"})
+		log.Handler("info", "The Document To Be Updated Does Not Exists", err)
+		return
+
+	}
+
 	db.Save(&document)
 	err = json.NewEncoder(w).Encode(document)
 	log.Handler("warning", "JSON encoder error", err)

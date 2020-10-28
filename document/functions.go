@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"strconv"
 )
 
 
@@ -35,4 +36,20 @@ func CheckDuplicate(document *Document) bool {
 	var count int64
 	db.Model(&Document{}).Where("title = ? AND edition = ? AND author = ?", document.Title, document.Edition, document.Author).Count(&count)	
 	return count > 0
+}
+
+func FilterBy(queryType string, queryValue string) (bool, []Document) {
+	var count int64
+	switch queryType {
+		case "id":
+			id, _ := strconv.Atoi(queryValue)
+			db.Model(&Document{}).Where("id = ?", id).Count(&count)
+			return count > 0, nil
+		case "title":
+			//Todo 
+		case "author":
+			//Todo		
+	}
+	return true, nil
+	
 }
