@@ -4,7 +4,6 @@ import (
 	"bookateria-api-go/log"
 	"encoding/json"
 	"github.com/gorilla/mux"
-	"fmt"
 	"net/http"
 	"strconv"
 )
@@ -79,7 +78,7 @@ func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	err := json.NewDecoder(r.Body).Decode(&document)
 	log.Handler("warning", "JSON decoder error", err)
-	documentID := fmt.Sprint(document.ID)
+	documentID := strconv.FormatUint(uint64(document.ID), 10)
 	documentExists, _ := FilterBy("id", documentID)
 
 	// Check If The Document Exists
