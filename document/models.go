@@ -9,8 +9,10 @@ import (
 )
 
 type Document struct {
+	gorm.Model
 	ID		uint 	`json:"id" gorm:"primaryKey;autoIncrement"`
-	Title	string 	`json:"title" gorm:"not null;unique"`
+	Title	string 	`json:"title" gorm:"not null"`
+	Edition int32 	`json: "edition"`
 	Author	string 	`json:"author"`
 	Summary	string 	`json:"summary"`
 }
@@ -35,5 +37,11 @@ func InitDatabase() *gorm.DB {
 
 	log.Handler("warn", "Couldn't Migrate model to DB\n", err)
 	return db
+}
+
+func CheckDuplicate(document *Document) bool {
+	var count int64
+	db.Model(&Document{}).Where("title = ? AND edition = ? AND author = ?", document.Title, document.Edition, document.Author).Count(&count)	
+	return count > 0
 }
 

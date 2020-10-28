@@ -14,6 +14,10 @@ var (
 	db = InitDatabase()
 )
 
+type Response struct {
+	Message string `json:"message"`
+}
+
 func GetDocuments(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	// Load data from DB
@@ -37,6 +41,19 @@ func PostDocument(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	err := json.NewDecoder(r.Body).Decode(&document)
 	log.Handler("warning", "JSON decoder error", err)
+
+	// Check If The Document Is A Duplicate Before Processing It
+	isDuplicate := CheckDuplicate(&document)
+	if isDuplicate {
+		// The Document Is A Duplicate
+		// Duplicate Documents Not Allowed
+
+		w.WriteHeader(http.StatusConflict)
+		err := json.NewEncoder(w).Encode(Response{Message: "The document is a duplicate"})
+		log.Handler("info", "Duplicate Document Detected", err)
+		return
+	}
+
 	db.Create(&document)
 	err = json.NewEncoder(w).Encode(document)
 	log.Handler("warning", "JSON encoder error", err)
@@ -46,7 +63,6 @@ func PostDocument(w http.ResponseWriter, r *http.Request) {
 func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	err := json.NewDecoder(r.Body).Decode(&document)
-
 	log.Handler("warning", "JSON decoder error", err)
 	db.Save(&document)
 	err = json.NewEncoder(w).Encode(document)
