@@ -112,7 +112,20 @@ func DeleteDocument(w http.ResponseWriter, r *http.Request) {
 	id := params["id"]
 	idInUint, _ := strconv.ParseUint(id, 10, 64)
 	idToDelete := uint(idInUint)
-	db.Where("document_id = ?", idToDelete).Delete(&Document{})
+
+	//Check If The Document to Delete Exists
+	if !DocumentExists(idToDelete) {
+		//Deletion Of Non-Existent Documents Is Not Permitted
+		//Throw An Error
+
+		w.WriteHeader(http.StatusNotFound)
+		err := json.NewEncoder(w).Encode(Response{Message: "The document doesn't exist"})
+		log.Handler("info", "The Document To Be Updated Does Not Exists", err)
+		return
+
+	}
+	
+	db.Where("id = ?", idToDelete).Delete(&document)
 	w.WriteHeader(http.StatusNoContent)
 	log.Handler("info", "Document deleted", nil)
 }
