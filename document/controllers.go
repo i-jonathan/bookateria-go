@@ -31,10 +31,10 @@ func GetDocument(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 	documentID := params["id"]
-	documentExists, _ := FilterBy("id", documentID)
+	ID, _ := strconv.ParseUint(documentID, 10, 0)
 
 	// Check If The Document Exists
-	if !documentExists {
+	if !DocumentExists(uint(ID)) {
 		// If The Document Doesn't Exist
 		// Users Shouldn't Be Allowed To Modify What Doesn't Exists
 
@@ -78,11 +78,12 @@ func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	err := json.NewDecoder(r.Body).Decode(&document)
 	log.Handler("warning", "JSON decoder error", err)
-	documentID := strconv.FormatUint(uint64(document.ID), 10)
-	documentExists, _ := FilterBy("id", documentID)
+	params := mux.Vars(r)
+	idToUpdate, _ := strconv.ParseUint(params["id"], 10, 0)
+	//documentID := strconv.FormatUint(uint64(document.ID), 10)
 
 	// Check If The Document Exists
-	if !documentExists {
+	if !DocumentExists(uint(idToUpdate)) {
 		// If The Document Doesn't Exist
 		// Users Shouldn't Be Allowed To Modify What Doesn't Exists
 
@@ -91,6 +92,14 @@ func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 		log.Handler("info", "The Document To Be Updated Does Not Exists", err)
 		return
 
+	}
+
+	// Checks If A Document Like That Already Exists
+	if CheckDuplicate(&document) {
+		w.WriteHeader(http.StatusConflict)
+		err := json.NewEncoder(w).Encode(Response{Message: "The document is a duplicate"})
+		log.Handler("info", "Duplicate Document Detected", err)
+		return
 	}
 
 	db.Save(&document)
