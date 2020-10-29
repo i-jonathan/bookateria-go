@@ -19,33 +19,33 @@ var (
 	jwtKey      = []byte(fmt.Sprintf("%s", viperConfig.Get("settings.key")))
 	db          = account.InitDatabase()
 	redisDb, _  = strconv.Atoi(fmt.Sprintf("%d", viperConfig.Get("redis.database")))
-	ctx 		= context.Background()
+	ctx         = context.Background()
 	redisClient = redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s", viperConfig.Get("redis.address")),
 		Password: fmt.Sprintf("%s", viperConfig.Get("redis.password")),
 		DB:       redisDb,
 	})
-	user        account.User
-	cred        Credentials
+	user account.User
+	cred Credentials
 )
 
 type TokenResponse struct {
-	Name	string 		`json:"name"`
-	Value	string		`json:"value"`
-	Expiry	time.Time 	`json:"expiry"`
+	Name   string    `json:"name"`
+	Value  string    `json:"value"`
+	Expiry time.Time `json:"expiry"`
 }
 
 type Response struct {
-	Message	string `json:"message"`
+	Message string `json:"message"`
 }
 
 type Credentials struct {
-	Password	string	`json:"password"`
-	Email		string	`json:"email"`
+	Password string `json:"password"`
+	Email    string `json:"email"`
 }
 
 type Claims struct {
-	Email	string	`json:"email"`
+	Email string `json:"email"`
 	jwt.StandardClaims
 }
 
@@ -75,7 +75,7 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 	expirationTime := time.Now().Add(5 * time.Minute)
 
 	claims := Claims{
-		Email:          cred.Email,
+		Email: cred.Email,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},
@@ -97,16 +97,16 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 		Value:  tokenString,
 		Expiry: expirationTime,
 	})
-	redisT, err := redisClient.Get(ctx, user.Email).Result()
-	if err != nil {
-		if err == redis.Nil {
-			fmt.Println("key does not exists")
-			return
-		}
-		panic(err)
-	}
-
-	fmt.Println(redisT)
+	//redisT, err := redisClient.Get(ctx, user.Email).Result()
+	//if err != nil {
+	//	if err == redis.Nil {
+	//		fmt.Println("key does not exists")
+	//		return
+	//	}
+	//	panic(err)
+	//}
+	//
+	//fmt.Println(redisT)
 	return
 }
 
