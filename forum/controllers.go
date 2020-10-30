@@ -82,7 +82,7 @@ func DeleteQuestion(w http.ResponseWriter, r *http.Request) {
 func GetQuestionUpVotes(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
-	idInUint, _ := strconv.ParseUint(params["id"], 10, 64)
+	idInUint, _ := strconv.ParseUint(params["qid"], 10, 64)
 	questionID := uint(idInUint)
 	db.Where("questionupvote_question_id = ?", questionID).Find(&questionUpVotes)
 	err := json.NewEncoder(w).Encode(questionUpVotes)
@@ -93,7 +93,7 @@ func GetQuestionUpVotes(w http.ResponseWriter, r *http.Request) {
 func PostQuestionUpVote(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
-	idInUint, _ := strconv.ParseUint(params["id"], 10, 64)
+	idInUint, _ := strconv.ParseUint(params["qid"], 10, 64)
 	questionID := uint(idInUint)
 	db.First(&question, questionID)
 	_, email := core.GetTokenEmail(w, r)
@@ -109,7 +109,7 @@ func PostQuestionUpVote(w http.ResponseWriter, r *http.Request) {
 func DeleteQuestionUpvote(w http.ResponseWriter, r *http.Request) {
 	_, email := core.GetTokenEmail(w, r)
 	params := mux.Vars(r)
-	idInUint, _ := strconv.ParseUint(params["id"], 10, 64)
+	idInUint, _ := strconv.ParseUint(params["qid"], 10, 64)
 	questionID := uint(idInUint)
 	db.Find(&user, "email = ?", strings.ToLower(email))
 	db.Where("questionupvote_question_id = ?", questionID).Where(
@@ -177,7 +177,7 @@ func DeleteAnswer(w http.ResponseWriter, r *http.Request) {
 func GetAnswerUpVotes(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
-	idInUint, _ := strconv.ParseUint(params["id"], 10, 64)
+	idInUint, _ := strconv.ParseUint(params["aid"], 10, 64)
 	answerID := uint(idInUint)
 	db.Where("answerupvote_answer_id = ?", answerID).Find(&answerUpVotes)
 	err := json.NewEncoder(w).Encode(answerUpVotes)
@@ -188,7 +188,7 @@ func GetAnswerUpVotes(w http.ResponseWriter, r *http.Request) {
 func PostAnswerUpVote(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
-	idInUint, _ := strconv.ParseUint(params["id"], 10, 64)
+	idInUint, _ := strconv.ParseUint(params["aid"], 10, 64)
 	answerID := uint(idInUint)
 	db.First(&answer, answerID)
 	_, email := core.GetTokenEmail(w, r)
@@ -204,7 +204,7 @@ func PostAnswerUpVote(w http.ResponseWriter, r *http.Request) {
 func DeleteAnswerUpvote(w http.ResponseWriter, r *http.Request) {
 	_, email := core.GetTokenEmail(w, r)
 	params := mux.Vars(r)
-	idInUint, _ := strconv.ParseUint(params["id"], 10, 64)
+	idInUint, _ := strconv.ParseUint(params["aid"], 10, 64)
 	answerID := uint(idInUint)
 	db.Find(&user, "email = ?", strings.ToLower(email))
 	db.Where("answerupvote_answer_id = ?", answerID).Where(
