@@ -11,11 +11,11 @@ type QuestionRequest struct {
 
 type QuestionResponse struct {
 	gorm.Model
-	Title        string        `json:"title"`
-	Description  string        `json:"description"`
+	Title        string `json:"title"`
+	Description  string `json:"description"`
 	QuestionTags []TagsResponse
-	UpVotes      int           `json:"up_votes"`
-	UpVoters	[]QUpVotesResponse
+	UpVotes      int `json:"up_votes"`
+	UpVoters     []QUpVotesResponse
 }
 
 type TagsResponse struct {
@@ -24,12 +24,12 @@ type TagsResponse struct {
 }
 
 type QUpVotesResponse struct {
-	User	User
+	User User
 }
 
 type User struct {
-	UserName	string
-	Email		string
-	FirstName	string
-	LastName	string
+	UserName  string
+	Email     string
+	FirstName string
+	LastName  string
 }

@@ -13,16 +13,16 @@ import (
 )
 
 var (
-	answerUpVotes []AnswerUpvote
-	answerUpVote AnswerUpvote
-	answers []Answer
-	answer Answer
-	db = InitDatabase()
-	question Question
-	questions []Question
-	questionUpVote QuestionUpVote
+	answerUpVotes   []AnswerUpvote
+	answerUpVote    AnswerUpvote
+	answers         []Answer
+	answer          Answer
+	db              = InitDatabase()
+	question        Question
+	questions       []Question
+	questionUpVote  QuestionUpVote
 	questionUpVotes []QuestionUpVote
-	user account.User
+	user            account.User
 )
 
 type Response struct {
@@ -35,7 +35,7 @@ func GetQuestion(w http.ResponseWriter, r *http.Request) {
 	idInUint, _ := strconv.ParseUint(params["id"], 10, 64)
 	questionID := uint(idInUint)
 
-	if !QuestionExists(questionID) {
+	if !XExists(questionID, "question") {
 		// Checks if question exists
 		// If it doesn't return message accordingly
 		w.WriteHeader(http.StatusNotFound)
@@ -61,9 +61,6 @@ func GetQuestions(w http.ResponseWriter, _ *http.Request) {
 func PostQuestion(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	err := json.NewDecoder(r.Body).Decode(&question)
-	//for _, tag := range question.QuestionTags {
-	//	tag.QuestionID = question.ID
-	//}
 	log.Handler("warning", "JSON decoder error", err)
 	_, email := core.GetTokenEmail(w, r)
 	db.Find(&user, "email = ?", strings.ToLower(email))
@@ -141,7 +138,16 @@ func DeleteQuestionUpvote(w http.ResponseWriter, r *http.Request) {
 func GetAnswer(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
-	answerID := params["id"]
+	idInUint, _ := strconv.ParseUint(params["id"], 10, 64)
+	answerID := uint(idInUint)
+	if !XExists(answerID, "answer") {
+		// Checks if answer exists
+		// If it doesn't return message accordingly
+		w.WriteHeader(http.StatusNotFound)
+		err := json.NewEncoder(w).Encode(Response{Message: "Answer Not Found"})
+		log.Handler("info", "Answer not found", err)
+		return
+	}
 	db.First(&answer, answerID)
 	err := json.NewEncoder(w).Encode(answer)
 	log.Handler("info", "JSON Encoder error", err)
