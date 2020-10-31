@@ -24,12 +24,26 @@ var (
 	user account.User
 )
 
+type Response struct {
+	Message string `json:"message"`
+}
+
 func GetQuestion(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 	idInUint, _ := strconv.ParseUint(params["id"], 10, 64)
 	questionID := uint(idInUint)
-	db.First(&question, questionID)
+
+	if !QuestionExists(questionID) {
+		// Checks if question exists
+		// If it doesn't return message accordingly
+		w.WriteHeader(http.StatusNotFound)
+		err := json.NewEncoder(w).Encode(Response{Message: "Question Not Found"})
+		log.Handler("info", "Question not found", err)
+		return
+	}
+
+	db.Preload(clause.Associations).First(&question, questionID)
 	err := json.NewEncoder(w).Encode(question)
 	log.Handler("info", "JSON Encoder error", err)
 	return
