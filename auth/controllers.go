@@ -89,7 +89,7 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 	}
 	err = redisClient.Set(ctx, user.Email, tokenString, 5*time.Minute).Err()
 	if err != nil {
-		panic(err)
+		//panic(err)
 	}
 
 	_ = json.NewEncoder(w).Encode(TokenResponse{
@@ -103,7 +103,7 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("key does not exists")
 			return
 		}
-		panic(err)
+		//panic(err)
 	}
 
 	fmt.Println(redisT)
