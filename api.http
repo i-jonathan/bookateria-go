@@ -1,0 +1,39 @@
+POST http://localhost:5000/forum/question
+Content-Type: application/json
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImpvbmF0aGFuZmFyaW5sb3llQG91dGxvb2suY29tIiwiZXhwIjoxNjA0MTAzNTk1fQ.ezqbnvShR2u_1TJj3taTtBPIr_QONR67eCVi6s77x6w
+
+{
+"title": "Test Question Three",
+  "description": "Shall we see if get affects it??"
+}
+
+###
+
+POST http://localhost:5000/auth/login
+Content-Type: application/json
+
+{
+"email": "jonathanfarinloye@outlook.com",
+  "password": "TestingMic1!"
+}
+
+###
+
+POST http://localhost:5000/account
+Content-Type: application/json
+
+{
+  "email": "jonathanfarinloye@outlook.com",
+  "first_name": "One",
+  "last_name": "T",
+  "password": "TestingMic1!",
+  "user_name": "family man"
+}
+
+###
+
+GET http://localhost:5000/forum/question/100
+Content-Type: application/json
+
+###
+DELETE http://localhost:5000/forum/question/1
