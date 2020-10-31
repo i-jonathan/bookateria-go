@@ -6,6 +6,7 @@ import (
 	"bookateria-api-go/log"
 	"encoding/json"
 	"github.com/gorilla/mux"
+	"gorm.io/gorm/clause"
 	"net/http"
 	"strconv"
 	"strings"
@@ -51,7 +52,7 @@ func GetQuestion(w http.ResponseWriter, r *http.Request) {
 
 func GetQuestions(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	db.Find(&questions)
+	db.Preload(clause.Associations).Find(&questions)
 	err := json.NewEncoder(w).Encode(questions)
 	log.Handler("info", "JSON Encoder error", err)
 	return
@@ -60,6 +61,9 @@ func GetQuestions(w http.ResponseWriter, _ *http.Request) {
 func PostQuestion(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	err := json.NewDecoder(r.Body).Decode(&question)
+	//for _, tag := range question.QuestionTags {
+	//	tag.QuestionID = question.ID
+	//}
 	log.Handler("warning", "JSON decoder error", err)
 	_, email := core.GetTokenEmail(w, r)
 	db.Find(&user, "email = ?", strings.ToLower(email))
@@ -88,7 +92,7 @@ func DeleteQuestion(w http.ResponseWriter, r *http.Request) {
 	id := params["id"]
 	idInUint, _ := strconv.ParseUint(id, 10, 64)
 	idToDelete := uint(idInUint)
-	db.Delete(&Question{}, idToDelete)
+	db.Where("id = ?", idToDelete).Delete(&question)
 	w.WriteHeader(http.StatusNoContent)
 	log.Handler("info", "Question deleted", nil)
 }
@@ -127,7 +131,7 @@ func DeleteQuestionUpvote(w http.ResponseWriter, r *http.Request) {
 	questionID := uint(idInUint)
 	db.Find(&user, "email = ?", strings.ToLower(email))
 	db.Where("questionupvote_question_id = ?", questionID).Where(
-		"questionupvote_user_id = ?", user.ID).Delete(&QuestionUpVote{})
+		"questionupvote_user_id = ?", user.ID).Delete(&questionUpVote)
 	w.WriteHeader(http.StatusNoContent)
 	return
 }
@@ -183,7 +187,7 @@ func DeleteAnswer(w http.ResponseWriter, r *http.Request) {
 	id := params["id"]
 	idInUint, _ := strconv.ParseUint(id, 10, 64)
 	idToDelete := uint(idInUint)
-	db.Delete(&Answer{}, idToDelete)
+	db.Where("id = ?", idToDelete).Delete(&answer)
 	w.WriteHeader(http.StatusNoContent)
 	log.Handler("info", "Question deleted", nil)
 }
@@ -222,7 +226,7 @@ func DeleteAnswerUpvote(w http.ResponseWriter, r *http.Request) {
 	answerID := uint(idInUint)
 	db.Find(&user, "email = ?", strings.ToLower(email))
 	db.Where("answerupvote_answer_id = ?", answerID).Where(
-		"answerupvote_user_id = ?", user.ID).Delete(&AnswerUpvote{})
+		"answerupvote_user_id = ?", user.ID).Delete(&answerUpVote)
 	w.WriteHeader(http.StatusNoContent)
 	return
 }

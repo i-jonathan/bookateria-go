@@ -11,7 +11,7 @@ import (
 
 type QuestionTag struct {
 	gorm.Model
-	QuestionID int    `json:"question_id"`
+	QuestionID uint    `json:"question_id"`
 	Name       string `json:"name"`
 }
 
