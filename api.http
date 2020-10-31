@@ -1,10 +1,16 @@
 POST http://localhost:5000/forum/question
 Content-Type: application/json
-Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImpvbmF0aGFuZmFyaW5sb3llQG91dGxvb2suY29tIiwiZXhwIjoxNjA0MTAzNTk1fQ.ezqbnvShR2u_1TJj3taTtBPIr_QONR67eCVi6s77x6w
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImpvbmF0aGFuZmFyaW5sb3llQG91dGxvb2suY29tIiwiZXhwIjoxNjA0MTA3MTI0fQ.I7_cbFeKuRnhK1ttjga7EbLH1c3LjgXfTXxkPKnBrGk
 
 {
-"title": "Test Question Three",
-  "description": "Shall we see if get affects it??"
+"title": "Test Question 9",
+  "description": "s if get affects it??",
+  "tags": [{
+     "name": "one"
+  },
+    {
+      "name": "four"
+    }]
 }
 
 ###
