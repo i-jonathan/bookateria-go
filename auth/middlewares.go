@@ -16,7 +16,7 @@ func AuthorizationMiddleware(next http.Handler) http.Handler {
 				fmt.Println("key does not exists")
 				return
 			}
-			panic(err)
+			//panic(err)
 		}
 		tokenString, _ := token.SignedString(jwtKey)
 		if redisToken != tokenString {

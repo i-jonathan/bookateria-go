@@ -87,26 +87,17 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	err = redisClient.Set(ctx, user.Email, tokenString, 5*time.Minute).Err()
-	if err != nil {
-		//panic(err)
-	}
+	//err = redisClient.Set(ctx, user.Email, tokenString, 5*time.Minute).Err()
+	//if err != nil {
+	//	//panic(err)
+	//}
 
 	_ = json.NewEncoder(w).Encode(TokenResponse{
 		Name:   "Token",
 		Value:  tokenString,
 		Expiry: expirationTime,
 	})
-	redisT, err := redisClient.Get(ctx, user.Email).Result()
-	if err != nil {
-		if err == redis.Nil {
-			fmt.Println("key does not exists")
-			return
-		}
-		//panic(err)
-	}
 
-	fmt.Println(redisT)
 	return
 }
 
