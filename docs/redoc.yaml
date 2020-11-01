@@ -233,6 +233,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Question'
+      security:
+        - authorization: []
     delete:
       tags:
         - forum
@@ -246,6 +248,8 @@ paths:
       responses:
         204:
           description: Deleted
+      security:
+        - authorization: []
 
   /forum/question:
     post:
@@ -267,8 +271,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Question'
+      security:
+        - authorization: []
 
-  /forum/question/{id}/up-votes: #TODO adjust get up votes endpoint to take question id
+  /forum/question/{id}/up-votes:
     get:
       tags:
         - forum
@@ -312,6 +318,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/QuestionUpvote'
+      security:
+        - authorization: [ ]
 
   /forum/question/upvotes/{id}:
     delete:
@@ -327,6 +335,8 @@ paths:
       responses:
         204:
           description: Cancelled up vote successfully.
+      security:
+        - authorization: [ ]
 
 
   /forum/answer/all:
@@ -385,6 +395,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Answer'
+      security:
+        - authorization: [ ]
     delete:
       tags:
         - forum
@@ -398,6 +410,8 @@ paths:
       responses:
         204:
           description: Deleted
+      security:
+        - authorization: [ ]
 
   /forum/answer:
     post:
@@ -419,6 +433,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Answer'
+      security:
+        - authorization: [ ]
 
   /forum/answer/{id}/up-votes: #TODO adjust get up votes endpoint to take answer id
     get:
@@ -464,6 +480,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AnswerUpvote'
+      security:
+        - authorization: [ ]
 
   /forum/answer/upvotes/{id}:
     delete:
@@ -479,6 +497,8 @@ paths:
       responses:
         204:
           description: Cancelled up vote successfully.
+      security:
+        - authorization: [ ]
 
 # Models
 components:
