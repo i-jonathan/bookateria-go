@@ -25,7 +25,7 @@ func GetTokenEmail(w http.ResponseWriter, r *http.Request) (*jwt.Token, string) 
 	viperConfig := ReadViper()
 	jwtKey := []byte(fmt.Sprintf("%s", viperConfig.Get("settings.key")))
 	if authorization == "" {
-		w.WriteHeader(http.StatusUnauthorized)
+		//w.WriteHeader(http.StatusUnauthorized)
 		return nil, ""
 	}
 
@@ -36,7 +36,7 @@ func GetTokenEmail(w http.ResponseWriter, r *http.Request) (*jwt.Token, string) 
 	claims, ok := token.Claims.(*Claims)
 	if ok && token.Valid {
 	} else {
-		w.WriteHeader(http.StatusUnauthorized)
+		//w.WriteHeader(http.StatusUnauthorized)
 		return nil, ""
 	}
 
