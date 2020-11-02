@@ -11,21 +11,14 @@ import (
 	"net/http"
 )
 
-func main() {
+func main()  {
 	router := mux.NewRouter()
 	// Documentation route
 	fs := http.FileServer(http.Dir("./docs"))
 	router.PathPrefix("/docs/").Handler(http.StripPrefix("/docs/", fs))
-
-	// Routes for Documents
 	versionRouter := router.PathPrefix("/v1").Subrouter()
-	subRouter := versionRouter.PathPrefix("/document").Subrouter()
-	subRouter.HandleFunc("", document.GetDocuments).Methods("GET")
-	subRouter.HandleFunc("/{id}", document.GetDocument).Methods("GET")
-	subRouter.HandleFunc("", document.PostDocument).Methods("POST")
-	subRouter.HandleFunc("/{id}", document.UpdateDocument).Methods("POST")
-	subRouter.HandleFunc("/{id}", document.DeleteDocument).Methods("DELETE")
 
+	document.Router(versionRouter.PathPrefix("/document").Subrouter())
 	account.Router(versionRouter.PathPrefix("/account").Subrouter())
 	auth.Router(versionRouter.PathPrefix("/auth").Subrouter())
 	forum.Router(versionRouter.PathPrefix("/forum").Subrouter())
