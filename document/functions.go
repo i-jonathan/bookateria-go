@@ -26,6 +26,7 @@ func InitDatabase() *gorm.DB {
 	log.Handler("panic", "Couldn't connect to DB\n", err)
 	
 	err = db.AutoMigrate(&Document{})
+	err = db.AutoMigrate(&Tag{})
 
 	log.Handler("warn", "Couldn't Migrate model to DB\n", err)
 	return db
@@ -33,11 +34,11 @@ func InitDatabase() *gorm.DB {
 
 func CheckDuplicate(document *Document) bool {
 	var count int64
-	db.Model(&Document{}).Where("title LIKE ? AND edition = ? AND author LIKE ?", document.Title, document.Edition, document.Author).Count(&count)	
+	db.Model(&Document{}).Where("NOT id = ? AND title LIKE ? AND edition = ? AND author LIKE ? ", document.Title, document.Edition, document.Author).Count(&count)	
 	return count > 0
 }
 
-func DocumentExists(id uint) bool {
+func XExists(id uint) bool {
 	var count int64
 	db.Model(&Document{}).Where("id = ?", id).Count(&count)
 	return count > 0
