@@ -34,7 +34,7 @@ func InitDatabase() *gorm.DB {
 
 func CheckDuplicate(document *Document) bool {
 	var count int64
-	db.Model(&Document{}).Where("NOT id = ? AND title LIKE ? AND edition = ? AND author LIKE ? ", document.Title, document.Edition, document.Author).Count(&count)	
+	db.Model(&Document{}).Where("title LIKE ? AND edition = ? AND author LIKE ? ", document.Title, document.Edition, document.Author).Count(&count)
 	return count > 0
 }
 
