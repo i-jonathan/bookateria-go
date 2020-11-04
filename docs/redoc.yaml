@@ -202,18 +202,18 @@ paths:
               schema:
                 $ref: '#/components/schemas/Question'
 
-  /forum/question/{id}:
+  /forum/question/{slug}:
     get:
       tags:
         - forum
       summary: Get a specific question by ID
       description: Get a question by it's ID
       parameters:
-        - name: id
+        - name: slug
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       responses:
         200:
           description: OK
@@ -232,11 +232,11 @@ paths:
             schema:
               $ref: '#/components/schemas/PostQuestion'
       parameters:
-        - name: id
+        - name: slug
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       responses:
         200:
           description: OK
@@ -251,11 +251,11 @@ paths:
         - forum
       summary: Delete created question
       parameters:
-        - name: id
+        - name: slug
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       responses:
         204:
           description: Deleted
@@ -285,17 +285,17 @@ paths:
       security:
         - authorization: []
 
-  /forum/question/{id}/up-votes:
+  /forum/question/{slug}/up-votes:
     get:
       tags:
         - forum
       summary: Get all upvotes on a question, specified by id
       parameters:
-        - name: id
+        - name: slug
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       responses:
         200:
           description: OK
@@ -308,11 +308,11 @@ paths:
         - forum
       summary: Upvote a question
       parameters:
-        - name: id
+        - name: slug
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       requestBody:
         description: Click the upvote botton, send the request here
         content:
@@ -332,17 +332,24 @@ paths:
       security:
         - authorization: [ ]
 
-  /forum/question/upvotes/{id}:
+  /forum/question/{slug}/up-votes/{id}:
     delete:
       tags:
         - forum
       summary: Cancel upvote on a question
       parameters:
         - name: id
+          description: up-vote ID
           in: path
           required: true
           schema:
             type: integer
+        - name: slug
+          description: Question slug
+          in: path
+          required: true
+          schema:
+            type: string
       responses:
         204:
           description: Cancelled up vote successfully.
@@ -365,18 +372,18 @@ paths:
                 items:
                   - $ref: '#/components/schemas/Answer'
 
-  /forum/answer/{id}:
+  /forum/answer/{slug}:
     get:
       tags:
         - forum
       summary: Get a specific answer by ID
       description: Get a answer by it's ID
       parameters:
-        - name: id
+        - name: slug
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       responses:
         200:
           description: OK
@@ -395,11 +402,11 @@ paths:
             schema:
               $ref: '#/components/schemas/PostAnswer'
       parameters:
-        - name: id
+        - name: slug
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       responses:
         200:
           description: OK
@@ -414,11 +421,11 @@ paths:
         - forum
       summary: Delete answer
       parameters:
-        - name: id
+        - name: slug
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       responses:
         204:
           description: Deleted
@@ -448,17 +455,18 @@ paths:
       security:
         - authorization: [ ]
 
-  /forum/answer/{id}/up-votes:
+  /forum/answer/{slug}/up-votes:
     get:
       tags:
         - forum
       summary: Get all upvotes on a answer, specified by id
       parameters:
-        - name: id
+        - name: slug
+          description: Answer slug
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       responses:
         200:
           description: OK
@@ -471,11 +479,12 @@ paths:
         - forum
       summary: Upvote a answer
       parameters:
-        - name: id
+        - name: slug
+          description: Answer slug
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       requestBody:
         description: Click the upvote botton, send the request here
         content:
@@ -495,17 +504,24 @@ paths:
       security:
         - authorization: [ ]
 
-  /forum/answer/upvotes/{id}:
+  /forum/answer/{slug}/up-votes/{id}:
     delete:
       tags:
         - forum
       summary: Cancel upvote on a answer
       parameters:
-        - name: id
+        - name: slug
+          description: Answer slug
           in: path
           required: true
           schema:
-            type: integer
+            type: string
+        - name: id
+          description: Up vote ID
+          in: path
+          required: true
+          schema:
+            type: string
       responses:
         204:
           description: Cancelled up vote successfully.
