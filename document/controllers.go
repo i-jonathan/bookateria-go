@@ -11,8 +11,8 @@ import (
 
 var (
 	documents []Document
-	document Document
-	db = InitDatabase()
+	document  Document
+	db        = InitDatabase()
 )
 
 type Response struct {
