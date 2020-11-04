@@ -1,0 +1,27 @@
+{
+  "swagger": "2.0",
+  "paths": {
+    "/document": {
+      "get": {
+        "description": "Returns 204 without content",
+        "tags": [
+          "document"
+        ],
+        "summary": "Check if the service is running.",
+        "operationId": "Health",
+        "responses": {
+          "204": {
+            "description": "Service available"
+          }
+        }
+      }
+    }
+  },
+  "info": {
+    "contact": {
+      
+    },
+    "version": "1.0",
+    "title": "Bookateria API"
+  }
+}
