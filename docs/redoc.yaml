@@ -20,6 +20,8 @@ tags:
   - name: forum
     description: Thing you can do on Forum. Netflix and chill stuff
 paths:
+  # Authorization paths
+
   /auth/login:
     post:
       tags:
@@ -53,6 +55,7 @@ paths:
           description: Unauthorized. Wrong Details
           content: {}
       x-codegen-request-body-name: body
+
   /auth/refresh:
     get:
       tags:
@@ -87,6 +90,7 @@ paths:
           content: {}
       security:
         - authorization: []
+
   /auth/logout:
     post:
       tags:
@@ -115,6 +119,9 @@ paths:
           content: {}
       security:
         - authorization: []
+
+  # Account paths
+
   /account/all:
     get:
       tags:
@@ -128,6 +135,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
+
   /account/{id}:
     get:
       tags:
@@ -146,6 +154,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
+
   /account:
     post:
       tags:
@@ -176,6 +185,8 @@ paths:
                   message:
                     type: string
       x-codegen-request-body-name: body
+
+  # Forum paths
 
   /forum/question/all:
     get:
@@ -338,7 +349,6 @@ paths:
       security:
         - authorization: [ ]
 
-
   /forum/answer/all:
     get:
       tags:
@@ -351,7 +361,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Answer'
+                type: array
+                items:
+                  - $ref: '#/components/schemas/Answer'
 
   /forum/answer/{id}:
     get:
@@ -436,7 +448,7 @@ paths:
       security:
         - authorization: [ ]
 
-  /forum/answer/{id}/up-votes: #TODO adjust get up votes endpoint to take answer id
+  /forum/answer/{id}/up-votes:
     get:
       tags:
         - forum
@@ -499,6 +511,105 @@ paths:
           description: Cancelled up vote successfully.
       security:
         - authorization: [ ]
+
+  # Document paths
+
+  /document:
+    get:
+      tags:
+        - document
+      summary: Get all Documents
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  - $ref: '#/components/schemas/Document'
+    post:
+      tags:
+        - document
+      summary: Add a document
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostDocument'
+        required: true
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        409:
+          description: Duplicate document
+
+  /document/{id}:
+    get:
+      tags:
+        - document
+      summary: Get document by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        404:
+          description: Document doesn't exist
+
+    put:
+      tags:
+        - document
+      summary: Update a document
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostDocument'
+        required: true
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+    delete:
+      tags:
+        - document
+      summary: Delete a document
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        404:
+          description: Document not found
+        204:
+          description: Document deleted
+
+
+        # Models
 
 # Models
 components:
@@ -642,6 +753,32 @@ components:
           type: integer
         user_id:
           type: integer
+
+    Document:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        edition:
+          type: integer
+        author:
+          type: string
+        summary:
+          type: string
+
+    PostDocument:
+      type: object
+      properties:
+        title:
+          type: string
+        edition:
+            type: integer
+        author:
+            type: string
+        summary:
+            type: string
 
   securitySchemes:
     authorization:
