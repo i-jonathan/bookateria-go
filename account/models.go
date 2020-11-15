@@ -22,14 +22,15 @@ type User struct {
 	// For Returning Data, might have to create another struct that is used solely for reading from
 	// Seems there's no write only for json or gorm for that matter
 	gorm.Model
-	UserName	string		`json:"user_name"`
-	FirstName	string		`json:"first_name" gorm:"not null"`
-	LastName	string		`json:"last_name" gorm:"not null"`
-	Email		string		`json:"email" gorm:"not null;unique"`
-	IsAdmin		bool		`json:"is_admin" gorm:"default:false"`
-	Password 	string		`json:"password"`
-	LastLogin	time.Time	`json:"last_login"`
-	IsActive	bool		`json:"is_active" gorm:"default:false"`
+	UserName  string    `json:"user_name"`
+	FirstName string    `json:"first_name" gorm:"not null"`
+	LastName  string    `json:"last_name" gorm:"not null"`
+	Email     string    `json:"email" gorm:"not null;unique"`
+	IsAdmin   bool      `json:"is_admin" gorm:"default:false"`
+	Password  string    `json:"password"`
+	LastLogin time.Time `json:"last_login"`
+	IsActive  bool      `json:"is_active" gorm:"default:false"`
+	IsEmailVerified bool `json:"is_email_verified" gorm:"default:false"`
 }
 
 type Profile struct {
