@@ -4,6 +4,7 @@ import (
 	"bookateria-api-go/account"
 	"bookateria-api-go/auth"
 	"bookateria-api-go/document"
+	"bookateria-api-go/forum"
 	"bookateria-api-go/log"
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
@@ -12,16 +13,15 @@ import (
 
 func main()  {
 	router := mux.NewRouter()
-	// Routes for Documents
-	subRouter := router.PathPrefix("/document").Subrouter()
-	subRouter.HandleFunc("", document.GetDocuments).Methods("GET")
-	subRouter.HandleFunc("/{id}", document.GetDocument).Methods("GET")
-	subRouter.HandleFunc("", document.PostDocument).Methods("POST")
-	subRouter.HandleFunc("/{id}", document.UpdateDocument).Methods("POST")
-	subRouter.HandleFunc("/{id}", document.DeleteDocument).Methods("DELETE")
+	// Documentation route
+	fs := http.FileServer(http.Dir("./docs"))
+	router.PathPrefix("/docs/").Handler(http.StripPrefix("/docs/", fs))
+	versionRouter := router.PathPrefix("/v1").Subrouter()
 
-	account.Router(router.PathPrefix("/account").Subrouter())
-	auth.Router(router.PathPrefix("/auth").Subrouter())
+	document.Router(versionRouter.PathPrefix("/document").Subrouter())
+	account.Router(versionRouter.PathPrefix("/account").Subrouter())
+	auth.Router(versionRouter.PathPrefix("/auth").Subrouter())
+	forum.Router(versionRouter.PathPrefix("/forum").Subrouter())
 
 	loggerMgr := log.InitLog()
 	zap.ReplaceGlobals(loggerMgr)
