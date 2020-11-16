@@ -32,6 +32,11 @@ type OTP struct {
 	Email string `json:"email"`
 	Pin	string	`json:"pin"`
 }
+
+type OTPRequest struct {
+	Email string `json:"email"`
+}
+
 type Response struct {
 	Message string `json:"message"`
 }
@@ -184,6 +189,37 @@ func VerifyEmail(w http.ResponseWriter, r *http.Request) {
 	user.IsEmailVerified = true
 	db.Save(&user)
 	err = json.NewEncoder(w).Encode(Response{Message: "Your Email has been Verified. You can now Login"})
+	return
+
+}
+
+func RequestOTP(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	var (
+		data OTPRequest
+		storedOTP string
+		messageBody string
+	)
+
+	err := json.NewDecoder(r.Body).Decode(&data)
+
+	db.Find(&user, "email = ?", data.Email)
+	key := "new_user_otp_" + data.Email
+	storedOTP, err = redisClient.Get(ctx, key).Result()
+
+	if storedOTP != "" {
+		messageBody = fmt.Sprintf("Your OTP is: %s", storedOTP)
+	} else {
+		verifiableToken := GenerateOTP()
+		err = redisClient.Set(ctx, key, verifiableToken, 30*time.Minute).Err()
+		log.Handler("info", "Redis Error", err)
+		messageBody = fmt.Sprintf("Your OTP is: %s", verifiableToken)
+	}
+
+	core.SendEmail(data.Email, "Verify Email", "OTP for Email verification", messageBody)
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(Response{Message: "OTP has been sent to mail"})
+	log.Handler("info", "JSON Encoder", err)
 	return
 
 }

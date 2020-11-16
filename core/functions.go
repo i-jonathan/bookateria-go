@@ -8,6 +8,11 @@ import (
 	"net/smtp"
 )
 
+type Claims struct {
+	Email string `json:"email"`
+	jwt.StandardClaims
+}
+
 func ReadViper() *viper.Viper {
 	viperConfig := viper.New()
 	viperConfig.SetConfigFile("config.yaml")
