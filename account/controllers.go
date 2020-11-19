@@ -141,9 +141,21 @@ func PostUser(w http.ResponseWriter, r *http.Request) {
 	//	Do stuff
 	}
 
-	messageBody := fmt.Sprintf("Your Token is: %s", verifiableToken)
+	payload := struct {
+		Token string
+	}{
+		Token: verifiableToken,
+	}
 
-	core.SendEmail(email, "Verify Email", "Verify your Email", messageBody)
+	var status bool
+
+	status, err = core.SendEmailNoAttachment(email, "OTP for Verification", payload, "token.txt")
+	if !status {
+		// TODO Log error.
+		w.WriteHeader(http.StatusInternalServerError)
+		err = json.NewEncoder(w).Encode(Response{Message: "Email not sent. Server Error"})
+		log.Handler("info", "JSON Encoder", err)
+	}
 	log.Handler("warning", "JSON encoder error", err)
 	return
 }
@@ -198,7 +210,6 @@ func RequestOTP(w http.ResponseWriter, r *http.Request) {
 	var (
 		data OTPRequest
 		storedOTP string
-		messageBody string
 	)
 
 	err := json.NewDecoder(r.Body).Decode(&data)
@@ -207,16 +218,25 @@ func RequestOTP(w http.ResponseWriter, r *http.Request) {
 	key := "new_user_otp_" + data.Email
 	storedOTP, err = redisClient.Get(ctx, key).Result()
 
-	if storedOTP != "" {
-		messageBody = fmt.Sprintf("Your OTP is: %s", storedOTP)
-	} else {
+	if storedOTP == "" {
 		verifiableToken := GenerateOTP()
 		err = redisClient.Set(ctx, key, verifiableToken, 30*time.Minute).Err()
-		log.Handler("info", "Redis Error", err)
-		messageBody = fmt.Sprintf("Your OTP is: %s", verifiableToken)
+		storedOTP = verifiableToken
 	}
 
-	core.SendEmail(data.Email, "Verify Email", "OTP for Email verification", messageBody)
+	payload := struct {
+		Token string
+	}{
+		Token: storedOTP,
+	}
+	var status bool
+	status, err = core.SendEmailNoAttachment(data.Email, "OTP for Verification", payload, "token.txt")
+	if !status {
+		// TODO Log error.
+		w.WriteHeader(http.StatusInternalServerError)
+		err = json.NewEncoder(w).Encode(Response{Message: "Email not sent. Server Error"})
+		log.Handler("info", "JSON Encoder", err)
+	}
 	w.WriteHeader(http.StatusOK)
 	err = json.NewEncoder(w).Encode(Response{Message: "OTP has been sent to mail"})
 	log.Handler("info", "JSON Encoder", err)

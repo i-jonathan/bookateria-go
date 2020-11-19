@@ -5,7 +5,6 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/spf13/viper"
 	"net/http"
-	"net/smtp"
 )
 
 type Claims struct {
@@ -44,33 +43,4 @@ func GetTokenEmail(w http.ResponseWriter, r *http.Request) (*jwt.Token, string) 
 	email := claims.Email
 
 	return token, email
-}
-
-func SendEmail(to, from, subject, messageBody string) bool {
-	viperConfig := ReadViper()
-	fromMail := fmt.Sprintf("%s", viperConfig.Get("email.address"))
-	password := fmt.Sprintf("%s", viperConfig.Get("email.password"))
-
-	toMail := []string{
-		to,
-	}
-
-	smtpHost := fmt.Sprintf("%s", viperConfig.Get("email.host"))
-	smtpPort := fmt.Sprintf("%d", viperConfig.Get("email.port"))
-	auth := smtp.PlainAuth("", fromMail, password, smtpHost)
-
-	//message := fmt.Sprintf("From: %s\r\n To: %s\r\n Subject: %s\r\n\r\n %s\r\n", from, to, subject, messageBody)
-	message := "From: "+ from +"\r\n " +
-		"To:" + to + "\r\n" +
-		"Subject:" + subject + "\r\n" +
-		"\r\n" +
-		messageBody + ".\r\n"
-
-	err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, toMail, []byte(message))
-	if err != nil {
-		fmt.Println(err)
-		return false
-	}
-	fmt.Println("Sent")
-	return true
 }
