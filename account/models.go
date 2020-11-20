@@ -30,6 +30,7 @@ type User struct {
 	Password  string    `json:"password"`
 	LastLogin time.Time `json:"last_login"`
 	IsActive  bool      `json:"is_active" gorm:"default:false"`
+	IsEmailVerified bool `json:"is_email_verified" gorm:"default:false"`
 }
 
 type Profile struct {

@@ -87,10 +87,10 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	//err = redisClient.Set(ctx, user.Email, tokenString, 5*time.Minute).Err()
-	//if err != nil {
-	//	//panic(err)
-	//}
+	err = redisClient.Set(ctx, user.Email, tokenString, 5*time.Minute).Err()
+	if err != nil {
+		//panic(err)
+	}
 
 	_ = json.NewEncoder(w).Encode(TokenResponse{
 		Name:   "Token",
