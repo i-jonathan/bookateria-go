@@ -2,8 +2,13 @@ package core
 
 import (
 	"fmt"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/spf13/viper"
+	"mime/multipart"
 	"net/http"
 )
 
@@ -43,4 +48,46 @@ func GetTokenEmail(w http.ResponseWriter, r *http.Request) (*jwt.Token, string) 
 	email := claims.Email
 
 	return token, email
+}
+
+func ConnectAWS() *session.Session {
+	viperConfig := ReadViper()
+	// This is used to connect to AWS with the credentials
+	accessKeyID := fmt.Sprintf("%s", viperConfig.Get("aws.accessKeyID"))
+	secretAccessKey := fmt.Sprintf("%s", viperConfig.Get("aws.secretAccessKey"))
+	bucketRegion := fmt.Sprintf("%s", viperConfig.Get("aws.region"))
+
+	sess, err := session.NewSession(
+		&aws.Config{
+			Credentials: credentials.NewStaticCredentials(accessKeyID, secretAccessKey, ""),
+			Region:      aws.String(bucketRegion),
+		})
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	return sess
+}
+
+func S3Upload(sess *session.Session, file multipart.File, filename string) (bool, error) {
+	// This takes a file from a multipart/form and uploads to an AWS S3 bucket
+	// Pass in the session from the ConnectAWS function, the file from the multipart form
+	// and the filename from header.filename
+
+	bucketName := fmt.Sprintf("%s", viperConfig.Get("aws.bucket"))
+
+	uploader := s3manager.NewUploader(sess)
+	_, err := uploader.Upload(&s3manager.UploadInput{
+		ACL: 	aws.String("public-read"),
+		Body:   file,
+		Bucket: aws.String(bucketName),
+		Key:    aws.String(filename),
+	})
+
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
