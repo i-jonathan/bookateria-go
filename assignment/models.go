@@ -12,6 +12,7 @@ type Question struct {
 	Description string    `json:"description"`
 	Deadline    time.Time `json:"deadline"`
 	User		account.User	`json:"user"`
+	QuestionSlug	string		`json:"question_slug"`
 }
 
 type Submission struct {
@@ -20,3 +21,4 @@ type Submission struct {
 	User 		account.User	`json:"user"`
 	FileSlug	string		`json:"file_slug"`
 }
+
