@@ -155,7 +155,7 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 	// Make sure to delete the token on the frontend too
 
 	w.Header().Set("Content-Type", "application/json")
-	_, email := core.GetTokenEmail(w, r)
+	_, email := core.GetTokenEmail(r)
 	redisClient.Del(ctx, email)
 	_ = json.NewEncoder(w).Encode(Response{Message: "Successfully logged out"})
 	return
