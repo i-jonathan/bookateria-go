@@ -3,7 +3,7 @@ module bookateria-api-go
 go 1.14
 
 require (
-	github.com/aws/aws-sdk-go v1.35.32 // indirect
+	github.com/aws/aws-sdk-go v1.35.32
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-redis/redis/v8 v8.3.2
 	github.com/gorilla/mux v1.8.0
@@ -21,7 +21,7 @@ require (
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.16.0
 	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897
-	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d // indirect
+	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/sys v0.0.0-20201026173827-119d4633e4d1 // indirect
 	golang.org/x/tools v0.0.0-20201023174141-c8cfbd0f21e6 // indirect
 	google.golang.org/api v0.13.0

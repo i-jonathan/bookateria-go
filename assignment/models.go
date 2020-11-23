@@ -8,17 +8,16 @@ import (
 
 type Question struct {
 	gorm.Model
-	Title       string    `json:"title"`
-	Description string    `json:"description"`
-	Deadline    time.Time `json:"deadline"`
-	User		account.User	`json:"user"`
-	QuestionSlug	string		`json:"question_slug"`
+	Title       string       `json:"title"`
+	Description string       `json:"description"`
+	Deadline    time.Time    `json:"deadline"`
+	User        account.User `json:"user"`
+	Slug        string       `json:"slug"`
 }
 
 type Submission struct {
 	gorm.Model
-	Question	Question	`json:"question"`
-	User 		account.User	`json:"user"`
-	FileSlug	string		`json:"file_slug"`
+	Question Question     `json:"question"`
+	User     account.User `json:"user"`
+	FileSlug string       `json:"file_slug"`
 }
-

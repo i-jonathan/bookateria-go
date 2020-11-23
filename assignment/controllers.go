@@ -10,16 +10,24 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+	"time"
 )
 
 var (
-	submission Submission
+	submission  Submission
 	submissions []Submission
-	question  Question
-	questions []Question
-	user      account.User
-	db        = InitDatabase()
+	question    Question
+	questions   []Question
+	user        account.User
+	db          = InitDatabase()
 )
+
+type QuestionRequest struct {
+	Title        string `json:"title"`
+	Description  string `json:"description"`
+	Deadline     string `json:"deadline"`
+	QuestionSlug string `json:"question_slug"`
+}
 
 type Response struct {
 	Message string
@@ -36,18 +44,27 @@ func PostQuestion(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var questionR QuestionRequest
 	db.Find(&user, "email = ?", strings.ToLower(email))
 
-	err := json.NewDecoder(r.Body).Decode(&question)
+	err := json.NewDecoder(r.Body).Decode(&questionR)
 	log.Handler("info", "Couldn't decode Body", err)
-	question.User = user
+
+	deadline, _ := time.Parse(time.RFC3339, questionR.Deadline)
 
 	// Remove all symbols and spaces to generate slug.
 	regex, _ := regexp.Compile("[^a-zA-Z0-9]+")
 	processed := regex.ReplaceAllString(question.Title, "")
 	slug := strings.ReplaceAll(processed, " ", "-")
 	//randInt, _ := rand.Int(rand.Reader, big.NewInt(9999))
-	question.QuestionSlug = slug
+
+	question = Question{
+		Title:       questionR.Title,
+		Description: questionR.Description,
+		Deadline:    deadline,
+		User:        user,
+		Slug:        slug,
+	}
 
 	db.Create(&question)
 	w.WriteHeader(http.StatusOK)
@@ -86,6 +103,87 @@ func GetQuestions(w http.ResponseWriter, _ *http.Request) {
 	return
 }
 
+func UpdateQuestion(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	// Get the logged in user
+	_, email := core.GetTokenEmail(r)
+	if email == "" {
+		w.WriteHeader(http.StatusUnauthorized)
+		err := json.NewEncoder(w).Encode(Response{Message: "Login Required"})
+		log.Handler("info", "JSON Encoder", err)
+		return
+	}
+
+	// Get question slug from url
+	params := mux.Vars(r)
+	slug := params["slug"]
+
+	// Check if question exists
+	if !XExists(slug, "question") {
+		w.WriteHeader(http.StatusNotFound)
+		err := json.NewEncoder(w).Encode(Response{Message: "The requested resource couldn't be located in this timeline"})
+		log.Handler("info", "JSON Encoder again", err)
+		return
+	}
+
+	db.Find(&question, "slug = ?", slug)
+
+	// Check if user has permission to edit. Meaning, did the logged in use create this?
+	if email != question.User.Email {
+		w.WriteHeader(http.StatusUnauthorized)
+		err := json.NewEncoder(w).Encode(Response{Message: "You do not have permissions to access here"})
+		log.Handler("info", "JSON Encoder", err)
+		return
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&question)
+	log.Handler("info", "JSON Decoder", err)
+	db.Save(&question)
+
+	err = json.NewEncoder(w).Encode(question)
+	log.Handler("info", "Really tired of doing this", err)
+	return
+}
+
+func DeleteQuestion(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	// Check if user is logged in
+	_, email := core.GetTokenEmail(r)
+	if email == "" {
+		w.WriteHeader(http.StatusUnauthorized)
+		err := json.NewEncoder(w).Encode(Response{Message: "Login Required"})
+		log.Handler("info", "JSON Encoder", err)
+		return
+	}
+
+	// Get slug
+	params := mux.Vars(r)
+	slug := params["slug"]
+
+	// Check if question exists
+	if !XExists(slug, "question") {
+		w.WriteHeader(http.StatusNotFound)
+		err := json.NewEncoder(w).Encode(Response{Message: "Resource not found"})
+		log.Handler("info", "JSON Encoder", err)
+		return
+	}
+
+	db.Find(&question, "slug = ?", slug)
+	// Check if logged in user is the creator
+	if email != question.User.Email {
+		w.WriteHeader(http.StatusUnauthorized)
+		err := json.NewEncoder(w).Encode(Response{Message: "You do not have that permissions"})
+		log.Handler("info", "JSON Encoder", err)
+	}
+
+	db.Where("slug = ?", slug).Delete(&question)
+	w.WriteHeader(http.StatusNoContent)
+	return
+}
+
+// Endpoints for Submissions
 func PostSubmission(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "multipart/form-data")
 	params := mux.Vars(r)
@@ -93,7 +191,7 @@ func PostSubmission(w http.ResponseWriter, r *http.Request) {
 
 	if !XExists(questionSlug, "question") {
 		w.WriteHeader(http.StatusNotFound)
-		err := json.NewEncoder(w).Encode(Response{Message:"Question not found"})
+		err := json.NewEncoder(w).Encode(Response{Message: "Question not found"})
 		log.Handler("info", "Json Encoder", err)
 		return
 	}
