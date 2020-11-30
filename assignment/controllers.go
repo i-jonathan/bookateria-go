@@ -29,17 +29,13 @@ type QuestionRequest struct {
 	QuestionSlug string `json:"question_slug"`
 }
 
-type Response struct {
-	Message string
-}
-
 func PostQuestion(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	_, email := core.GetTokenEmail(r)
 
 	if email == "" {
 		w.WriteHeader(http.StatusUnauthorized)
-		err := json.NewEncoder(w).Encode(Response{Message: "User not logged in."})
+		err := json.NewEncoder(w).Encode(core.FourOOne)
 		log.Handler("info", "Json Encoder ish", err)
 		return
 	}
@@ -81,7 +77,7 @@ func GetQuestion(w http.ResponseWriter, r *http.Request) {
 	if !XExists(slug, "question") {
 		// Checks if assignment question exists
 		w.WriteHeader(http.StatusNotFound)
-		err := json.NewEncoder(w).Encode(Response{Message: "Assignment question not found"})
+		err := json.NewEncoder(w).Encode(core.FourOFour)
 		log.Handler("info", "JSON Encoder error", err)
 		return
 	}
@@ -110,7 +106,7 @@ func UpdateQuestion(w http.ResponseWriter, r *http.Request) {
 	_, email := core.GetTokenEmail(r)
 	if email == "" {
 		w.WriteHeader(http.StatusUnauthorized)
-		err := json.NewEncoder(w).Encode(Response{Message: "Login Required"})
+		err := json.NewEncoder(w).Encode(core.FourOOne)
 		log.Handler("info", "JSON Encoder", err)
 		return
 	}
@@ -122,7 +118,7 @@ func UpdateQuestion(w http.ResponseWriter, r *http.Request) {
 	// Check if question exists
 	if !XExists(slug, "question") {
 		w.WriteHeader(http.StatusNotFound)
-		err := json.NewEncoder(w).Encode(Response{Message: "The requested resource couldn't be located in this timeline"})
+		err := json.NewEncoder(w).Encode(core.FourOFour)
 		log.Handler("info", "JSON Encoder again", err)
 		return
 	}
@@ -132,7 +128,7 @@ func UpdateQuestion(w http.ResponseWriter, r *http.Request) {
 	// Check if user has permission to edit. Meaning, did the logged in use create this?
 	if email != question.User.Email {
 		w.WriteHeader(http.StatusUnauthorized)
-		err := json.NewEncoder(w).Encode(Response{Message: "You do not have permissions to access here"})
+		err := json.NewEncoder(w).Encode(core.FourOOne)
 		log.Handler("info", "JSON Encoder", err)
 		return
 	}
@@ -153,7 +149,7 @@ func DeleteQuestion(w http.ResponseWriter, r *http.Request) {
 	_, email := core.GetTokenEmail(r)
 	if email == "" {
 		w.WriteHeader(http.StatusUnauthorized)
-		err := json.NewEncoder(w).Encode(Response{Message: "Login Required"})
+		err := json.NewEncoder(w).Encode(core.FourOOne)
 		log.Handler("info", "JSON Encoder", err)
 		return
 	}
@@ -165,7 +161,7 @@ func DeleteQuestion(w http.ResponseWriter, r *http.Request) {
 	// Check if question exists
 	if !XExists(slug, "question") {
 		w.WriteHeader(http.StatusNotFound)
-		err := json.NewEncoder(w).Encode(Response{Message: "Resource not found"})
+		err := json.NewEncoder(w).Encode(core.FourOFour)
 		log.Handler("info", "JSON Encoder", err)
 		return
 	}
@@ -174,7 +170,7 @@ func DeleteQuestion(w http.ResponseWriter, r *http.Request) {
 	// Check if logged in user is the creator
 	if email != question.User.Email {
 		w.WriteHeader(http.StatusUnauthorized)
-		err := json.NewEncoder(w).Encode(Response{Message: "You do not have that permissions"})
+		err := json.NewEncoder(w).Encode(core.FourOOne)
 		log.Handler("info", "JSON Encoder", err)
 	}
 
@@ -191,7 +187,7 @@ func PostSubmission(w http.ResponseWriter, r *http.Request) {
 
 	if !XExists(questionSlug, "question") {
 		w.WriteHeader(http.StatusNotFound)
-		err := json.NewEncoder(w).Encode(Response{Message: "Question not found"})
+		err := json.NewEncoder(w).Encode(core.FourOFour)
 		log.Handler("info", "Json Encoder", err)
 		return
 	}
@@ -206,8 +202,8 @@ func PostSubmission(w http.ResponseWriter, r *http.Request) {
 
 	file, header, err := r.FormFile("file")
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		err = json.NewEncoder(w).Encode(Response{Message: "something went wrong retrieving the file"})
+		w.WriteHeader(http.StatusBadRequest)
+		err = json.NewEncoder(w).Encode(core.FourHundred)
 		return
 	}
 
@@ -218,7 +214,7 @@ func PostSubmission(w http.ResponseWriter, r *http.Request) {
 	if !status {
 		w.WriteHeader(http.StatusInternalServerError)
 		log.Handler("info", "S3Upload error", err)
-		err = json.NewEncoder(w).Encode(Response{Message: "Couldn't upload file successfully"})
+		err = json.NewEncoder(w).Encode(core.FiveHundred)
 		log.Handler("info", "JSON Encoder error", err)
 	}
 
@@ -233,3 +229,66 @@ func PostSubmission(w http.ResponseWriter, r *http.Request) {
 	log.Handler("info", "JSON Encoder", err)
 	return
 }
+
+func GetSubmissions(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	params := mux.Vars(r)
+	slug := params["slug"]
+
+	_, email := core.GetTokenEmail(r)
+
+	if !XExists(slug, "question") {
+		w.WriteHeader(http.StatusNotFound)
+		err := json.NewEncoder(w).Encode(core.FourOFour)
+		log.Handler("info", "Json Encoder", err)
+		return
+	}
+
+	db.Find(&question, "where slug = ?", slug)
+	if email != question.User.Email {
+		w.WriteHeader(http.StatusUnauthorized)
+		err := json.NewEncoder(w).Encode(core.FourOOne)
+		log.Handler("info", "JSON Encoder", err)
+		return
+	}
+
+	db.Find(&submissions, "where question = ?", question)
+	err := json.NewEncoder(w).Encode(submissions)
+	log.Handler("info", "Json Encoder", err)
+	return
+}
+
+func GetSubmission(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+	questionSlug := params["qSlug"]
+	submissionSlug := params["sSlug"]
+
+	if !XExists(questionSlug, "question") {
+		w.WriteHeader(http.StatusNotFound)
+		err := json.NewEncoder(w).Encode(core.FourOFour)
+		log.Handler("info", "Encoder", err)
+		return
+	}
+
+	if !XExists(submissionSlug, "submission") {
+		w.WriteHeader(http.StatusNotFound)
+		err := json.NewEncoder(w).Encode(core.FourOFour)
+		log.Handler("info", "Json Encoder", err)
+		return
+	}
+
+	db.Find(&submission, "slug = ?", submissionSlug)
+	err := json.NewEncoder(w).Encode(submission)
+	log.Handler("info", "JSON Encoder", err)
+	return
+}
+
+//func UpdateSubmission(w http.ResponseWriter, r *http.Request) {
+//
+//}
+//
+//func DeleteSubmission(w http.ResponseWriter, r *http.Request) {
+//
+//}
