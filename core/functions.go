@@ -96,6 +96,6 @@ func S3Upload(sess *session.Session, file multipart.File, filename string) (bool
 		return false, "", err
 	}
 
-	fileSlug := "https://" + bucketName + "." + "s3.amazonaws.com" + filename
+	fileSlug := "https://" + bucketName + "." + "s3.amazonaws.com/" + filename
 	return true, fileSlug, nil
 }
