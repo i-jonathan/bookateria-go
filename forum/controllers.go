@@ -62,7 +62,7 @@ func PostQuestion(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	err := json.NewDecoder(r.Body).Decode(&question)
 	log.Handler("warning", "JSON decoder error", err)
-	_, email := core.GetTokenEmail(w, r)
+	_, email := core.GetTokenEmail(r)
 	if email == "" {
 		w.WriteHeader(http.StatusUnauthorized)
 		err = json.NewEncoder(w).Encode(Response{Message: "Login Required"})
@@ -99,7 +99,7 @@ func UpdateQuestion(w http.ResponseWriter, r *http.Request) {
 	db.Where("slug = ?", slug).Find(&question)
 
 	// Check if user is logged in
-	_, email := core.GetTokenEmail(w, r)
+	_, email := core.GetTokenEmail(r)
 	if email == "" {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(Response{Message: "Login Required"})
@@ -128,7 +128,7 @@ func UpdateQuestion(w http.ResponseWriter, r *http.Request) {
 
 func DeleteQuestion(w http.ResponseWriter, r *http.Request) {
 	// Check if user is logged in
-	_, email := core.GetTokenEmail(w, r)
+	_, email := core.GetTokenEmail(r)
 	if email == "" {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(Response{Message: "Login Required"})
@@ -177,7 +177,7 @@ func PostQuestionUpVote(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	// Check if user is logged in
-	_, email := core.GetTokenEmail(w, r)
+	_, email := core.GetTokenEmail(r)
 	if email == "" {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(Response{Message: "Login Required"})
@@ -207,7 +207,7 @@ func PostQuestionUpVote(w http.ResponseWriter, r *http.Request) {
 
 func DeleteQuestionUpvote(w http.ResponseWriter, r *http.Request) {
 	// Check if user is logged in
-	_, email := core.GetTokenEmail(w, r)
+	_, email := core.GetTokenEmail(r)
 	if email == "" {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(Response{Message: "Login Required"})
@@ -267,7 +267,7 @@ func GetAnswers(w http.ResponseWriter, _ *http.Request) {
 
 func PostAnswer(w http.ResponseWriter, r *http.Request) {
 	// Check if user is logged in
-	_, email := core.GetTokenEmail(w, r)
+	_, email := core.GetTokenEmail(r)
 	if email == "" {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(Response{Message: "Login Required"})
@@ -294,7 +294,7 @@ func UpdateAnswer(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	// Check if user is logged in
-	_, email := core.GetTokenEmail(w, r)
+	_, email := core.GetTokenEmail(r)
 	if email == "" {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(Response{Message: "Login Required"})
@@ -343,7 +343,7 @@ func DeleteAnswer(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	// Check if user is logged in
-	_, email := core.GetTokenEmail(w, r)
+	_, email := core.GetTokenEmail(r)
 	if email == "" {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(Response{Message: "Login Required"})
@@ -394,7 +394,7 @@ func PostAnswerUpVote(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	// Check if user is logged in
-	_, email := core.GetTokenEmail(w, r)
+	_, email := core.GetTokenEmail(r)
 	if email == "" {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(Response{Message: "Login Required"})
@@ -426,7 +426,7 @@ func PostAnswerUpVote(w http.ResponseWriter, r *http.Request) {
 
 func DeleteAnswerUpvote(w http.ResponseWriter, r *http.Request) {
 	// Check if user is logged in
-	_, email := core.GetTokenEmail(w, r)
+	_, email := core.GetTokenEmail(r)
 	if email == "" {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(Response{Message: "Login Required"})
