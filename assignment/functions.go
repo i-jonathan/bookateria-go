@@ -24,7 +24,7 @@ func InitDatabase() *gorm.DB {
 	db, err := gorm.Open(postgres.Open(postgresConnection), &gorm.Config{})
 	log.Handler("panic", "Couldn't connect to DB", err)
 
-	err = db.AutoMigrate(&Question{}, &Submission{})
+	err = db.AutoMigrate(&Problem{}, &Submission{})
 	log.Handler("warn", "Issue with assignment model migration", err)
 
 	return db
@@ -36,10 +36,10 @@ func XExists(slug, model string) bool {
 
 	switch model {
 	case "question":
-		db.Model(&Question{}).Where("slug = ?", slug).Count(&count)
+		db.Model(&Problem{}).Where("slug = ?", slug).Count(&count)
 		return count > 0
 	case "submission":
-		db.Model(&Question{}).Where("slug = ?", slug).Count(&count)
+		db.Model(&Submission{}).Where("slug = ?", slug).Count(&count)
 		return count > 0
 	default:
 		return false
