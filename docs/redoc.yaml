@@ -1,0 +1,803 @@
+openapi: 3.0.1
+info:
+  title: Bookateria API
+  description: This is the initial version of Bookateria API in Golang. Documentation
+    is below. Please follow like your life depends on it. Cause it might.
+  termsOfService: http://bookateria.net/terms/
+  contact:
+    email: farinloyejonathan@gmail.com
+  version: "1.0"
+servers:
+  - url: https://localhost:5000/v1
+  - url: http://localhost:5000/v1
+tags:
+  - name: auth
+    description: Everything about authentication
+  - name: account
+    description: Operations on User accounts
+  - name: document
+    description: Everything Documents
+  - name: forum
+    description: Thing you can do on Forum. Netflix and chill stuff
+paths:
+  # Authorization paths
+
+  /auth/login:
+    post:
+      tags:
+        - auth
+      summary: Manage user login
+      requestBody:
+        description: 'User object that needs to be logged '
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Auth'
+        required: true
+      responses:
+        200:
+          description: A Token object
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    description: Authentication Type.
+                  value:
+                    type: string
+                    description: The token of authenticated user.
+                  expiry:
+                    type: string
+                    description: Token expiry time
+        401:
+          description: Unauthorized. Wrong Details
+          content: {}
+      x-codegen-request-body-name: body
+
+  /auth/refresh:
+    get:
+      tags:
+        - auth
+      summary: Refreshes token of logged in user
+      description: Refreshes token within 30 seconds of expiry.
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: A Token object
+          content:
+            'application/json':
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    description: Authentication Type.
+                  value:
+                    type: string
+                    description: The token of authenticated user.
+                  expiry:
+                    type: string
+                    description: Token expiry time
+        401:
+          description: Unauthorized. Wrong Details
+          content: {}
+      security:
+        - authorization: []
+
+  /auth/logout:
+    post:
+      tags:
+        - auth
+      summary: Log user out
+      description: Invalidate user token and prevent reuse of same token
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Successfully logged user out
+        401:
+          description: User Authentication Failure
+          content: {}
+      security:
+        - authorization: []
+
+  # Account paths
+
+  /account/all:
+    get:
+      tags:
+        - account
+      summary: Gets all signed up users
+      description: All users
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /account/{id}:
+    get:
+      tags:
+        - account
+      summary: Get user by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /account:
+    post:
+      tags:
+        - account
+      summary: Create a new user
+      description: Submit user details for sign up
+      requestBody:
+        description: content for body
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostAccount'
+        required: true
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        422:
+          description: Unprocessable entity
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+      x-codegen-request-body-name: body
+
+  # Forum paths
+
+  /forum/question/all:
+    get:
+      tags:
+        - forum
+      summary: Get all Questions
+      description: Get an array of all created questions
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Question'
+
+  /forum/question/{slug}:
+    get:
+      tags:
+        - forum
+      summary: Get a specific question by ID
+      description: Get a question by it's ID
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Question'
+    put: # TODO change updates tp put request
+      tags:
+        - forum
+      summary: Edit an already created question
+      requestBody:
+        description: completely or partially adjusted data. Send the whole object nonetheless
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostQuestion'
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Question'
+      security:
+        - authorization: []
+    delete:
+      tags:
+        - forum
+      summary: Delete created question
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        204:
+          description: Deleted
+      security:
+        - authorization: []
+
+  /forum/question:
+    post:
+      tags:
+        - forum
+      summary: Create a new question
+      description: I think you get the gist
+      requestBody:
+        description: Send the body, what else did you expect?
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostQuestion'
+        required: true
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Question'
+      security:
+        - authorization: []
+
+  /forum/question/{slug}/up-votes:
+    get:
+      tags:
+        - forum
+      summary: Get all upvotes on a question, specified by id
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuestionUpvote'
+    post:
+      tags:
+        - forum
+      summary: Upvote a question
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Click the upvote botton, send the request here
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                question:
+                  type: integer
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuestionUpvote'
+      security:
+        - authorization: [ ]
+
+  /forum/question/{slug}/up-votes/{id}:
+    delete:
+      tags:
+        - forum
+      summary: Cancel upvote on a question
+      parameters:
+        - name: id
+          description: up-vote ID
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: slug
+          description: Question slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        204:
+          description: Cancelled up vote successfully.
+      security:
+        - authorization: [ ]
+
+  /forum/answer/all:
+    get:
+      tags:
+        - forum
+      summary: Get all Answers
+      description: Get an array of all created Answers
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  - $ref: '#/components/schemas/Answer'
+
+  /forum/answer/{slug}:
+    get:
+      tags:
+        - forum
+      summary: Get a specific answer by ID
+      description: Get a answer by it's ID
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Answer'
+    put:  # TODO change updates tp put request
+      tags:
+        - forum
+      summary: Edit an already created answer
+      requestBody:
+        description: completely or partially adjusted data. Send the whole object nonetheless
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostAnswer'
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Answer'
+      security:
+        - authorization: [ ]
+    delete:
+      tags:
+        - forum
+      summary: Delete answer
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        204:
+          description: Deleted
+      security:
+        - authorization: [ ]
+
+  /forum/answer:
+    post:
+      tags:
+        - forum
+      summary: Create a new answer
+      description: I think you get the gist
+      requestBody:
+        description: Send the body, what else did you expect?
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostAnswer'
+        required: true
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Answer'
+      security:
+        - authorization: [ ]
+
+  /forum/answer/{slug}/up-votes:
+    get:
+      tags:
+        - forum
+      summary: Get all upvotes on a answer, specified by id
+      parameters:
+        - name: slug
+          description: Answer slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnswerUpvote'
+    post:
+      tags:
+        - forum
+      summary: Upvote a answer
+      parameters:
+        - name: slug
+          description: Answer slug
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Click the upvote botton, send the request here
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                question:
+                  type: integer
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnswerUpvote'
+      security:
+        - authorization: [ ]
+
+  /forum/answer/{slug}/up-votes/{id}:
+    delete:
+      tags:
+        - forum
+      summary: Cancel upvote on a answer
+      parameters:
+        - name: slug
+          description: Answer slug
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id
+          description: Up vote ID
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        204:
+          description: Cancelled up vote successfully.
+      security:
+        - authorization: [ ]
+
+  # Document paths
+
+  /document:
+    get:
+      tags:
+        - document
+      summary: Get all Documents
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  - $ref: '#/components/schemas/Document'
+    post:
+      tags:
+        - document
+      summary: Add a document
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostDocument'
+        required: true
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        409:
+          description: Duplicate document
+
+  /document/{id}:
+    get:
+      tags:
+        - document
+      summary: Get document by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        404:
+          description: Document doesn't exist
+
+    put:
+      tags:
+        - document
+      summary: Update a document
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostDocument'
+        required: true
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+    delete:
+      tags:
+        - document
+      summary: Delete a document
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        404:
+          description: Document not found
+        204:
+          description: Document deleted
+
+
+        # Models
+
+# Models
+components:
+  schemas:
+    Auth:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        user_name:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        email:
+          type: string
+        is_admin:
+          type: boolean
+        password:
+          type: string
+        last_login:
+          type: string
+        is_active:
+          type: boolean
+
+    PostAccount:
+      type: object
+      properties:
+        user_name:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+
+    Profile:
+      type: object
+      properties:
+        id:
+          type: integer
+        points:
+          type: integer
+        user_id:
+          type: integer
+        user:
+          type: integer
+
+    Question:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        user_id:
+          type: integer
+        up_votes:
+          type: integer
+
+    PostQuestion:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        user_id:
+          type: integer
+
+    QuestionTag:
+      type: object
+      properties:
+        question_id:
+          type: integer
+        name:
+          type: string
+
+    QuestionUpvote:
+      type: object
+      properties:
+        id:
+          type: integer
+        question_id:
+          type: integer
+        user_id:
+          type: integer
+
+    Answer:
+      type: object
+      properties:
+        id:
+          type: integer
+        question_id:
+          type: integer
+        response:
+          type: string
+        up_votes:
+          type: integer
+        user_id:
+          type: integer
+
+    PostAnswer:
+      type: object
+      properties:
+        question_id:
+          type: integer
+        response:
+          type: string
+
+    AnswerUpvote:
+      type: object
+      properties:
+        id:
+          type: integer
+        question_id:
+          type: integer
+        question:
+          type: integer
+        user_id:
+          type: integer
+
+    Document:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        edition:
+          type: integer
+        author:
+          type: string
+        summary:
+          type: string
+
+    PostDocument:
+      type: object
+      properties:
+        title:
+          type: string
+        edition:
+            type: integer
+        author:
+            type: string
+        summary:
+            type: string
+
+  securitySchemes:
+    authorization:
+      type: apiKey
+      name: authorization
+      in: header
