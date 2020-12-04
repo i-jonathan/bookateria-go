@@ -45,8 +45,8 @@ func AllUsers(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	db.Find(&users)
 	err := json.NewEncoder(w).Encode(users)
-	log.Handler(err)
-	log.Handler(err)
+	log.ErrorHandler(err)
+	log.ErrorHandler(err)
 	return
 }
 
@@ -56,7 +56,7 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	userID := params["id"]
 	db.First(&user, userID)
 	err := json.NewEncoder(w).Encode(user)
-	log.Handler(err)
+	log.ErrorHandler(err)
 
 	return
 }
@@ -64,7 +64,7 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 func PostUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	err := json.NewDecoder(r.Body).Decode(&user)
-	log.Handler(err)
+	log.ErrorHandler(err)
 	var (
 		email         = user.Email
 		lastName      = user.LastName
@@ -84,7 +84,7 @@ func PostUser(w http.ResponseWriter, r *http.Request) {
 		//	All fields are required
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		err := json.NewEncoder(w).Encode(Response{Message: "Name and Email are required"})
-		log.Handler(err)
+		log.ErrorHandler(err)
 		return
 	}
 
@@ -93,7 +93,7 @@ func PostUser(w http.ResponseWriter, r *http.Request) {
 		//Email couldn't be verified  or invalid email
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		err := json.NewEncoder(w).Encode(Response{Message: "Incorrect Email"})
-		log.Handler(err)
+		log.ErrorHandler(err)
 		return
 	}
 
@@ -102,7 +102,7 @@ func PostUser(w http.ResponseWriter, r *http.Request) {
 		// Password is similar to user information
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		err := json.NewEncoder(w).Encode(Response{Message: "Password is similar to user info"})
-		log.Handler(err)
+		log.ErrorHandler(err)
 		return
 	}
 
@@ -111,7 +111,7 @@ func PostUser(w http.ResponseWriter, r *http.Request) {
 		//	Password doesn't go through the validator successfully
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		err := json.NewEncoder(w).Encode(Response{Message: "Unsafe Password"})
-		log.Handler(err)
+		log.ErrorHandler(err)
 		return
 	}
 
@@ -154,9 +154,9 @@ func PostUser(w http.ResponseWriter, r *http.Request) {
 		// TODO Log error.
 		w.WriteHeader(http.StatusInternalServerError)
 		err = json.NewEncoder(w).Encode(Response{Message: "Email not sent. Server Error"})
-		log.Handler(err)
+		log.ErrorHandler(err)
 	}
-	log.Handler(err)
+	log.ErrorHandler(err)
 	return
 }
 
@@ -164,7 +164,7 @@ func VerifyEmail(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var data OTP
 	err := json.NewDecoder(r.Body).Decode(&data)
-	log.Handler(err)
+	log.ErrorHandler(err)
 
 	// Gets the user and checks if the mail is already verified
 	db.Find(&user, "email = ?", strings.ToLower(data.Email))
@@ -179,14 +179,14 @@ func VerifyEmail(w http.ResponseWriter, r *http.Request) {
 	var storedOTP string
 	key := "new_user_otp_" + data.Email
 	storedOTP, err = redisClient.Get(ctx, key).Result()
-	log.Handler(err)
+	log.ErrorHandler(err)
 
 	// If the OTP is empty, or the key doesn't exist, the pin has most likely elapsed the 30 minutes given
 	// So they need to request a new one
 	if storedOTP == "" {
 		w.WriteHeader(http.StatusUnauthorized)
 		err = json.NewEncoder(w).Encode(Response{Message: "Your OTP might have expired. Request a new one"})
-		log.Handler(err)
+		log.ErrorHandler(err)
 		return
 	}
 
@@ -235,11 +235,11 @@ func RequestOTP(w http.ResponseWriter, r *http.Request) {
 		// TODO Log error.
 		w.WriteHeader(http.StatusInternalServerError)
 		err = json.NewEncoder(w).Encode(Response{Message: "Email not sent. Server Error"})
-		log.Handler(err)
+		log.ErrorHandler(err)
 	}
 	w.WriteHeader(http.StatusOK)
 	err = json.NewEncoder(w).Encode(Response{Message: "OTP has been sent to mail"})
-	log.Handler(err)
+	log.ErrorHandler(err)
 	return
 
 }

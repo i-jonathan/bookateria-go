@@ -192,7 +192,7 @@ func EmailValidator(email string) bool {
 	}
 	parts := strings.Split(email, "@")
 	mx, err := net.LookupMX(parts[1])
-	log.Handler(err)
+	log.ErrorHandler(err)
 	if err != nil || len(mx) == 0 {
 		return false
 	}
@@ -213,10 +213,10 @@ func InitDatabase() *gorm.DB {
 	postgresConnection := fmt.Sprintf("host=%s port=%d user=%s dbname=%s password=%s sslmode=%s",
 		host, port, user, databaseName, pass, ssl)
 	db, err := gorm.Open(postgres.Open(postgresConnection), &gorm.Config{})
-	log.Handler("panic", "Couldn't connect to DB", err)
+	log.ErrorHandler(err)
 
 	err = db.AutoMigrate(&User{})
 	err = db.AutoMigrate(&Profile{})
-	log.Handler("warn", "Couldn't Migrate model to DB", err)
+	log.ErrorHandler(err)
 	return db
 }
