@@ -4,6 +4,7 @@ import (
 	"bookateria-api-go/log"
 	"encoding/json"
 	"github.com/gorilla/mux"
+	"gorm.io/gorm/clause"
 	"net/http"
 	"strconv"
 )
@@ -21,7 +22,7 @@ type Response struct {
 func GetDocuments(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	// Load data from DB
-	db.Find(&documents) 
+	db.Preload(clause.Associations).Find(&documents)
 	err := json.NewEncoder(w).Encode(documents)
 	log.Handler(err)
 	return
@@ -34,7 +35,7 @@ func GetDocument(w http.ResponseWriter, r *http.Request) {
 	ID, _ := strconv.ParseUint(documentID, 10, 0)
 
 	// Check If The Document Exists
-	if !DocumentExists(uint(ID)) {
+	if !XExists(uint(ID)) {
 		// If The Document Doesn't Exist
 		// Users Shouldn't Be Allowed To Modify What Doesn't Exists
 
@@ -45,7 +46,7 @@ func GetDocument(w http.ResponseWriter, r *http.Request) {
 
 	}
 
-	db.First(&document, documentID)
+	db.Preload(clause.Associations).First(&document, documentID)
 	err := json.NewEncoder(w).Encode(document)
 	log.Handler(err)
 	return
@@ -83,7 +84,7 @@ func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 	//documentID := strconv.FormatUint(uint64(document.ID), 10)
 
 	// Check If The Document Exists
-	if !DocumentExists(uint(idToUpdate)) {
+	if !XExists(uint(idToUpdate)) {
 		// If The Document Doesn't Exist
 		// Users Shouldn't Be Allowed To Modify What Doesn't Exists
 
@@ -114,7 +115,7 @@ func DeleteDocument(w http.ResponseWriter, r *http.Request) {
 	idToDelete := uint(idInUint)
 
 	//Check If The Document to Delete Exists
-	if !DocumentExists(idToDelete) {
+	if !XExists(idToDelete) {
 		//Deletion Of Non-Existent Documents Is Not Permitted
 		//Throw An Error
 
@@ -124,7 +125,7 @@ func DeleteDocument(w http.ResponseWriter, r *http.Request) {
 		return
 
 	}
-	
+
 	db.Where("id = ?", idToDelete).Delete(&document)
 	w.WriteHeader(http.StatusNoContent)
 }
