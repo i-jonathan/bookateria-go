@@ -20,6 +20,8 @@ tags:
   - name: forum
     description: Thing you can do on Forum. Netflix and chill stuff
 paths:
+  # Authorization paths
+
   /auth/login:
     post:
       tags:
@@ -53,6 +55,7 @@ paths:
           description: Unauthorized. Wrong Details
           content: {}
       x-codegen-request-body-name: body
+
   /auth/refresh:
     get:
       tags:
@@ -87,6 +90,7 @@ paths:
           content: {}
       security:
         - authorization: []
+
   /auth/logout:
     post:
       tags:
@@ -115,6 +119,9 @@ paths:
           content: {}
       security:
         - authorization: []
+
+  # Account paths
+
   /account/all:
     get:
       tags:
@@ -128,6 +135,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
+
   /account/{id}:
     get:
       tags:
@@ -146,6 +154,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
+
   /account:
     post:
       tags:
@@ -177,6 +186,8 @@ paths:
                     type: string
       x-codegen-request-body-name: body
 
+  # Forum paths
+
   /forum/question/all:
     get:
       tags:
@@ -191,18 +202,18 @@ paths:
               schema:
                 $ref: '#/components/schemas/Question'
 
-  /forum/question/{id}:
+  /forum/question/{slug}:
     get:
       tags:
         - forum
       summary: Get a specific question by ID
       description: Get a question by it's ID
       parameters:
-        - name: id
+        - name: slug
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       responses:
         200:
           description: OK
@@ -221,11 +232,11 @@ paths:
             schema:
               $ref: '#/components/schemas/PostQuestion'
       parameters:
-        - name: id
+        - name: slug
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       responses:
         200:
           description: OK
@@ -240,11 +251,11 @@ paths:
         - forum
       summary: Delete created question
       parameters:
-        - name: id
+        - name: slug
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       responses:
         204:
           description: Deleted
@@ -274,17 +285,17 @@ paths:
       security:
         - authorization: []
 
-  /forum/question/{id}/up-votes:
+  /forum/question/{slug}/up-votes:
     get:
       tags:
         - forum
       summary: Get all upvotes on a question, specified by id
       parameters:
-        - name: id
+        - name: slug
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       responses:
         200:
           description: OK
@@ -297,11 +308,11 @@ paths:
         - forum
       summary: Upvote a question
       parameters:
-        - name: id
+        - name: slug
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       requestBody:
         description: Click the upvote botton, send the request here
         content:
@@ -321,23 +332,29 @@ paths:
       security:
         - authorization: [ ]
 
-  /forum/question/upvotes/{id}:
+  /forum/question/{slug}/up-votes/{id}:
     delete:
       tags:
         - forum
       summary: Cancel upvote on a question
       parameters:
         - name: id
+          description: up-vote ID
           in: path
           required: true
           schema:
             type: integer
+        - name: slug
+          description: Question slug
+          in: path
+          required: true
+          schema:
+            type: string
       responses:
         204:
           description: Cancelled up vote successfully.
       security:
         - authorization: [ ]
-
 
   /forum/answer/all:
     get:
@@ -351,20 +368,22 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Answer'
+                type: array
+                items:
+                  - $ref: '#/components/schemas/Answer'
 
-  /forum/answer/{id}:
+  /forum/answer/{slug}:
     get:
       tags:
         - forum
       summary: Get a specific answer by ID
       description: Get a answer by it's ID
       parameters:
-        - name: id
+        - name: slug
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       responses:
         200:
           description: OK
@@ -383,11 +402,11 @@ paths:
             schema:
               $ref: '#/components/schemas/PostAnswer'
       parameters:
-        - name: id
+        - name: slug
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       responses:
         200:
           description: OK
@@ -402,11 +421,11 @@ paths:
         - forum
       summary: Delete answer
       parameters:
-        - name: id
+        - name: slug
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       responses:
         204:
           description: Deleted
@@ -436,17 +455,18 @@ paths:
       security:
         - authorization: [ ]
 
-  /forum/answer/{id}/up-votes: #TODO adjust get up votes endpoint to take answer id
+  /forum/answer/{slug}/up-votes:
     get:
       tags:
         - forum
       summary: Get all upvotes on a answer, specified by id
       parameters:
-        - name: id
+        - name: slug
+          description: Answer slug
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       responses:
         200:
           description: OK
@@ -459,11 +479,12 @@ paths:
         - forum
       summary: Upvote a answer
       parameters:
-        - name: id
+        - name: slug
+          description: Answer slug
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       requestBody:
         description: Click the upvote botton, send the request here
         content:
@@ -483,11 +504,71 @@ paths:
       security:
         - authorization: [ ]
 
-  /forum/answer/upvotes/{id}:
+  /forum/answer/{slug}/up-votes/{id}:
     delete:
       tags:
         - forum
       summary: Cancel upvote on a answer
+      parameters:
+        - name: slug
+          description: Answer slug
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id
+          description: Up vote ID
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        204:
+          description: Cancelled up vote successfully.
+      security:
+        - authorization: [ ]
+
+  # Document paths
+
+  /document:
+    get:
+      tags:
+        - document
+      summary: Get all Documents
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  - $ref: '#/components/schemas/Document'
+    post:
+      tags:
+        - document
+      summary: Add a document
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostDocument'
+        required: true
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        409:
+          description: Duplicate document
+
+  /document/{id}:
+    get:
+      tags:
+        - document
+      summary: Get document by ID
       parameters:
         - name: id
           in: path
@@ -495,10 +576,56 @@ paths:
           schema:
             type: integer
       responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        404:
+          description: Document doesn't exist
+
+    put:
+      tags:
+        - document
+      summary: Update a document
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostDocument'
+        required: true
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+    delete:
+      tags:
+        - document
+      summary: Delete a document
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        404:
+          description: Document not found
         204:
-          description: Cancelled up vote successfully.
-      security:
-        - authorization: [ ]
+          description: Document deleted
+
+
+        # Models
 
 # Models
 components:
@@ -642,6 +769,32 @@ components:
           type: integer
         user_id:
           type: integer
+
+    Document:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        edition:
+          type: integer
+        author:
+          type: string
+        summary:
+          type: string
+
+    PostDocument:
+      type: object
+      properties:
+        title:
+          type: string
+        edition:
+            type: integer
+        author:
+            type: string
+        summary:
+            type: string
 
   securitySchemes:
     authorization:

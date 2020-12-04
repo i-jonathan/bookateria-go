@@ -30,6 +30,7 @@ type User struct {
 	Password  string    `json:"password"`
 	LastLogin time.Time `json:"last_login"`
 	IsActive  bool      `json:"is_active" gorm:"default:false"`
+	IsEmailVerified bool `json:"is_email_verified" gorm:"default:false"`
 }
 
 type Profile struct {
@@ -191,7 +192,7 @@ func EmailValidator(email string) bool {
 	}
 	parts := strings.Split(email, "@")
 	mx, err := net.LookupMX(parts[1])
-	log.Handler("info", "MX failure", err)
+	log.Handler(err)
 	if err != nil || len(mx) == 0 {
 		return false
 	}

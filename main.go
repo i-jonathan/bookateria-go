@@ -2,6 +2,7 @@ package main
 
 import (
 	"bookateria-api-go/account"
+	"bookateria-api-go/assignment"
 	"bookateria-api-go/auth"
 	"bookateria-api-go/document"
 	"bookateria-api-go/forum"
@@ -22,6 +23,7 @@ func main()  {
 	account.Router(versionRouter.PathPrefix("/account").Subrouter())
 	auth.Router(versionRouter.PathPrefix("/auth").Subrouter())
 	forum.Router(versionRouter.PathPrefix("/forum").Subrouter())
+	assignment.Router(versionRouter.PathPrefix("/assignment").Subrouter())
 
 	loggerMgr := log.InitLog()
 	zap.ReplaceGlobals(loggerMgr)

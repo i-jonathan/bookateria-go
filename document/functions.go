@@ -23,12 +23,12 @@ func InitDatabase() *gorm.DB {
 	)
 	postgresConnection := fmt.Sprintf("host=%s port=%d user=%s dbname=%s password=%s sslmode=%s", host, port, user, dbName, pass, ssl)
 	db, err := gorm.Open(postgres.Open(postgresConnection), &gorm.Config{})
-	log.Handler("panic", "Couldn't connect to DB\n", err)
+	log.Handler(err)
 	
 	err = db.AutoMigrate(&Document{})
 	err = db.AutoMigrate(&Tag{})
 
-	log.Handler("warn", "Couldn't Migrate model to DB\n", err)
+	log.Handler(err)
 	return db
 }
 

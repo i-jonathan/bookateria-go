@@ -16,3 +16,4 @@
 .idea
 scrap.go
 config.yaml
+api.http
