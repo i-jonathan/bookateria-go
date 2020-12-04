@@ -39,7 +39,7 @@ func PostQuestion(w http.ResponseWriter, r *http.Request) {
 	if email == "" {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(core.FourOOne)
-		log.Handler("info", "Json Encoder ish", err)
+		log.Handler(err)
 		return
 	}
 
@@ -47,7 +47,7 @@ func PostQuestion(w http.ResponseWriter, r *http.Request) {
 	db.Find(&user, "email = ?", strings.ToLower(email))
 
 	err := json.NewDecoder(r.Body).Decode(&questionR)
-	log.Handler("info", "Couldn't decode Body", err)
+	log.Handler(err)
 
 	deadline, _ := time.Parse(time.RFC3339, questionR.Deadline)
 
@@ -69,7 +69,7 @@ func PostQuestion(w http.ResponseWriter, r *http.Request) {
 	db.Create(&problem)
 	w.WriteHeader(http.StatusOK)
 	err = json.NewEncoder(w).Encode(problem)
-	log.Handler("info", "JSON Encoder", err)
+	log.Handler(err)
 	return
 }
 
@@ -82,14 +82,14 @@ func GetQuestion(w http.ResponseWriter, r *http.Request) {
 		// Checks if assignment problem exists
 		w.WriteHeader(http.StatusNotFound)
 		err := json.NewEncoder(w).Encode(core.FourOFour)
-		log.Handler("info", "JSON Encoder error", err)
+		log.Handler(err)
 		return
 	}
 
 	db.Preload(clause.Associations).First(&problem, slug)
 	w.WriteHeader(http.StatusOK)
 	err := json.NewEncoder(w).Encode(problem)
-	log.Handler("info", "JSON Encoder again", err)
+	log.Handler(err)
 	return
 }
 
@@ -99,7 +99,7 @@ func GetQuestions(w http.ResponseWriter, _ *http.Request) {
 	db.Preload(clause.Associations).Find(&problems)
 	w.WriteHeader(http.StatusOK)
 	err := json.NewEncoder(w).Encode(problems)
-	log.Handler("info", "json encoder", err)
+	log.Handler(err)
 	return
 }
 
@@ -111,7 +111,7 @@ func UpdateQuestion(w http.ResponseWriter, r *http.Request) {
 	if email == "" {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(core.FourOOne)
-		log.Handler("info", "JSON Encoder", err)
+		log.Handler(err)
 		return
 	}
 
@@ -123,7 +123,7 @@ func UpdateQuestion(w http.ResponseWriter, r *http.Request) {
 	if !XExists(slug, "problem") {
 		w.WriteHeader(http.StatusNotFound)
 		err := json.NewEncoder(w).Encode(core.FourOFour)
-		log.Handler("info", "JSON Encoder again", err)
+		log.Handler(err)
 		return
 	}
 
@@ -134,16 +134,16 @@ func UpdateQuestion(w http.ResponseWriter, r *http.Request) {
 	if email != problem.User.Email {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(core.FourOOne)
-		log.Handler("info", "JSON Encoder", err)
+		log.Handler(err)
 		return
 	}
 
 	err := json.NewDecoder(r.Body).Decode(&problem)
-	log.Handler("info", "JSON Decoder", err)
+	log.Handler(err)
 	db.Save(&problem)
 
 	err = json.NewEncoder(w).Encode(problem)
-	log.Handler("info", "Really tired of doing this", err)
+	log.Handler(err)
 	return
 }
 
@@ -155,7 +155,7 @@ func DeleteQuestion(w http.ResponseWriter, r *http.Request) {
 	if email == "" {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(core.FourOOne)
-		log.Handler("info", "JSON Encoder", err)
+		log.Handler(err)
 		return
 	}
 
@@ -167,7 +167,7 @@ func DeleteQuestion(w http.ResponseWriter, r *http.Request) {
 	if !XExists(slug, "problem") {
 		w.WriteHeader(http.StatusNotFound)
 		err := json.NewEncoder(w).Encode(core.FourOFour)
-		log.Handler("info", "JSON Encoder", err)
+		log.Handler(err)
 		return
 	}
 
@@ -177,7 +177,7 @@ func DeleteQuestion(w http.ResponseWriter, r *http.Request) {
 	if email != problem.User.Email {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(core.FourOOne)
-		log.Handler("info", "JSON Encoder", err)
+		log.Handler(err)
 	}
 
 	db.Where("slug = ?", slug).Delete(&problem)
@@ -194,7 +194,7 @@ func PostSubmission(w http.ResponseWriter, r *http.Request) {
 	if !XExists(questionSlug, "problem") {
 		w.WriteHeader(http.StatusNotFound)
 		err := json.NewEncoder(w).Encode(core.FourOFour)
-		log.Handler("info", "Json Encoder", err)
+		log.Handler(err)
 		return
 	}
 	db.Preload(clause.Associations).Where("slug = ?", questionSlug).Find(&problem)
@@ -203,7 +203,7 @@ func PostSubmission(w http.ResponseWriter, r *http.Request) {
 
 	err := r.ParseMultipartForm(32 << 20)
 	if err != nil {
-		log.Handler("info", "Something about parsing multipart form", err)
+		log.Handler(err)
 	}
 
 	file, header, err := r.FormFile("file")
@@ -220,7 +220,7 @@ func PostSubmission(w http.ResponseWriter, r *http.Request) {
 	if int(count) == problem.SubmissionCount {
 		w.WriteHeader(http.StatusBadRequest)
 		err := json.NewEncoder(w).Encode(core.FourHundred)
-		log.Handler("info", "Encoder", err)
+		log.Handler(err)
 		return
 	}
 	fileNameExtension := strings.Split(header.Filename, ".")
@@ -231,9 +231,9 @@ func PostSubmission(w http.ResponseWriter, r *http.Request) {
 	status, slug, err := core.S3Upload(sess, file, filename)
 	if !status {
 		w.WriteHeader(http.StatusInternalServerError)
-		log.Handler("info", "S3Upload error", err)
+		log.Handler(err)
 		err = json.NewEncoder(w).Encode(core.FiveHundred)
-		log.Handler("info", "JSON Encoder error", err)
+		log.Handler(err)
 	}
 
 	submissionSlug := problem.Slug + problem.User.FirstName + "-" + problem.User.LastName
@@ -248,7 +248,7 @@ func PostSubmission(w http.ResponseWriter, r *http.Request) {
 
 	db.Create(&submission)
 	err = json.NewEncoder(w).Encode(submission)
-	log.Handler("info", "JSON Encoder", err)
+	log.Handler(err)
 	return
 }
 
@@ -264,7 +264,7 @@ func GetSubmissions(w http.ResponseWriter, r *http.Request) {
 	if !XExists(slug, "problem") {
 		w.WriteHeader(http.StatusNotFound)
 		err := json.NewEncoder(w).Encode(core.FourOFour)
-		log.Handler("info", "Json Encoder", err)
+		log.Handler(err)
 		return
 	}
 
@@ -274,14 +274,14 @@ func GetSubmissions(w http.ResponseWriter, r *http.Request) {
 	if email != problem.User.Email {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(core.FourOOne)
-		log.Handler("info", "JSON Encoder", err)
+		log.Handler(err)
 		return
 	}
 
 	db.Preload(clause.Associations).Where("problem_id = ?", problem.ID).Find(&submissions)
 	//db.Find(&submissions, "where problem_id = ?", problem.ID)
 	err := json.NewEncoder(w).Encode(submissions)
-	log.Handler("info", "Json Encoder", err)
+	log.Handler(err)
 	return
 }
 
@@ -294,20 +294,20 @@ func GetSubmission(w http.ResponseWriter, r *http.Request) {
 	if !XExists(questionSlug, "problem") {
 		w.WriteHeader(http.StatusNotFound)
 		err := json.NewEncoder(w).Encode(core.FourOFour)
-		log.Handler("info", "Encoder", err)
+		log.Handler(err)
 		return
 	}
 
 	if !XExists(submissionSlug, "submission") {
 		w.WriteHeader(http.StatusNotFound)
 		err := json.NewEncoder(w).Encode(core.FourOFour)
-		log.Handler("info", "Json Encoder", err)
+		log.Handler(err)
 		return
 	}
 
 	db.Preload(clause.Associations).Where("slug = ?", submissionSlug).Find(&submissions)
 
 	err := json.NewEncoder(w).Encode(submission)
-	log.Handler("info", "JSON Encoder", err)
+	log.Handler(err)
 	return
 }
