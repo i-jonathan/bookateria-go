@@ -192,7 +192,7 @@ func EmailValidator(email string) bool {
 	}
 	parts := strings.Split(email, "@")
 	mx, err := net.LookupMX(parts[1])
-	log.Handler("info", "MX failure", err)
+	log.Handler(err)
 	if err != nil || len(mx) == 0 {
 		return false
 	}

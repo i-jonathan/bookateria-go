@@ -25,7 +25,7 @@ func InitDatabase() *gorm.DB {
 	log.Handler("panic", "Couldn't connect to DB", err)
 
 	err = db.AutoMigrate(&Problem{}, &Submission{})
-	log.Handler("warn", "Issue with assignment model migration", err)
+	log.Handler(err)
 
 	return db
 }
