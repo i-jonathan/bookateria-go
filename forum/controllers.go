@@ -40,13 +40,13 @@ func GetQuestion(w http.ResponseWriter, r *http.Request) {
 		// If it doesn't return message accordingly
 		w.WriteHeader(http.StatusNotFound)
 		err := json.NewEncoder(w).Encode(Response{Message: "Question Not Found"})
-		log.Handler("info", "Question not found", err)
+		log.ErrorHandler(err)
 		return
 	}
 
 	db.Preload(clause.Associations).First(&question, slugToFind)
 	err := json.NewEncoder(w).Encode(question)
-	log.Handler("info", "JSON Encoder error", err)
+	log.ErrorHandler(err)
 	return
 }
 
@@ -54,19 +54,19 @@ func GetQuestions(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	db.Preload(clause.Associations).Find(&questions)
 	err := json.NewEncoder(w).Encode(questions)
-	log.Handler("info", "JSON Encoder error", err)
+	log.ErrorHandler(err)
 	return
 }
 
 func PostQuestion(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	err := json.NewDecoder(r.Body).Decode(&question)
-	log.Handler("warning", "JSON decoder error", err)
-	_, email := core.GetTokenEmail(w, r)
+	log.ErrorHandler(err)
+	_, email := core.GetTokenEmail(r)
 	if email == "" {
 		w.WriteHeader(http.StatusUnauthorized)
 		err = json.NewEncoder(w).Encode(Response{Message: "Login Required"})
-		log.Handler("warning", "JSON encoder error", err)
+		log.ErrorHandler(err)
 		return
 	}
 	db.Find(&user, "email = ?", strings.ToLower(email))
@@ -76,7 +76,7 @@ func PostQuestion(w http.ResponseWriter, r *http.Request) {
 	question.Slug = reg.ReplaceAllString(question.Slug, "")
 	db.Create(&question)
 	err = json.NewEncoder(w).Encode(question)
-	log.Handler("warning", "JSON encoder error", err)
+	log.ErrorHandler(err)
 	return
 }
 
@@ -92,18 +92,18 @@ func UpdateQuestion(w http.ResponseWriter, r *http.Request) {
 		// If it doesn't return message accordingly
 		w.WriteHeader(http.StatusNotFound)
 		err := json.NewEncoder(w).Encode(Response{Message: "Question Not Found"})
-		log.Handler("info", "Question not found", err)
+		log.ErrorHandler(err)
 		return
 	}
 
 	db.Where("slug = ?", slug).Find(&question)
 
 	// Check if user is logged in
-	_, email := core.GetTokenEmail(w, r)
+	_, email := core.GetTokenEmail(r)
 	if email == "" {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(Response{Message: "Login Required"})
-		log.Handler("warning", "JSON encoder error", err)
+		log.ErrorHandler(err)
 		return
 	}
 
@@ -111,28 +111,28 @@ func UpdateQuestion(w http.ResponseWriter, r *http.Request) {
 	if email != question.User.Email {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(Response{Message: "Unauthorized"})
-		log.Handler("warning", "JSON encoder error", err)
+		log.ErrorHandler(err)
 		return
 	}
 
 	// Update the question
 	err := json.NewDecoder(r.Body).Decode(&question)
-	log.Handler("warning", "JSON decoder error", err)
+	log.ErrorHandler(err)
 	db.Save(&question)
 
 	// Return the question details
 	err = json.NewEncoder(w).Encode(question)
-	log.Handler("warning", "JSON encoder error", err)
+	log.ErrorHandler(err)
 	return
 }
 
 func DeleteQuestion(w http.ResponseWriter, r *http.Request) {
 	// Check if user is logged in
-	_, email := core.GetTokenEmail(w, r)
+	_, email := core.GetTokenEmail(r)
 	if email == "" {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(Response{Message: "Login Required"})
-		log.Handler("warning", "JSON encoder error", err)
+		log.ErrorHandler(err)
 		return
 	}
 
@@ -145,7 +145,7 @@ func DeleteQuestion(w http.ResponseWriter, r *http.Request) {
 		// If it doesn't return message accordingly
 		w.WriteHeader(http.StatusNotFound)
 		err := json.NewEncoder(w).Encode(Response{Message: "Question Not Found"})
-		log.Handler("info", "Question not found", err)
+		log.ErrorHandler(err)
 		return
 	}
 
@@ -154,12 +154,11 @@ func DeleteQuestion(w http.ResponseWriter, r *http.Request) {
 	if email != question.User.Email {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(Response{Message: "Unauthorized"})
-		log.Handler("warning", "JSON encoder error", err)
+		log.ErrorHandler(err)
 		return
 	}
 	db.Where("slug = ?", slug).Delete(&question)
 	w.WriteHeader(http.StatusNoContent)
-	log.Handler("info", "Question deleted", nil)
 }
 
 func GetQuestionUpVotes(w http.ResponseWriter, r *http.Request) {
@@ -169,7 +168,7 @@ func GetQuestionUpVotes(w http.ResponseWriter, r *http.Request) {
 
 	db.Where("questionupvote_question_slug = ?", slug).Find(&questionUpVotes)
 	err := json.NewEncoder(w).Encode(questionUpVotes)
-	log.Handler("info", "JSON Encoder error", err)
+	log.ErrorHandler(err)
 	return
 }
 
@@ -177,11 +176,11 @@ func PostQuestionUpVote(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	// Check if user is logged in
-	_, email := core.GetTokenEmail(w, r)
+	_, email := core.GetTokenEmail(r)
 	if email == "" {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(Response{Message: "Login Required"})
-		log.Handler("warning", "JSON encoder error", err)
+		log.ErrorHandler(err)
 		return
 	}
 	params := mux.Vars(r)
@@ -191,7 +190,7 @@ func PostQuestionUpVote(w http.ResponseWriter, r *http.Request) {
 		// If it doesn't return message accordingly
 		w.WriteHeader(http.StatusNotFound)
 		err := json.NewEncoder(w).Encode(Response{Message: "Upvote already Found"})
-		log.Handler("info", "Upvote already found", err)
+		log.ErrorHandler(err)
 		return
 	}
 
@@ -207,11 +206,11 @@ func PostQuestionUpVote(w http.ResponseWriter, r *http.Request) {
 
 func DeleteQuestionUpvote(w http.ResponseWriter, r *http.Request) {
 	// Check if user is logged in
-	_, email := core.GetTokenEmail(w, r)
+	_, email := core.GetTokenEmail(r)
 	if email == "" {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(Response{Message: "Login Required"})
-		log.Handler("warning", "JSON encoder error", err)
+		log.ErrorHandler(err)
 		return
 	}
 
@@ -226,7 +225,7 @@ func DeleteQuestionUpvote(w http.ResponseWriter, r *http.Request) {
 	if email != questionUpVote.User.Email {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(Response{Message: "Unauthorized"})
-		log.Handler("warning", "JSON encoder error", err)
+		log.ErrorHandler(err)
 		return
 	}
 
@@ -248,12 +247,12 @@ func GetAnswer(w http.ResponseWriter, r *http.Request) {
 		// If it doesn't return message accordingly
 		w.WriteHeader(http.StatusNotFound)
 		err := json.NewEncoder(w).Encode(Response{Message: "Answer Not Found"})
-		log.Handler("info", "Answer not found", err)
+		log.ErrorHandler(err)
 		return
 	}
 	db.Where("slug = ?", slug).First(&answer)
 	err := json.NewEncoder(w).Encode(answer)
-	log.Handler("info", "JSON Encoder error", err)
+	log.ErrorHandler(err)
 	return
 }
 
@@ -261,32 +260,32 @@ func GetAnswers(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	db.Find(&answers)
 	err := json.NewEncoder(w).Encode(answers)
-	log.Handler("info", "JSON Encoder error", err)
+	log.ErrorHandler(err)
 	return
 }
 
 func PostAnswer(w http.ResponseWriter, r *http.Request) {
 	// Check if user is logged in
-	_, email := core.GetTokenEmail(w, r)
+	_, email := core.GetTokenEmail(r)
 	if email == "" {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(Response{Message: "Login Required"})
-		log.Handler("warning", "JSON encoder error", err)
+		log.ErrorHandler(err)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	err := json.NewDecoder(r.Body).Decode(&answer)
-	log.Handler("warning", "JSON decoder error", err)
+	log.ErrorHandler(err)
 	db.Find(&user, "email = ?", strings.ToLower(email))
 	reg, _ := regexp.Compile("[^a-zA-Z0-9]+")
-	answer.Slug = strings.ToLower(strings.ReplaceAll(answer.Question.Title + "answer"+ strconv.Itoa(int(answer.ID)),
+	answer.Slug = strings.ToLower(strings.ReplaceAll(answer.Question.Title+"answer"+strconv.Itoa(int(answer.ID)),
 		" ", "-"))
 	answer.Slug = reg.ReplaceAllString(answer.Slug, "")
 	answer.User = user
 	db.Create(&answer)
 	err = json.NewEncoder(w).Encode(answer)
-	log.Handler("warning", "JSON encoder error", err)
+	log.ErrorHandler(err)
 	return
 }
 
@@ -294,11 +293,11 @@ func UpdateAnswer(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	// Check if user is logged in
-	_, email := core.GetTokenEmail(w, r)
+	_, email := core.GetTokenEmail(r)
 	if email == "" {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(Response{Message: "Login Required"})
-		log.Handler("warning", "JSON encoder error", err)
+		log.ErrorHandler(err)
 		return
 	}
 
@@ -310,7 +309,7 @@ func UpdateAnswer(w http.ResponseWriter, r *http.Request) {
 		// If it doesn't return message accordingly
 		w.WriteHeader(http.StatusNotFound)
 		err := json.NewEncoder(w).Encode(Response{Message: "Answer Not Found"})
-		log.Handler("info", "Answer not found", err)
+		log.ErrorHandler(err)
 		return
 	}
 
@@ -321,21 +320,21 @@ func UpdateAnswer(w http.ResponseWriter, r *http.Request) {
 	if email != answer.User.Email {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(Response{Message: "Unauthorized"})
-		log.Handler("warning", "JSON encoder error", err)
+		log.ErrorHandler(err)
 		return
 	}
 
 	err := json.NewDecoder(r.Body).Decode(&answer)
-	log.Handler("warning", "JSON decoder error", err)
+	log.ErrorHandler(err)
 	db.Find(&user, "email = ?", strings.ToLower(email))
 	reg, _ := regexp.Compile("[^a-zA-Z0-9]+")
-	answer.Slug = strings.ToLower(strings.ReplaceAll(answer.Question.Title + "answer"+ strconv.Itoa(int(answer.ID)),
+	answer.Slug = strings.ToLower(strings.ReplaceAll(answer.Question.Title+"answer"+strconv.Itoa(int(answer.ID)),
 		" ", "-"))
 	answer.Slug = reg.ReplaceAllString(answer.Slug, "")
 	answer.User = user
 	db.Save(&answer)
 	err = json.NewEncoder(w).Encode(answer)
-	log.Handler("warning", "JSON encoder error", err)
+	log.ErrorHandler(err)
 	return
 }
 
@@ -343,11 +342,11 @@ func DeleteAnswer(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	// Check if user is logged in
-	_, email := core.GetTokenEmail(w, r)
+	_, email := core.GetTokenEmail(r)
 	if email == "" {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(Response{Message: "Login Required"})
-		log.Handler("warning", "JSON encoder error", err)
+		log.ErrorHandler(err)
 		return
 	}
 
@@ -359,7 +358,7 @@ func DeleteAnswer(w http.ResponseWriter, r *http.Request) {
 		// If it doesn't return message accordingly
 		w.WriteHeader(http.StatusNotFound)
 		err := json.NewEncoder(w).Encode(Response{Message: "Answer Not Found"})
-		log.Handler("info", "Answer not found", err)
+		log.ErrorHandler(err)
 		return
 	}
 	// Get answer
@@ -369,13 +368,12 @@ func DeleteAnswer(w http.ResponseWriter, r *http.Request) {
 	if email != answer.User.Email {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(Response{Message: "Unauthorized"})
-		log.Handler("warning", "JSON encoder error", err)
+		log.ErrorHandler(err)
 		return
 	}
 
 	db.Where("slug = ?", slug).Delete(&answer)
 	w.WriteHeader(http.StatusNoContent)
-	log.Handler("info", "Answer deleted", nil)
 	return
 }
 
@@ -386,7 +384,7 @@ func GetAnswerUpVotes(w http.ResponseWriter, r *http.Request) {
 
 	db.Where("answerupvote_answer_slug = ?", slug).Find(&answerUpVotes)
 	err := json.NewEncoder(w).Encode(answerUpVotes)
-	log.Handler("info", "JSON Encoder error", err)
+	log.ErrorHandler(err)
 	return
 }
 
@@ -394,11 +392,11 @@ func PostAnswerUpVote(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	// Check if user is logged in
-	_, email := core.GetTokenEmail(w, r)
+	_, email := core.GetTokenEmail(r)
 	if email == "" {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(Response{Message: "Login Required"})
-		log.Handler("warning", "JSON encoder error", err)
+		log.ErrorHandler(err)
 		return
 	}
 
@@ -410,7 +408,7 @@ func PostAnswerUpVote(w http.ResponseWriter, r *http.Request) {
 		// If it doesn't return message accordingly
 		w.WriteHeader(http.StatusNotFound)
 		err := json.NewEncoder(w).Encode(Response{Message: "Upvote already exists"})
-		log.Handler("info", "Upvote already exists", err)
+		log.ErrorHandler(err)
 		return
 	}
 
@@ -426,11 +424,11 @@ func PostAnswerUpVote(w http.ResponseWriter, r *http.Request) {
 
 func DeleteAnswerUpvote(w http.ResponseWriter, r *http.Request) {
 	// Check if user is logged in
-	_, email := core.GetTokenEmail(w, r)
+	_, email := core.GetTokenEmail(r)
 	if email == "" {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(Response{Message: "Login Required"})
-		log.Handler("warning", "JSON encoder error", err)
+		log.ErrorHandler(err)
 		return
 	}
 
@@ -446,7 +444,7 @@ func DeleteAnswerUpvote(w http.ResponseWriter, r *http.Request) {
 	if email != questionUpVote.User.Email {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(Response{Message: "Unauthorized"})
-		log.Handler("warning", "JSON encoder error", err)
+		log.ErrorHandler(err)
 		return
 	}
 

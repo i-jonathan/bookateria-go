@@ -22,14 +22,15 @@ type User struct {
 	// For Returning Data, might have to create another struct that is used solely for reading from
 	// Seems there's no write only for json or gorm for that matter
 	gorm.Model
-	UserName  string    `json:"user_name"`
-	FirstName string    `json:"first_name" gorm:"not null"`
-	LastName  string    `json:"last_name" gorm:"not null"`
-	Email     string    `json:"email" gorm:"not null;unique"`
-	IsAdmin   bool      `json:"is_admin" gorm:"default:false"`
-	Password  string    `json:"password"`
-	LastLogin time.Time `json:"last_login"`
-	IsActive  bool      `json:"is_active" gorm:"default:false"`
+	UserName        string    `json:"user_name"`
+	FirstName       string    `json:"first_name" gorm:"not null"`
+	LastName        string    `json:"last_name" gorm:"not null"`
+	Email           string    `json:"email" gorm:"not null;unique"`
+	IsAdmin         bool      `json:"is_admin" gorm:"default:false"`
+	Password        string    `json:"password"`
+	LastLogin       time.Time `json:"last_login"`
+	IsActive        bool      `json:"is_active" gorm:"default:false"`
+	IsEmailVerified bool      `json:"is_email_verified" gorm:"default:false"`
 }
 
 type Profile struct {
@@ -191,7 +192,7 @@ func EmailValidator(email string) bool {
 	}
 	parts := strings.Split(email, "@")
 	mx, err := net.LookupMX(parts[1])
-	log.Handler("info", "MX failure", err)
+	log.ErrorHandler(err)
 	if err != nil || len(mx) == 0 {
 		return false
 	}
@@ -212,10 +213,10 @@ func InitDatabase() *gorm.DB {
 	postgresConnection := fmt.Sprintf("host=%s port=%d user=%s dbname=%s password=%s sslmode=%s",
 		host, port, user, databaseName, pass, ssl)
 	db, err := gorm.Open(postgres.Open(postgresConnection), &gorm.Config{})
-	log.Handler("panic", "Couldn't connect to DB", err)
+	log.ErrorHandler(err)
 
 	err = db.AutoMigrate(&User{})
 	err = db.AutoMigrate(&Profile{})
-	log.Handler("warn", "Couldn't Migrate model to DB", err)
+	log.ErrorHandler(err)
 	return db
 }
