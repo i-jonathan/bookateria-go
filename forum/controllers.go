@@ -279,7 +279,7 @@ func PostAnswer(w http.ResponseWriter, r *http.Request) {
 	log.ErrorHandler(err)
 	db.Find(&user, "email = ?", strings.ToLower(email))
 	reg, _ := regexp.Compile("[^a-zA-Z0-9]+")
-	answer.Slug = strings.ToLower(strings.ReplaceAll(answer.Question.Title + "answer"+ strconv.Itoa(int(answer.ID)),
+	answer.Slug = strings.ToLower(strings.ReplaceAll(answer.Question.Title+"answer"+strconv.Itoa(int(answer.ID)),
 		" ", "-"))
 	answer.Slug = reg.ReplaceAllString(answer.Slug, "")
 	answer.User = user
@@ -328,7 +328,7 @@ func UpdateAnswer(w http.ResponseWriter, r *http.Request) {
 	log.ErrorHandler(err)
 	db.Find(&user, "email = ?", strings.ToLower(email))
 	reg, _ := regexp.Compile("[^a-zA-Z0-9]+")
-	answer.Slug = strings.ToLower(strings.ReplaceAll(answer.Question.Title + "answer"+ strconv.Itoa(int(answer.ID)),
+	answer.Slug = strings.ToLower(strings.ReplaceAll(answer.Question.Title+"answer"+strconv.Itoa(int(answer.ID)),
 		" ", "-"))
 	answer.Slug = reg.ReplaceAllString(answer.Slug, "")
 	answer.User = user

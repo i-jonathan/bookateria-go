@@ -11,7 +11,7 @@ import (
 	"net/http"
 )
 
-func main()  {
+func main() {
 	router := mux.NewRouter()
 	// Documentation route
 	fs := http.FileServer(http.Dir("./docs"))

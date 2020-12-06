@@ -15,11 +15,11 @@ import (
 )
 
 var (
-	users []User
-	user  User
-	db    = InitDatabase()
+	users       []User
+	user        User
+	db          = InitDatabase()
 	viperConfig = core.ReadViper()
-	redisDB, _ = strconv.Atoi(fmt.Sprintf("%s", viperConfig.Get("redis.database")))
+	redisDB, _  = strconv.Atoi(fmt.Sprintf("%s", viperConfig.Get("redis.database")))
 	redisClient = redis.NewClient(&redis.Options{
 		Addr: fmt.Sprintf("%s", viperConfig.Get("redis.address")),
 		//Password: fmt.Sprintf("%s", viperConfig.Get("redis.password")),
@@ -30,7 +30,7 @@ var (
 
 type OTP struct {
 	Email string `json:"email"`
-	Pin	string	`json:"pin"`
+	Pin   string `json:"pin"`
 }
 
 type OTPRequest struct {
@@ -118,14 +118,14 @@ func PostUser(w http.ResponseWriter, r *http.Request) {
 	passwordHash, _ := GeneratePasswordHash(password)
 
 	user = User{
-		UserName:  userName,
-		FirstName: firstName,
-		LastName:  lastName,
-		Email:     email,
-		IsAdmin:   false,
-		Password:  passwordHash,
-		LastLogin: time.Time{},
-		IsActive:  false,
+		UserName:        userName,
+		FirstName:       firstName,
+		LastName:        lastName,
+		Email:           email,
+		IsAdmin:         false,
+		Password:        passwordHash,
+		LastLogin:       time.Time{},
+		IsActive:        false,
 		IsEmailVerified: false,
 	}
 
@@ -136,9 +136,9 @@ func PostUser(w http.ResponseWriter, r *http.Request) {
 	// OTP expires in 30 minutes
 	// Stored in Redis with key new_user_otp_email
 	verifiableToken := GenerateOTP()
-	err = redisClient.Set(ctx, "new_user_otp_" + email, verifiableToken, 30*time.Minute).Err()
+	err = redisClient.Set(ctx, "new_user_otp_"+email, verifiableToken, 30*time.Minute).Err()
 	if err != nil {
-	//	Do stuff
+		//	Do stuff
 	}
 
 	payload := struct {
@@ -208,7 +208,7 @@ func VerifyEmail(w http.ResponseWriter, r *http.Request) {
 func RequestOTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var (
-		data OTPRequest
+		data      OTPRequest
 		storedOTP string
 	)
 

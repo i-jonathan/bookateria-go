@@ -8,23 +8,21 @@ import (
 	"gorm.io/gorm"
 )
 
-
 func InitDatabase() *gorm.DB {
 	viperConfig := core.ReadViper()
 
-
-	var(
+	var (
 		dbName = viperConfig.Get("database.name")
-		port = viperConfig.Get("database.port")
-		pass = viperConfig.Get("database.pass")
-		user = viperConfig.Get("database.user")
-		host = viperConfig.Get("database.host")
-		ssl = viperConfig.Get("database.ssl")
+		port   = viperConfig.Get("database.port")
+		pass   = viperConfig.Get("database.pass")
+		user   = viperConfig.Get("database.user")
+		host   = viperConfig.Get("database.host")
+		ssl    = viperConfig.Get("database.ssl")
 	)
 	postgresConnection := fmt.Sprintf("host=%s port=%d user=%s dbname=%s password=%s sslmode=%s", host, port, user, dbName, pass, ssl)
 	db, err := gorm.Open(postgres.Open(postgresConnection), &gorm.Config{})
 	log.ErrorHandler(err)
-	
+
 	err = db.AutoMigrate(&Document{})
 	err = db.AutoMigrate(&Tag{})
 
@@ -46,11 +44,11 @@ func XExists(id uint) bool {
 
 func Search(queryType string, queryValue string) []Document {
 	switch queryType {
-		case "title":
-			//Todo 
-		case "author":
-			//Todo		
+	case "title":
+		//Todo
+	case "author":
+		//Todo
 	}
 	return nil
-	
+
 }

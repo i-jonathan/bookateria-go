@@ -6,7 +6,7 @@ import (
 )
 
 func ErrorHandler(err error) {
-	file, issue := os.OpenFile("log/error.log", os.O_RDWR | os.O_CREATE | os.O_APPEND, 0666)
+	file, issue := os.OpenFile("log/error.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if issue != nil {
 		log.Printf("Error opening file: %v", issue)
 		return
@@ -20,7 +20,7 @@ func ErrorHandler(err error) {
 }
 
 func AccessHandler(text string) {
-	file, issue := os.OpenFile("log/access.log", os.O_RDWR | os.O_CREATE | os.O_APPEND, 0666)
+	file, issue := os.OpenFile("log/access.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if issue != nil {
 		log.Printf("Error opening file: %v", issue)
 		return
