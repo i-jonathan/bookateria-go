@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"bookateria-api-go/core"
+	"bookateriago/core"
 	"fmt"
 	"github.com/go-redis/redis/v8"
 	"net/http"

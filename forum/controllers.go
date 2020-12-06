@@ -1,9 +1,9 @@
 package forum
 
 import (
-	"bookateria-api-go/account"
-	"bookateria-api-go/core"
-	"bookateria-api-go/log"
+	"bookateriago/account"
+	"bookateriago/core"
+	"bookateriago/log"
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"gorm.io/gorm/clause"

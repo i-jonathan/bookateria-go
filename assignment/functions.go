@@ -1,8 +1,8 @@
 package assignment
 
 import (
-	"bookateria-api-go/core"
-	"bookateria-api-go/log"
+	"bookateriago/core"
+	"bookateriago/log"
 	"fmt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"

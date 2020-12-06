@@ -1,7 +1,7 @@
 package forum
 
 import (
-	"bookateria-api-go/account"
+	"bookateriago/account"
 	"gorm.io/gorm"
 )
 

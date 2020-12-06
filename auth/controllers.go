@@ -1,8 +1,8 @@
 package auth
 
 import (
-	"bookateria-api-go/account"
-	"bookateria-api-go/core"
+	"bookateriago/account"
+	"bookateriago/core"
 	"context"
 	"encoding/json"
 	"fmt"

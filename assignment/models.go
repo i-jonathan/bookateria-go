@@ -1,7 +1,7 @@
 package assignment
 
 import (
-	"bookateria-api-go/account"
+	"bookateriago/account"
 	"gorm.io/gorm"
 	"time"
 )
