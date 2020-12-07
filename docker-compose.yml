@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+  api:
+    image: golang:1.15.6-alpine3.12
+    container_name: go-api
+    build: .
+    volumes:
+    - .:/app
+    ports:
+    - 5000:5000
+  db:
+    image: postgres:13.1
+    ports:
+    - 5432:5432
+    environment:
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+    - pg_conf:/etc/postgresql
+    - pg_log:/var/log/postgresql
+    - pg_data:/var/lib/postgresql/data
+
+
+volumes:
+  pg_data:
+  pg_conf:
+  pg_log:
