@@ -19,6 +19,8 @@ tags:
     description: Everything Documents
   - name: forum
     description: Thing you can do on Forum. Netflix and chill stuff
+  - name: assignment
+    description: Assignment submission portal
 paths:
   # Authorization paths
 
@@ -627,6 +629,191 @@ paths:
 
         # Models
 
+  #  Assignment Portal paths
+
+  /assignment/all:
+    get:
+      tags:
+        - assignment
+      summary: Get all assignment questions
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  - $ref: '#/components/schemas/Problem'
+
+  /assignment/add:
+    post:
+      tags:
+        - assignment
+      summary: Create a new assignment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestProblem'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        401:
+          description: Access Denied
+
+  /assignment/{slug}:
+    get:
+      tags:
+        - assignment
+      summary: Get question with slug
+      parameters:
+        - name: slug
+          in: path
+          description: Assignment Problem Slug
+          schema:
+            type: string
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        404:
+          description: Not Found
+    put:
+      tags:
+        - assignment
+      summary: Update an assignment question
+      parameters:
+        - name: slug
+          in: path
+          description: Slug of question
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestProblem'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        401:
+          description: Access Denied
+
+  /application/{slug}/delete:
+    delete:
+      tags:
+        - assignment
+      summary: Delete an assignment question
+      parameters:
+        - name: slug
+          in: path
+          description: Slug of question
+          schema:
+            type: string
+      responses:
+        204:
+          description: Deleted Successfully
+        401:
+          description: Access Denied
+
+  /application/{qSlug}/submit:
+    post:
+      tags:
+        - assignment
+      summary: Submit assignment solution
+      parameters:
+        - name: qSlug
+          in: path
+          description: Slug of assignment in question
+          schema:
+            type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Submission'
+        400:
+          description: File not found
+        401:
+          description: Access Denied
+        404:
+          description: Resource not found
+        500:
+          description: Server error
+
+  /assignment/{qSlug}/submissions:
+    get:
+      tags:
+        - assignment
+      summary: Get all submissions for assignment
+      parameters:
+        - name: qSlug
+          in: path
+          description: Slug of question
+          schema:
+            type: string
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Submission'
+        401:
+          description: Access Denied
+        404:
+          description: Resource not found
+
+  /assignment/{qSlug}/submission/{aSlug}:
+    get:
+      tags:
+        - assignment
+      parameters:
+        - name: qSlug
+          in: path
+          description: Question slug
+          schema:
+            type: string
+        - name: aSlug
+          in: path
+          description: Answer Slug
+          schema:
+            type: string
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Submission'
+        401:
+          description: Access Denied
+
 # Models
 components:
   schemas:
@@ -795,6 +982,58 @@ components:
             type: string
         summary:
             type: string
+
+    Problem:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        deadline:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+        user_id:
+          type: integer
+        slug:
+          type: string
+        submission_count:
+          type: integer
+
+    RequestProblem:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        deadline:
+          type: string
+        submission_count:
+          type: integer
+
+    Submission:
+      type: object
+      properties:
+        problem:
+          $ref: '#/components/schemas/Problem'
+        problem_id:
+          type: integer
+        user:
+          $ref: '#/components/schemas/User'
+        user_id:
+          type: integer
+        file_slug:
+          type: string
+        slug:
+          type: string
+        submissions:
+          type: int
 
   securitySchemes:
     authorization:
