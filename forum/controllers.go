@@ -454,3 +454,40 @@ func DeleteAnswerUpvote(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 	return
 }
+
+// Search and queries
+//  Question search
+
+// QuestionSearch : Search for question withd query parameter
+func QuestionSearch(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	// Common question words
+	questionWords := []string{"why", "who", "what", "how", "whom", "when", "where", "are", "is", "the", "whose"}
+
+	searchTerm := r.URL.Query().Get("search")
+	regex, _ := regexp.Compile("[\\W+]")
+	final := regex.ReplaceAllString(searchTerm, "")
+
+	for _, word := range questionWords {
+		final = strings.ReplaceAll(strings.ToLower(final), word, "")
+	}
+
+	if final == "" {
+		final = regex.ReplaceAllString(searchTerm, "")
+	}
+
+	individualWords := strings.Fields(final)
+	
+	var questionList []Question
+	for _, word := range individualWords {
+		db.Where("name LIKE ?", "%"+word+"%").Find(&questions)
+		questionList = append(questionList, questions...)
+	}
+
+	w.WriteHeader(http.StatusOK)
+	err := json.NewEncoder(w).Encode(questionList)
+	log.ErrorHandler(err)
+	log.AccessHandler(r.URL.RawPath + " - [200]")
+	return
+}
