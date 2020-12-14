@@ -1,7 +1,7 @@
 package document
 
 import (
-	"bookateria-api-go/log"
+	"bookateriago/log"
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"gorm.io/gorm/clause"

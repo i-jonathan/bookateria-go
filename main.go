@@ -1,12 +1,12 @@
 package main
 
 import (
-	"bookateria-api-go/account"
-	"bookateria-api-go/assignment"
-	"bookateria-api-go/auth"
-	"bookateria-api-go/document"
-	"bookateria-api-go/forum"
-	"bookateria-api-go/log"
+	"bookateriago/account"
+	"bookateriago/assignment"
+	"bookateriago/auth"
+	"bookateriago/document"
+	"bookateriago/forum"
+	"bookateriago/log"
 	"github.com/gorilla/mux"
 	"net/http"
 )

@@ -1,4 +1,4 @@
-module bookateria-api-go
+module bookateriago
 
 go 1.14
 

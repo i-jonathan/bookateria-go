@@ -15,7 +15,7 @@ Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImpvbmF0aGFuZmFy
 
 ###
 
-POST http://localhost:5000/auth/login
+POST http://localhost:5000/v1/auth/login
 Content-Type: application/json
 
 {
@@ -25,7 +25,7 @@ Content-Type: application/json
 
 ###
 
-POST http://localhost:5000/account
+POST http://localhost:5000/v1/account
 Content-Type: application/json
 
 {
@@ -38,8 +38,15 @@ Content-Type: application/json
 
 ###
 
-GET http://localhost:5000/forum/question/100
+POST http://localhost:5000/v1/forum/question
 Content-Type: application/json
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImpvbmF0aGFuZmFyaW5sb3llQG91dGxvb2suY29tIiwiZXhwIjoxNjA3OTUyNDc3fQ.NBQdJvvblyasDCdZrO81-MbE5RtTw11FziJw63hSG6I
+
+{
+  "title": "Testing question five",
+  "description": "Trying tagain ohho hard",
+  "tags": [{"name": "Two"}, {"name": "five tag"}]
+}
 
 ###
-DELETE http://localhost:5000/forum/question/1
+GET http://localhost:5000/v1/forum/question/all?filter=One Tag

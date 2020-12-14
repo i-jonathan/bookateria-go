@@ -1,8 +1,8 @@
 package account
 
 import (
-	"bookateria-api-go/core"
-	"bookateria-api-go/log"
+	"bookateriago/core"
+	"bookateriago/log"
 	"crypto/rand"
 	"crypto/subtle"
 	"encoding/base64"
