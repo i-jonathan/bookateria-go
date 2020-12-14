@@ -71,7 +71,7 @@ func PostQuestion(w http.ResponseWriter, r *http.Request) {
 	}
 	db.Find(&user, "email = ?", strings.ToLower(email))
 	question.User = user
-	reg, _ := regexp.Compile("[^a-zA-Z0-9]+")
+	reg, _ := regexp.Compile("[^a-zA-Z0-9-]+")
 	question.Slug = strings.ToLower(strings.ReplaceAll(question.Title, " ", "-"))
 	question.Slug = reg.ReplaceAllString(question.Slug, "")
 	db.Create(&question)
@@ -481,13 +481,34 @@ func QuestionSearch(w http.ResponseWriter, r *http.Request) {
 	
 	var questionList []Question
 	for _, word := range individualWords {
-		db.Where("name LIKE ?", "%"+word+"%").Find(&questions)
+		db.Where("lower(title) LIKE ?", "%"+strings.ToLower(word)+"%").Find(&questions)
 		questionList = append(questionList, questions...)
 	}
 
 	w.WriteHeader(http.StatusOK)
 	err := json.NewEncoder(w).Encode(questionList)
 	log.ErrorHandler(err)
-	log.AccessHandler(r.URL.RawPath + " - [200]")
+	log.AccessHandler(r.URL.Path + "?"+ r.URL.RawQuery + " - [200]")
+	return
+}
+
+// FilterQuestionByTags : Get question that have a particular tag or tags  
+func FilterQuestionByTags(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	filterQuery := r.URL.Query().Get("filter")
+	tags := strings.Split(filterQuery, ",")
+	var questionIDs []uint
+
+	var questionTags []QuestionTag
+	db.Where("name IN ?", tags).Find(&questionTags)
+
+	for _, questionTag := range questionTags {
+		questionIDs = append(questionIDs, questionTag.QuestionID)
+	}
+	
+	db.Preload(clause.Associations).Find(&questions, "id IN ?", questionIDs)
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(questions)
+	log.AccessHandler(r.URL.Path + "?"+ r.URL.RawQuery + " - [200]")
 	return
 }
