@@ -71,7 +71,7 @@ func PostQuestion(w http.ResponseWriter, r *http.Request) {
 	}
 	db.Find(&user, "email = ?", strings.ToLower(email))
 	question.User = user
-	reg, _ := regexp.Compile("[^a-zA-Z0-9]+")
+	reg, _ := regexp.Compile("[^a-zA-Z0-9-]+")
 	question.Slug = strings.ToLower(strings.ReplaceAll(question.Title, " ", "-"))
 	question.Slug = reg.ReplaceAllString(question.Slug, "")
 	db.Create(&question)
@@ -452,5 +452,63 @@ func DeleteAnswerUpvote(w http.ResponseWriter, r *http.Request) {
 	db.Where("answerupvote_answer_id = ?", answerID).Where(
 		"answerupvote_user_id = ?", user.ID).Delete(&answerUpVote)
 	w.WriteHeader(http.StatusNoContent)
+	return
+}
+
+// Search and queries
+//  Question search
+
+// QuestionSearch : Search for question withd query parameter
+func QuestionSearch(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	// Common question words
+	questionWords := []string{"why", "who", "what", "how", "whom", "when", "where", "are", "is", "the", "whose"}
+
+	searchTerm := r.URL.Query().Get("search")
+	regex, _ := regexp.Compile("[\\W+]")
+	final := regex.ReplaceAllString(searchTerm, "")
+
+	for _, word := range questionWords {
+		final = strings.ReplaceAll(strings.ToLower(final), word, "")
+	}
+
+	if final == "" {
+		final = regex.ReplaceAllString(searchTerm, "")
+	}
+
+	individualWords := strings.Fields(final)
+	
+	var questionList []Question
+	for _, word := range individualWords {
+		db.Where("lower(title) LIKE ?", "%"+strings.ToLower(word)+"%").Find(&questions)
+		questionList = append(questionList, questions...)
+	}
+
+	w.WriteHeader(http.StatusOK)
+	err := json.NewEncoder(w).Encode(questionList)
+	log.ErrorHandler(err)
+	log.AccessHandler(r.URL.Path + "?"+ r.URL.RawQuery + " - [200]")
+	return
+}
+
+// FilterQuestionByTags : Get question that have a particular tag or tags  
+func FilterQuestionByTags(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	filterQuery := r.URL.Query().Get("filter")
+	tags := strings.Split(filterQuery, ",")
+	var questionIDs []uint
+
+	var questionTags []QuestionTag
+	db.Where("name IN ?", tags).Find(&questionTags)
+
+	for _, questionTag := range questionTags {
+		questionIDs = append(questionIDs, questionTag.QuestionID)
+	}
+	
+	db.Preload(clause.Associations).Find(&questions, "id IN ?", questionIDs)
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(questions)
+	log.AccessHandler(r.URL.Path + "?"+ r.URL.RawQuery + " - [200]")
 	return
 }
