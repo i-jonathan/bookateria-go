@@ -1,18 +1,17 @@
 package main
 
 import (
-	"bookateria-api-go/account"
-	"bookateria-api-go/assignment"
-	"bookateria-api-go/auth"
-	"bookateria-api-go/document"
-	"bookateria-api-go/forum"
-	"bookateria-api-go/log"
+	"bookateriago/account"
+	"bookateriago/assignment"
+	"bookateriago/auth"
+	"bookateriago/document"
+	"bookateriago/forum"
+	"bookateriago/log"
 	"github.com/gorilla/mux"
-	"go.uber.org/zap"
 	"net/http"
 )
 
-func main()  {
+func main() {
 	router := mux.NewRouter()
 	// Documentation route
 	fs := http.FileServer(http.Dir("./docs"))
@@ -25,11 +24,8 @@ func main()  {
 	forum.Router(versionRouter.PathPrefix("/forum").Subrouter())
 	assignment.Router(versionRouter.PathPrefix("/assignment").Subrouter())
 
-	loggerMgr := log.InitLog()
-	zap.ReplaceGlobals(loggerMgr)
-	logger := loggerMgr.Sugar()
-	logger.Debug("Starting Server")
-	logger.Debug(http.ListenAndServe(":5000", router))
-	err := loggerMgr.Sync()
-	logger.Debug("Buffer flush issue: ", err)
+	log.AccessHandler("Starting server")
+	err := http.ListenAndServe(":5000", router)
+	log.ErrorHandler(err)
+
 }

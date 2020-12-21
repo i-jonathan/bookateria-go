@@ -1,7 +1,7 @@
 package document
 
 import (
-	"bookateria-api-go/log"
+	"bookateriago/log"
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"gorm.io/gorm/clause"
@@ -24,7 +24,7 @@ func GetDocuments(w http.ResponseWriter, _ *http.Request) {
 	// Load data from DB
 	db.Preload(clause.Associations).Find(&documents)
 	err := json.NewEncoder(w).Encode(documents)
-	log.Handler(err)
+	log.ErrorHandler(err)
 	return
 }
 
@@ -41,21 +41,21 @@ func GetDocument(w http.ResponseWriter, r *http.Request) {
 
 		w.WriteHeader(http.StatusNotFound)
 		err := json.NewEncoder(w).Encode(Response{Message: "The document doesn't exist"})
-		log.Handler(err)
+		log.ErrorHandler(err)
 		return
 
 	}
 
 	db.Preload(clause.Associations).First(&document, documentID)
 	err := json.NewEncoder(w).Encode(document)
-	log.Handler(err)
+	log.ErrorHandler(err)
 	return
 }
 
 func PostDocument(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	err := json.NewDecoder(r.Body).Decode(&document)
-	log.Handler(err)
+	log.ErrorHandler(err)
 
 	// Check If The Document Is A Duplicate Before Processing It
 	isDuplicate := CheckDuplicate(&document)
@@ -65,20 +65,20 @@ func PostDocument(w http.ResponseWriter, r *http.Request) {
 
 		w.WriteHeader(http.StatusConflict)
 		err := json.NewEncoder(w).Encode(Response{Message: "The document is a duplicate"})
-		log.Handler(err)
+		log.ErrorHandler(err)
 		return
 	}
 
 	db.Create(&document)
 	err = json.NewEncoder(w).Encode(document)
-	log.Handler(err)
+	log.ErrorHandler(err)
 	return
 }
 
 func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	err := json.NewDecoder(r.Body).Decode(&document)
-	log.Handler(err)
+	log.ErrorHandler(err)
 	params := mux.Vars(r)
 	idToUpdate, _ := strconv.ParseUint(params["id"], 10, 0)
 	//documentID := strconv.FormatUint(uint64(document.ID), 10)
@@ -90,7 +90,7 @@ func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 
 		w.WriteHeader(http.StatusNotFound)
 		err := json.NewEncoder(w).Encode(Response{Message: "The document doesn't exist"})
-		log.Handler(err)
+		log.ErrorHandler(err)
 		return
 
 	}
@@ -99,13 +99,13 @@ func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 	if CheckDuplicate(&document) {
 		w.WriteHeader(http.StatusConflict)
 		err := json.NewEncoder(w).Encode(Response{Message: "The document is a duplicate"})
-		log.Handler(err)
+		log.ErrorHandler(err)
 		return
 	}
 
 	db.Save(&document)
 	err = json.NewEncoder(w).Encode(document)
-	log.Handler(err)
+	log.ErrorHandler(err)
 }
 
 func DeleteDocument(w http.ResponseWriter, r *http.Request) {
@@ -121,7 +121,7 @@ func DeleteDocument(w http.ResponseWriter, r *http.Request) {
 
 		w.WriteHeader(http.StatusNotFound)
 		err := json.NewEncoder(w).Encode(Response{Message: "The document doesn't exist"})
-		log.Handler(err)
+		log.ErrorHandler(err)
 		return
 
 	}

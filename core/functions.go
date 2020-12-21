@@ -86,7 +86,7 @@ func S3Upload(sess *session.Session, file multipart.File, filename string) (bool
 
 	uploader := s3manager.NewUploader(sess)
 	_, err := uploader.Upload(&s3manager.UploadInput{
-		ACL: 	aws.String("public-read"),
+		ACL:    aws.String("public-read"),
 		Body:   file,
 		Bucket: aws.String(bucketName),
 		Key:    aws.String(filename),
