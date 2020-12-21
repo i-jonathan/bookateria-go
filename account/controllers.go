@@ -28,11 +28,13 @@ var (
 	ctx = context.Background()
 )
 
+// OTP is the structure of the OTP itself
 type OTP struct {
 	Email string `json:"email"`
 	Pin   string `json:"pin"`
 }
 
+// OTPRequest carries paramaeters for requesting OTPs
 type OTPRequest struct {
 	Email string `json:"email"`
 }

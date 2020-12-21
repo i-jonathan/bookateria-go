@@ -2,6 +2,7 @@ package account
 
 import "github.com/gorilla/mux"
 
+// Router contains all endpoints for accounts.
 func Router(router *mux.Router) *mux.Router {
 	router.HandleFunc("/all", AllUsers).Methods("GET")
 	router.HandleFunc("", PostUser).Methods("POST")
