@@ -7,6 +7,11 @@ type Tag struct {
 	TagName    string `json:"tagname"`
 }
 
+type Tag struct {
+	DocumentID uint `json:"documentid"`
+	TagName string `json:"tagname"`
+}
+
 type Document struct {
 	gorm.Model
 	ID      uint   `json:"id" gorm:"primaryKey;autoIncrement"`
