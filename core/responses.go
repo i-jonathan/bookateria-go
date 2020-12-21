@@ -7,6 +7,7 @@ type Response struct {
 var (
 	FourOFour   = Response{Message: "Requested resource not found."}
 	FourOOne    = Response{Message: "Access Denied."}
+	FourTwoTwo	= Response{Message: "Your Request Could not be Processed."}
 	FourHundred = Response{Message: "Invalid Request."}
-	FiveHundred = Response{Message: "Your request couldn't be processed by the server."}
+	FiveHundred = Response{Message: "Server Error."}
 )
