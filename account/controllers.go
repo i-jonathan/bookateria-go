@@ -45,7 +45,7 @@ func AllUsers(w http.ResponseWriter, r *http.Request) {
 	db.Find(&users)
 	err := json.NewEncoder(w).Encode(users)
 	log.ErrorHandler(err)
-	log.AccessHandler(r.URL.Path + " - [200]")
+	log.AccessHandler(r, 200)
 	return
 }
 
@@ -57,7 +57,7 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	db.First(&user, userID)
 	err := json.NewEncoder(w).Encode(user)
 	log.ErrorHandler(err)
-	log.AccessHandler(r.URL.Path + " - [200]")
+	log.AccessHandler(r, 200)
 	return
 }
 
@@ -86,7 +86,7 @@ func PostUser(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		err := json.NewEncoder(w).Encode(core.FourTwoTwo)
 		log.ErrorHandler(err)
-		log.AccessHandler(r.URL.Path + " - [422]")
+		log.AccessHandler(r, 422)
 		return
 	}
 
@@ -96,7 +96,7 @@ func PostUser(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		err := json.NewEncoder(w).Encode(core.FourTwoTwo)
 		log.ErrorHandler(err)
-		log.AccessHandler(r.URL.Path + " - [422]")
+		log.AccessHandler(r, 422)
 		return
 	}
 
@@ -106,7 +106,7 @@ func PostUser(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		err := json.NewEncoder(w).Encode(core.FourTwoTwo)
 		log.ErrorHandler(err)
-		log.AccessHandler(r.URL.Path + " - [422]")
+		log.AccessHandler(r, 422)
 		return
 	}
 
@@ -116,7 +116,7 @@ func PostUser(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		err := json.NewEncoder(w).Encode(core.FourTwoTwo)
 		log.ErrorHandler(err)
-		log.AccessHandler(r.URL.Path + " - [422]")
+		log.AccessHandler(r, 422)
 		return
 	}
 
@@ -158,7 +158,7 @@ func PostUser(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		err = json.NewEncoder(w).Encode(core.FiveHundred)
 		log.ErrorHandler(err)
-		log.AccessHandler(r.URL.Path + " - [500]")
+		log.AccessHandler(r, 500)
 		return
 	}
 	log.ErrorHandler(err)
@@ -179,7 +179,7 @@ func VerifyEmail(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusTeapot)
 		err = json.NewEncoder(w).Encode(core.FourHundred)
 		log.ErrorHandler(err)
-		log.AccessHandler(r.URL.Path + " - [418]")
+		log.AccessHandler(r, 418)
 		return
 	}
 
@@ -196,14 +196,14 @@ func VerifyEmail(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		err = json.NewEncoder(w).Encode(core.FourOOne)
 		log.ErrorHandler(err)
-		log.AccessHandler(r.URL.Path + " - [401]")
+		log.AccessHandler(r, 401)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
 	user.IsEmailVerified = true
 	db.Save(&user)
-	log.AccessHandler(r.URL.Path + " - [200]")
+	log.AccessHandler(r, 200)
 	return
 
 }
@@ -240,11 +240,11 @@ func RequestOTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		err = json.NewEncoder(w).Encode(core.FiveHundred)
 		log.ErrorHandler(err)
-		log.AccessHandler(r.URL.Path + " - [500]")
+		log.AccessHandler(r, 500)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	log.AccessHandler(r.URL.Path + " - [200]")
+	log.AccessHandler(r, 200)
 	return
 
 }

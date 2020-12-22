@@ -169,6 +169,7 @@ func GetQuestionUpVotes(w http.ResponseWriter, r *http.Request) {
 	db.Where("questionupvote_question_slug = ?", slug).Find(&questionUpVotes)
 	err := json.NewEncoder(w).Encode(questionUpVotes)
 	log.ErrorHandler(err)
+	log.AccessHandler(r, 200)
 	return
 }
 
@@ -181,6 +182,7 @@ func PostQuestionUpVote(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(Response{Message: "Login Required"})
 		log.ErrorHandler(err)
+		log.AccessHandler(r, 401)
 		return
 	}
 	params := mux.Vars(r)
@@ -191,6 +193,7 @@ func PostQuestionUpVote(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		err := json.NewEncoder(w).Encode(Response{Message: "Upvote already Found"})
 		log.ErrorHandler(err)
+		log.AccessHandler(r, 404)
 		return
 	}
 
@@ -201,6 +204,7 @@ func PostQuestionUpVote(w http.ResponseWriter, r *http.Request) {
 		User:     user,
 	}
 	db.Create(&questionUpVote)
+	log.AccessHandler(r, 200)
 	return
 }
 
@@ -488,7 +492,7 @@ func QuestionSearch(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	err := json.NewEncoder(w).Encode(questionList)
 	log.ErrorHandler(err)
-	log.AccessHandler(r.URL.Path + "?"+ r.URL.RawQuery + " - [200]")
+	log.AccessHandler(r, 200)
 	return
 }
 
@@ -509,6 +513,6 @@ func FilterQuestionByTags(w http.ResponseWriter, r *http.Request) {
 	db.Preload(clause.Associations).Find(&questions, "id IN ?", questionIDs)
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(questions)
-	log.AccessHandler(r.URL.Path + "?"+ r.URL.RawQuery + " - [200]")
+	log.AccessHandler(r, 200)
 	return
 }

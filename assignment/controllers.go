@@ -24,14 +24,15 @@ var (
 	db          = InitDatabase()
 )
 
+// QuestionRequest - Accepted structure for taking data from request body
 type QuestionRequest struct {
 	Title           string `json:"title"`
 	Description     string `json:"description"`
 	Deadline        string `json:"deadline"`
-	QuestionSlug    string `json:"question_slug"`
 	SubmissionCount int    `json:"submission_count"`
 }
 
+// PostQuestion for creating a new assignment question
 func PostQuestion(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	_, email := core.GetTokenEmail(r)
@@ -40,6 +41,7 @@ func PostQuestion(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(core.FourOOne)
 		log.ErrorHandler(err)
+		log.AccessHandler(r, 401)
 		return
 	}
 
@@ -52,7 +54,8 @@ func PostQuestion(w http.ResponseWriter, r *http.Request) {
 	deadline, _ := time.Parse(time.RFC3339, questionR.Deadline)
 
 	// Remove all symbols and spaces to generate slug.
-	regex, _ := regexp.Compile("[^a-zA-Z0-9]+")
+	problem.Title = strings.Join(strings.Fields(problem.Title), " ")
+	regex, _ := regexp.Compile("[^a-zA-Z0-9 ]+")
 	processed := regex.ReplaceAllString(problem.Title, "")
 	slug := strings.ReplaceAll(processed, " ", "-")
 	fmt.Println(slug)
@@ -70,9 +73,11 @@ func PostQuestion(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	err = json.NewEncoder(w).Encode(problem)
 	log.ErrorHandler(err)
+	log.AccessHandler(r, 200)
 	return
 }
 
+// GetQuestion gets a question by the slug passed in, in the url
 func GetQuestion(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
@@ -83,6 +88,7 @@ func GetQuestion(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		err := json.NewEncoder(w).Encode(core.FourOFour)
 		log.ErrorHandler(err)
+		log.AccessHandler(r, 404)
 		return
 	}
 
@@ -90,19 +96,23 @@ func GetQuestion(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	err := json.NewEncoder(w).Encode(problem)
 	log.ErrorHandler(err)
+	log.AccessHandler(r, 200)
 	return
 }
 
-func GetQuestions(w http.ResponseWriter, _ *http.Request) {
+// GetQuestions gets all assignment questions in the db.
+func GetQuestions(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	// Fetch all assignment problems
 	db.Preload(clause.Associations).Find(&problems)
 	w.WriteHeader(http.StatusOK)
 	err := json.NewEncoder(w).Encode(problems)
 	log.ErrorHandler(err)
+	log.AccessHandler(r, 200)
 	return
 }
 
+// UpdateQuestion adjusts an already existing assignment question
 func UpdateQuestion(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -112,6 +122,7 @@ func UpdateQuestion(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(core.FourOOne)
 		log.ErrorHandler(err)
+		log.AccessHandler(r, 401)
 		return
 	}
 
@@ -124,6 +135,7 @@ func UpdateQuestion(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		err := json.NewEncoder(w).Encode(core.FourOFour)
 		log.ErrorHandler(err)
+		log.AccessHandler(r, 404)
 		return
 	}
 
@@ -135,6 +147,7 @@ func UpdateQuestion(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(core.FourOOne)
 		log.ErrorHandler(err)
+		log.AccessHandler(r, 401)
 		return
 	}
 
@@ -144,9 +157,11 @@ func UpdateQuestion(w http.ResponseWriter, r *http.Request) {
 
 	err = json.NewEncoder(w).Encode(problem)
 	log.ErrorHandler(err)
+	log.AccessHandler(r, 200)
 	return
 }
 
+// DeleteQuestion removes a question
 func DeleteQuestion(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -156,6 +171,7 @@ func DeleteQuestion(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(core.FourOOne)
 		log.ErrorHandler(err)
+		log.AccessHandler(r, 401)
 		return
 	}
 
@@ -168,6 +184,7 @@ func DeleteQuestion(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		err := json.NewEncoder(w).Encode(core.FourOFour)
 		log.ErrorHandler(err)
+		log.AccessHandler(r, 404)
 		return
 	}
 
@@ -178,14 +195,18 @@ func DeleteQuestion(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(core.FourOOne)
 		log.ErrorHandler(err)
+		log.AccessHandler(r, 401)
+		return
 	}
 
 	db.Where("slug = ?", slug).Delete(&problem)
 	w.WriteHeader(http.StatusNoContent)
+	log.AccessHandler(r, 204)
 	return
 }
 
 // Endpoints for Submissions
+// PostSubmission creates a new submission for the question which is identified by the slug
 func PostSubmission(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "multipart/form-data")
 	params := mux.Vars(r)
@@ -195,6 +216,7 @@ func PostSubmission(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		err := json.NewEncoder(w).Encode(core.FourOFour)
 		log.ErrorHandler(err)
+		log.AccessHandler(r, 404)
 		return
 	}
 	db.Preload(clause.Associations).Where("slug = ?", questionSlug).Find(&problem)
@@ -210,6 +232,8 @@ func PostSubmission(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		err = json.NewEncoder(w).Encode(core.FourHundred)
+		log.ErrorHandler(err)
+		log.AccessHandler(r, 400)
 		return
 	}
 
@@ -221,6 +245,7 @@ func PostSubmission(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		err := json.NewEncoder(w).Encode(core.FourHundred)
 		log.ErrorHandler(err)
+		log.AccessHandler(r, 400)
 		return
 	}
 	fileNameExtension := strings.Split(header.Filename, ".")
@@ -234,6 +259,8 @@ func PostSubmission(w http.ResponseWriter, r *http.Request) {
 		log.ErrorHandler(err)
 		err = json.NewEncoder(w).Encode(core.FiveHundred)
 		log.ErrorHandler(err)
+		log.AccessHandler(r, 500)
+		return
 	}
 
 	submissionSlug := problem.Slug + problem.User.FirstName + "-" + problem.User.LastName
@@ -249,9 +276,11 @@ func PostSubmission(w http.ResponseWriter, r *http.Request) {
 	db.Create(&submission)
 	err = json.NewEncoder(w).Encode(submission)
 	log.ErrorHandler(err)
+	log.AccessHandler(r, 200)
 	return
 }
 
+// GetSubmissions returns all submissions to the individual who created the question
 func GetSubmissions(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -259,12 +288,12 @@ func GetSubmissions(w http.ResponseWriter, r *http.Request) {
 	slug := params["qSlug"]
 
 	_, email := core.GetTokenEmail(r)
-	fmt.Println(slug, email)
 
 	if !XExists(slug, "problem") {
 		w.WriteHeader(http.StatusNotFound)
 		err := json.NewEncoder(w).Encode(core.FourOFour)
 		log.ErrorHandler(err)
+		log.AccessHandler(r, 404)
 		return
 	}
 
@@ -275,6 +304,7 @@ func GetSubmissions(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(core.FourOOne)
 		log.ErrorHandler(err)
+		log.AccessHandler(r, 401)
 		return
 	}
 
@@ -282,32 +312,39 @@ func GetSubmissions(w http.ResponseWriter, r *http.Request) {
 	//db.Find(&submissions, "where problem_id = ?", problem.ID)
 	err := json.NewEncoder(w).Encode(submissions)
 	log.ErrorHandler(err)
+	log.AccessHandler(r, 200)
 	return
 }
 
+// GetSubmission returns the submission of a particular person
 func GetSubmission(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 	questionSlug := params["qSlug"]
 	submissionSlug := params["sSlug"]
 
+	_, email := core.GetTokenEmail(r)
+
 	if !XExists(questionSlug, "problem") {
 		w.WriteHeader(http.StatusNotFound)
 		err := json.NewEncoder(w).Encode(core.FourOFour)
 		log.ErrorHandler(err)
+		log.AccessHandler(r, 404)
 		return
 	}
 
-	if !XExists(submissionSlug, "submission") {
-		w.WriteHeader(http.StatusNotFound)
-		err := json.NewEncoder(w).Encode(core.FourOFour)
+	db.Preload(clause.Associations).Where("slug = ?", submissionSlug).Find(&submission)
+
+	if email != submission.User.Email {
+		w.WriteHeader(http.StatusUnauthorized)
+		err := json.NewEncoder(w).Encode(core.FourOOne)
 		log.ErrorHandler(err)
+		log.AccessHandler(r, 401)
 		return
 	}
-
-	db.Preload(clause.Associations).Where("slug = ?", submissionSlug).Find(&submissions)
 
 	err := json.NewEncoder(w).Encode(submission)
 	log.ErrorHandler(err)
+	log.AccessHandler(r, 200)
 	return
 }

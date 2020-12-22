@@ -2,6 +2,8 @@ package assignment
 
 import "github.com/gorilla/mux"
 
+// Router is all assignment portal routes
+// 		return *mux.Router
 func Router(router *mux.Router) *mux.Router {
 	router.HandleFunc("/all", GetQuestions).Methods("GET")
 	router.HandleFunc("/add", PostQuestion).Methods("POST")
