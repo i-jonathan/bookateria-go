@@ -1,13 +1,20 @@
 package core
 
-type Response struct {
+type response struct {
 	Message string
 }
 
 var (
-	FourOFour   = Response{Message: "Requested resource not found."}
-	FourOOne    = Response{Message: "Access Denied."}
-	FourTwoTwo	= Response{Message: "Your Request Could not be Processed."}
-	FourHundred = Response{Message: "Invalid Request."}
-	FiveHundred = Response{Message: "Server Error."}
+	// TwoHundred general response for http code 200
+	TwoHundred	= response{Message: "OK"}
+	// FourHundred general response for http code 400
+	FourHundred = response{Message: "Invalid Request."}
+	// FourOOne general response for http code 401
+	FourOOne    = response{Message: "Access Denied."}
+	// FourOFour general response for http code 404
+	FourOFour   = response{Message: "Requested resource not found."}
+	// FourTwoTwo general response for http code 422
+	FourTwoTwo	= response{Message: "Your Request Could not be Processed."}
+	// FiveHundred general response for http code 500
+	FiveHundred = response{Message: "Server Error."}
 )

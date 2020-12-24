@@ -3,6 +3,7 @@ package auth
 import (
 	"bookateriago/account"
 	"bookateriago/core"
+	"bookateriago/log"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -26,29 +27,30 @@ var (
 		DB:       redisDb,
 	})
 	user account.User
-	cred Credentials
+	cred credentials
 )
 
-type TokenResponse struct {
+// tokenResponse is the structure of the access token
+type tokenResponse struct {
 	Name   string    `json:"name"`
 	Value  string    `json:"value"`
 	Expiry time.Time `json:"expiry"`
 }
 
-type Response struct {
-	Message string `json:"message"`
-}
-
-type Credentials struct {
+// credentials is the expected struct for the signin endpoint
+type credentials struct {
 	Password string `json:"password"`
 	Email    string `json:"email"`
+	StayIn	 bool	`json:"stay_in`
 }
 
-type Claims struct {
+// tokenClaims for building jwt token
+type tokenClaims struct {
 	Email string `json:"email"`
 	jwt.StandardClaims
 }
 
+// SignIn takes a post request with the credentials to be logged in with
 func SignIn(w http.ResponseWriter, r *http.Request) {
 	// Reads the body for email and password, gets the user and the password from DB
 	// Compares the password, if correct, returns the token
@@ -56,11 +58,16 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		log.ErrorHandler(err)
+		log.AccessHandler(r, 400)
+		return
 	}
 	db.Find(&user, "email = ?", strings.ToLower(cred.Email))
 	if user.Password == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		_ = json.NewEncoder(w).Encode(Response{Message: "User Not found"})
+		err = json.NewEncoder(w).Encode(core.FourOOne)
+		log.ErrorHandler(err)
+		log.AccessHandler(r, 401)
 		return
 	}
 	expectedPassword := user.Password
@@ -68,13 +75,19 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 
 	if !correct {
 		w.WriteHeader(http.StatusUnauthorized)
-		_ = json.NewEncoder(w).Encode(Response{Message: "Incorrect Details"})
+		err = json.NewEncoder(w).Encode(core.FourOOne)
+		log.ErrorHandler(err)
+		log.AccessHandler(r, 401)
 		return
 	}
 
-	expirationTime := time.Now().Add(5 * time.Minute)
+	expirationTime := time.Now().Add(168 * time.Hour)
 
-	claims := Claims{
+	if cred.StayIn {
+		expirationTime = time.Now().Add(720 * time.Hour)
+	}
+
+	claims := tokenClaims{
 		Email: cred.Email,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
@@ -92,7 +105,7 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 		//panic(err)
 	}
 
-	_ = json.NewEncoder(w).Encode(TokenResponse{
+	_ = json.NewEncoder(w).Encode(tokenResponse{
 		Name:   "Token",
 		Value:  tokenString,
 		Expiry: expirationTime,
@@ -101,62 +114,73 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func RefreshToken(w http.ResponseWriter, r *http.Request) {
-	// This function refreshes the token of a sign in function. Once the expiration time is within
-	// 30 seconds, it send back a new token
-	// Should also save the new token to redis
-	authorization := r.Header.Get("Authorization")
-	if authorization == "" {
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-	claims := &Claims{}
+// func RefreshToken(w http.ResponseWriter, r *http.Request) {
+// 	// This function refreshes the token of a sign in function. Once the expiration time is within
+// 	// 30 seconds, it send back a new token
+// 	// Should also save the new token to redis
+// 	authorization := r.Header.Get("Authorization")
+// 	if authorization == "" {
+// 		w.WriteHeader(http.StatusUnauthorized)
+// 		return
+// 	}
+// 	claims := &tokenClaims{}
 
-	token, err := jwt.ParseWithClaims(authorization, claims, func(token *jwt.Token) (interface{}, error) {
-		return jwtKey, nil
-	})
-	if err != nil {
-		if err == jwt.ErrSignatureInvalid {
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
+// 	token, err := jwt.ParseWithClaims(authorization, claims, func(token *jwt.Token) (interface{}, error) {
+// 		return jwtKey, nil
+// 	})
+// 	if err != nil {
+// 		if err == jwt.ErrSignatureInvalid {
+// 			w.WriteHeader(http.StatusUnauthorized)
+// 			return
+// 		}
+// 		w.WriteHeader(http.StatusBadRequest)
+// 		return
+// 	}
 
-	if !token.Valid {
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
+// 	if !token.Valid {
+// 		w.WriteHeader(http.StatusUnauthorized)
+// 		return
+// 	}
 
-	if time.Unix(claims.ExpiresAt, 0).Sub(time.Now()) > 30*time.Second {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	expirationTime := time.Now().Add(5 * time.Minute)
-	claims.ExpiresAt = expirationTime.Unix()
-	token = jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString(jwtKey)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+// 	if time.Unix(claims.ExpiresAt, 0).Sub(time.Now()) > 30*time.Second {
+// 		w.WriteHeader(http.StatusBadRequest)
+// 		return
+// 	}
+// 	expirationTime := time.Now().Add(5 * time.Minute)
+// 	claims.ExpiresAt = expirationTime.Unix()
+// 	token = jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+// 	tokenString, err := token.SignedString(jwtKey)
+// 	if err != nil {
+// 		w.WriteHeader(http.StatusInternalServerError)
+// 		return
+// 	}
 
-	_ = json.NewEncoder(w).Encode(TokenResponse{
-		Name:   "Token",
-		Value:  tokenString,
-		Expiry: expirationTime,
-	})
-	return
-}
+// 	_ = json.NewEncoder(w).Encode(tokenResponse{
+// 		Name:   "Token",
+// 		Value:  tokenString,
+// 		Expiry: expirationTime,
+// 	})
+// 	return
+// }
 
+// Logout immediately deletes a valid
 func Logout(w http.ResponseWriter, r *http.Request) {
 	// This function deletes the token from redis, rendering it invalid
 	// Make sure to delete the token on the frontend too
 
 	w.Header().Set("Content-Type", "application/json")
 	_, email := core.GetTokenEmail(r)
+	if email == "" {
+		w.WriteHeader(http.StatusUnauthorized)
+		err := json.NewEncoder(w).Encode(core.FourOOne)
+		log.ErrorHandler(err)
+		log.AccessHandler(r, 401)
+		return
+	}
+
 	redisClient.Del(ctx, email)
-	_ = json.NewEncoder(w).Encode(Response{Message: "Successfully logged out"})
+	err := json.NewEncoder(w).Encode(core.TwoHundred)
+	log.ErrorHandler(err)
+	log.AccessHandler(r, 200)
 	return
 }

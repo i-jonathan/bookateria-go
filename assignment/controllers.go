@@ -206,6 +206,7 @@ func DeleteQuestion(w http.ResponseWriter, r *http.Request) {
 }
 
 // Endpoints for Submissions
+
 // PostSubmission creates a new submission for the question which is identified by the slug
 func PostSubmission(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "multipart/form-data")
