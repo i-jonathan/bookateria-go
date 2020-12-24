@@ -12,12 +12,12 @@ import (
 	"net/http"
 )
 
-type Claims struct {
+type tokenClaims struct {
 	Email string `json:"email"`
 	jwt.StandardClaims
 }
 
-// ReadViper: A simple function utilizing the viper package for reading from configuration file.
+// ReadViper : A simple function utilizing the viper package for reading from configuration file.
 // Reads specifically from config.yaml located in the root directory.
 func ReadViper() *viper.Viper {
 	viperConfig := viper.New()
@@ -40,11 +40,11 @@ func GetTokenEmail(r *http.Request) (*jwt.Token, string) {
 		return nil, ""
 	}
 
-	token, _ := jwt.ParseWithClaims(authorization, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+	token, _ := jwt.ParseWithClaims(authorization, &tokenClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return jwtKey, nil
 	})
 
-	claims, ok := token.Claims.(*Claims)
+	claims, ok := token.Claims.(*tokenClaims)
 	if ok && token.Valid {
 	} else {
 		//w.WriteHeader(http.StatusUnauthorized)
@@ -56,7 +56,8 @@ func GetTokenEmail(r *http.Request) (*jwt.Token, string) {
 	return token, email
 }
 
-func ConnectAWS() *session.Session {
+// connectAWS connects to AWS with correct credentials and creates a session
+func connectAWS() *session.Session {
 	viperConfig := ReadViper()
 	// This is used to connect to AWS with the credentials
 	accessKeyID := fmt.Sprintf("%s", viperConfig.Get("aws.accessKeyID"))
@@ -80,8 +81,9 @@ func ConnectAWS() *session.Session {
 // Pass in the session from the ConnectAWS function, the file from the multipart form
 // and the filename from header.filename
 // Returns true, the slug, and nil if successful
-func S3Upload(sess *session.Session, file multipart.File, filename string) (bool, string, error) {
+func S3Upload(file multipart.File, filename string) (bool, string, error) {
 
+	sess := connectAWS()
 	bucketName := fmt.Sprintf("%s", viperConfig.Get("aws.bucket"))
 
 	uploader := s3manager.NewUploader(sess)

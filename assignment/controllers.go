@@ -253,8 +253,7 @@ func PostSubmission(w http.ResponseWriter, r *http.Request) {
 
 	filename := fileNameExtension[0] + "_" + strconv.Itoa(int(count+1)) + fileNameExtension[1]
 
-	sess := core.ConnectAWS()
-	status, slug, err := core.S3Upload(sess, file, filename)
+	status, slug, err := core.S3Upload(file, filename)
 	if !status {
 		w.WriteHeader(http.StatusInternalServerError)
 		log.ErrorHandler(err)

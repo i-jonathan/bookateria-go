@@ -41,7 +41,7 @@ type tokenResponse struct {
 type credentials struct {
 	Password string `json:"password"`
 	Email    string `json:"email"`
-	StayIn	 bool	`json:"stay_in`
+	StayIn	 bool	`json:"stay_in"`
 }
 
 // tokenClaims for building jwt token
