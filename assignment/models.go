@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+// Problem is the model for creating assignment questions or problems
 type Problem struct {
 	gorm.Model
 	Title           string       `json:"title"`
@@ -17,6 +18,7 @@ type Problem struct {
 	SubmissionCount int          `json:"submission_count"`
 }
 
+// Submission is the model for storing submission data
 type Submission struct {
 	gorm.Model
 	Problem     Problem      `json:"problem"`

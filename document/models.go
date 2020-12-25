@@ -3,11 +3,6 @@ package document
 import "gorm.io/gorm"
 
 type Tag struct {
-	DocumentID uint   `json:"documentid"`
-	TagName    string `json:"tagname"`
-}
-
-type Tag struct {
 	DocumentID uint `json:"documentid"`
 	TagName string `json:"tagname"`
 }

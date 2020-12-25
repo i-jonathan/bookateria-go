@@ -16,7 +16,7 @@ func Router(router *mux.Router) *mux.Router {
 	subRouter.HandleFunc("{slug}/up-votes", PostQuestionUpVote).Methods("POST")
 	subRouter.HandleFunc("{slug}/up-votes/{id}", DeleteQuestionUpvote).Methods("DELETE")
 
-	subRouter = router.PathPrefix("/answer").Subrouter()
+	subRouter = router.PathPrefix("{questionSlug}/answer").Subrouter()
 	subRouter.HandleFunc("/all", GetAnswers).Methods("GET")
 	subRouter.HandleFunc("/{slug}", GetAnswer).Methods("GET")
 	subRouter.HandleFunc("", PostAnswer).Methods("POST")
@@ -24,6 +24,6 @@ func Router(router *mux.Router) *mux.Router {
 	subRouter.HandleFunc("/{slug}", DeleteAnswer).Methods("DELETE")
 	subRouter.HandleFunc("{slug}/up-votes", GetAnswerUpVotes).Methods("GET")
 	subRouter.HandleFunc("{slug}/up-votes", PostAnswerUpVote).Methods("POST")
-	subRouter.HandleFunc("{slug}/up-votes/{id}", DeleteAnswerUpvote).Methods("DELETE")
+	subRouter.HandleFunc("{slug}/up-votes/", DeleteAnswerUpvote).Methods("DELETE")
 	return router
 }

@@ -50,3 +50,6 @@ Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImpvbmF0aGFuZmFy
 
 ###
 GET http://localhost:5000/v1/forum/question/all?filter=One Tag
+
+###
+GET http://localhost:5000/v1/account/all?filter=one,two,five&search=airtel

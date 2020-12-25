@@ -28,28 +28,28 @@ var (
 	ctx = context.Background()
 )
 
+// OTP is the structure of the OTP itself
 type OTP struct {
 	Email string `json:"email"`
 	Pin   string `json:"pin"`
 }
 
+// OTPRequest carries paramaeters for requesting OTPs
 type OTPRequest struct {
 	Email string `json:"email"`
 }
 
-type Response struct {
-	Message string `json:"message"`
-}
-
-func AllUsers(w http.ResponseWriter, _ *http.Request) {
+// AllUsers gets and returns a list of all users in the DB
+func AllUsers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	db.Find(&users)
 	err := json.NewEncoder(w).Encode(users)
 	log.ErrorHandler(err)
-	log.ErrorHandler(err)
+	log.AccessHandler(r, 200)
 	return
 }
 
+// GetUser returns a user by id. TODO change to by slug
 func GetUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
@@ -57,10 +57,11 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	db.First(&user, userID)
 	err := json.NewEncoder(w).Encode(user)
 	log.ErrorHandler(err)
-
+	log.AccessHandler(r, 200)
 	return
 }
 
+// PostUser for creating a new user. Does all the checks.
 func PostUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	err := json.NewDecoder(r.Body).Decode(&user)
@@ -83,8 +84,9 @@ func PostUser(w http.ResponseWriter, r *http.Request) {
 		// Some or all of the details in the body are empty
 		//	All fields are required
 		w.WriteHeader(http.StatusUnprocessableEntity)
-		err := json.NewEncoder(w).Encode(Response{Message: "Name and Email are required"})
+		err := json.NewEncoder(w).Encode(core.FourTwoTwo)
 		log.ErrorHandler(err)
+		log.AccessHandler(r, 422)
 		return
 	}
 
@@ -92,8 +94,9 @@ func PostUser(w http.ResponseWriter, r *http.Request) {
 		// Issue with Email
 		//Email couldn't be verified  or invalid email
 		w.WriteHeader(http.StatusUnprocessableEntity)
-		err := json.NewEncoder(w).Encode(Response{Message: "Incorrect Email"})
+		err := json.NewEncoder(w).Encode(core.FourTwoTwo)
 		log.ErrorHandler(err)
+		log.AccessHandler(r, 422)
 		return
 	}
 
@@ -101,8 +104,9 @@ func PostUser(w http.ResponseWriter, r *http.Request) {
 		// Issue with Password
 		// Password is similar to user information
 		w.WriteHeader(http.StatusUnprocessableEntity)
-		err := json.NewEncoder(w).Encode(Response{Message: "Password is similar to user info"})
+		err := json.NewEncoder(w).Encode(core.FourTwoTwo)
 		log.ErrorHandler(err)
+		log.AccessHandler(r, 422)
 		return
 	}
 
@@ -110,8 +114,9 @@ func PostUser(w http.ResponseWriter, r *http.Request) {
 		// Issue with Password
 		//	Password doesn't go through the validator successfully
 		w.WriteHeader(http.StatusUnprocessableEntity)
-		err := json.NewEncoder(w).Encode(Response{Message: "Unsafe Password"})
+		err := json.NewEncoder(w).Encode(core.FourTwoTwo)
 		log.ErrorHandler(err)
+		log.AccessHandler(r, 422)
 		return
 	}
 
@@ -131,15 +136,14 @@ func PostUser(w http.ResponseWriter, r *http.Request) {
 
 	db.Create(&user)
 	err = json.NewEncoder(w).Encode(user)
+	log.ErrorHandler(err)
 
 	// Create OTP to verify email by
 	// OTP expires in 30 minutes
 	// Stored in Redis with key new_user_otp_email
 	verifiableToken := GenerateOTP()
 	err = redisClient.Set(ctx, "new_user_otp_"+email, verifiableToken, 30*time.Minute).Err()
-	if err != nil {
-		//	Do stuff
-	}
+	log.ErrorHandler(err)
 
 	payload := struct {
 		Token string
@@ -151,15 +155,18 @@ func PostUser(w http.ResponseWriter, r *http.Request) {
 
 	status, err = core.SendEmailNoAttachment(email, "OTP for Verification", payload, "token.txt")
 	if !status {
-		// TODO Log error.
 		w.WriteHeader(http.StatusInternalServerError)
-		err = json.NewEncoder(w).Encode(Response{Message: "Email not sent. Server Error"})
+		err = json.NewEncoder(w).Encode(core.FiveHundred)
 		log.ErrorHandler(err)
+		log.AccessHandler(r, 500)
+		return
 	}
 	log.ErrorHandler(err)
 	return
 }
 
+// VerifyEmail is used to verify emails and make sure they exists.
+// Supplementary to the regex check and the MX lookup
 func VerifyEmail(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var data OTP
@@ -170,9 +177,10 @@ func VerifyEmail(w http.ResponseWriter, r *http.Request) {
 	db.Find(&user, "email = ?", strings.ToLower(data.Email))
 	if user.IsEmailVerified {
 		w.WriteHeader(http.StatusTeapot)
-		_ = json.NewEncoder(w).Encode(Response{
-			Message: "Email already Verified",
-		})
+		err = json.NewEncoder(w).Encode(core.FourHundred)
+		log.ErrorHandler(err)
+		log.AccessHandler(r, 418)
+		return
 	}
 
 	// Gets the OTP stored in redis
@@ -181,30 +189,26 @@ func VerifyEmail(w http.ResponseWriter, r *http.Request) {
 	storedOTP, err = redisClient.Get(ctx, key).Result()
 	log.ErrorHandler(err)
 
-	// If the OTP is empty, or the key doesn't exist, the pin has most likely elapsed the 30 minutes given
+	// If the OTP is empty, or the key doesn't exist or the pin provided is incorrect,
+	// the pin has either elapsed the 30 minutes given or just plain wrong
 	// So they need to request a new one
-	if storedOTP == "" {
+	if storedOTP == "" || storedOTP != data.Pin{
 		w.WriteHeader(http.StatusUnauthorized)
-		err = json.NewEncoder(w).Encode(Response{Message: "Your OTP might have expired. Request a new one"})
+		err = json.NewEncoder(w).Encode(core.FourOOne)
 		log.ErrorHandler(err)
-		return
-	}
-
-	// If the pin exists, and it's not the same as that provided by the client, unauthorized error is raised
-	if storedOTP != data.Pin {
-		w.WriteHeader(http.StatusUnauthorized)
-		err = json.NewEncoder(w).Encode(Response{Message: "Pin is invalid. Please check your mail and try again"})
+		log.AccessHandler(r, 401)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
 	user.IsEmailVerified = true
 	db.Save(&user)
-	err = json.NewEncoder(w).Encode(Response{Message: "Your Email has been Verified. You can now Login"})
+	log.AccessHandler(r, 200)
 	return
 
 }
 
+// RequestOTP : In case the OTP sent expires, users can request for a new OTP
 func RequestOTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var (
@@ -232,14 +236,15 @@ func RequestOTP(w http.ResponseWriter, r *http.Request) {
 	var status bool
 	status, err = core.SendEmailNoAttachment(data.Email, "OTP for Verification", payload, "token.txt")
 	if !status {
-		// TODO Log error.
-		w.WriteHeader(http.StatusInternalServerError)
-		err = json.NewEncoder(w).Encode(Response{Message: "Email not sent. Server Error"})
 		log.ErrorHandler(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		err = json.NewEncoder(w).Encode(core.FiveHundred)
+		log.ErrorHandler(err)
+		log.AccessHandler(r, 500)
+		return
 	}
 	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(Response{Message: "OTP has been sent to mail"})
-	log.ErrorHandler(err)
+	log.AccessHandler(r, 200)
 	return
 
 }

@@ -17,3 +17,4 @@
 scrap.go
 config.yaml
 api.http
+*.log

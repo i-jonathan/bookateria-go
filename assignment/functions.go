@@ -8,6 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// InitDatabase initializes the models for assignments
 func InitDatabase() *gorm.DB {
 	viperConfig := core.ReadViper()
 	var (
@@ -30,6 +31,7 @@ func InitDatabase() *gorm.DB {
 	return db
 }
 
+// XExists checks the existence of an object given the slug and the model
 func XExists(slug, model string) bool {
 	var count int64
 	var db = InitDatabase()
