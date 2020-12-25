@@ -8,6 +8,8 @@ import (
 	"gorm.io/gorm"
 )
 
+// XExists checks if an object by the slug given exists
+//  returns true if it exists, false otherwise
 func XExists(slug string, model string) bool {
 	var count int64
 	var db = InitDatabase()
@@ -29,6 +31,7 @@ func XExists(slug string, model string) bool {
 	}
 }
 
+// InitDatabase initializes the database and migrates the forum models
 func InitDatabase() *gorm.DB {
 	viperConfig := core.ReadViper()
 	var (
@@ -45,11 +48,7 @@ func InitDatabase() *gorm.DB {
 	db, err := gorm.Open(postgres.Open(postgresConnection), &gorm.Config{})
 	log.ErrorHandler(err)
 
-	err = db.AutoMigrate(&QuestionTag{})
-	err = db.AutoMigrate(&Question{})
-	err = db.AutoMigrate(&Answer{})
-	err = db.AutoMigrate(&QuestionUpVote{})
-	err = db.AutoMigrate(&AnswerUpvote{})
+	err = db.AutoMigrate(&QuestionTag{}, &Question{}, &Answer{}, &QuestionUpVote{}, &AnswerUpvote{})
 	log.ErrorHandler(err)
 	return db
 }
