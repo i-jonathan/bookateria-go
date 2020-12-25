@@ -13,6 +13,8 @@ var (
 	FourOOne    = response{Message: "Access Denied."}
 	// FourOFour general response for http code 404
 	FourOFour   = response{Message: "Requested resource not found."}
+	// FourONine response for http code 409
+	FourONine	= response{Message: "Conflict."}
 	// FourTwoTwo general response for http code 422
 	FourTwoTwo	= response{Message: "Your Request Could not be Processed."}
 	// FiveHundred general response for http code 500

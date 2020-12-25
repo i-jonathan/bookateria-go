@@ -5,6 +5,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// QuestionTag model for tags attached to questions
 type QuestionTag struct {
 	gorm.Model
 	QuestionID uint   `json:"question_id"`
@@ -12,6 +13,7 @@ type QuestionTag struct {
 	Slug       string `json:"slug"`
 }
 
+// Question is the model for forum questions
 type Question struct {
 	gorm.Model
 	Title        string        `json:"title"`
@@ -24,6 +26,7 @@ type Question struct {
 	Slug     string           `json:"slug"`
 }
 
+// Answer are replies to Questions
 type Answer struct {
 	gorm.Model
 	QuestionID int          `json:"question_id"`
@@ -35,6 +38,7 @@ type Answer struct {
 	Slug       string       `json:"slug"`
 }
 
+// QuestionUpVote for keeping a list of up votes on a question
 type QuestionUpVote struct {
 	gorm.Model
 	QuestionID int          `json:"question_id"`
@@ -43,6 +47,7 @@ type QuestionUpVote struct {
 	User       account.User `json:"user" gorm:"constraints:OnDelete:CASCADE"`
 }
 
+// AnswerUpvote for keeping a lost of upvotes on an answer
 type AnswerUpvote struct {
 	gorm.Model
 	AnswerID int          `json:"answer_id"`
