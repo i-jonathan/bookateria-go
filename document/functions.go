@@ -30,19 +30,19 @@ func InitDatabase() *gorm.DB {
 	return db
 }
 
-func CheckDuplicate(document *Document) bool {
+func checkDuplicate(document *Document) bool {
 	var count int64
 	db.Model(&Document{}).Where("title LIKE ? AND edition = ? AND author LIKE ? ", document.Title, document.Edition, document.Author).Count(&count)
 	return count > 0
 }
 
-func XExists(id uint) bool {
+func xExists(id uint) bool {
 	var count int64
 	db.Model(&Document{}).Where("id = ?", id).Count(&count)
 	return count > 0
 }
 
-func Search(queryType string, queryValue string) []Document {
+func search(queryType string, queryValue string) []Document {
 	switch queryType {
 	case "title":
 		//Todo
