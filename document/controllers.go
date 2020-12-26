@@ -1,18 +1,24 @@
 package document
 
 import (
+	"bookateriago/account"
+	//"bookateriago/core"
 	"bookateriago/log"
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"gorm.io/gorm/clause"
 	"net/http"
+	//"regexp"
 	"strconv"
+	"strings"
 )
 
 var (
 	documents []Document
 	document  Document
 	db        = InitDatabase()
+	user      account.User
+	email     string
 )
 
 type Response struct {
@@ -35,7 +41,7 @@ func GetDocument(w http.ResponseWriter, r *http.Request) {
 	ID, _ := strconv.ParseUint(documentID, 10, 0)
 
 	// Check If The Document Exists
-	if !XExists(uint(ID)) {
+	if !xExists(uint(ID)) {
 		// If The Document Doesn't Exist
 		// Users Shouldn't Be Allowed To Modify What Doesn't Exists
 
@@ -46,19 +52,55 @@ func GetDocument(w http.ResponseWriter, r *http.Request) {
 
 	}
 
-	db.Preload(clause.Associations).First(&document, documentID)
+	db.Preload(clause.Associations).Find(&document, "id = ?", documentID)
 	err := json.NewEncoder(w).Encode(document)
 	log.ErrorHandler(err)
 	return
 }
 
 func PostDocument(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	err := json.NewDecoder(r.Body).Decode(&document)
-	log.ErrorHandler(err)
+	w.Header().Set("Content-Type", "multipart/form-data")
 
+	//Checks If Current User Is Logged In
+	/*if _, email = core.GetTokenEmail(r); email == "" {
+		w.WriteHeader(http.StatusUnauthorized)
+		err := json.NewEncoder(w).Encode(Response{Message: "Login Required"})
+		log.ErrorHandler(err)
+		return
+	}*/
+
+	err := r.ParseMultipartForm(32 << 20)
+	db.Find(&user, "email = ?", strings.ToLower(email))
+	//reg, _ := regexp.Compile("[^a-zA-Z0-9]+")
+	edition, _ := strconv.Atoi(r.FormValue("edition"))
+	document = Document{
+		Title:   r.FormValue("title"),
+		Author:  r.FormValue("author"),
+		Edition: edition,
+		//Tags:     r.FormValue("tags"),
+		Summary:  r.FormValue("summary"),
+		Uploader: user,
+	}
+
+	if checkDuplicate(&document) {
+		w.WriteHeader(http.StatusConflict)
+		err := json.NewEncoder(w).Encode(Response{Message: "Duplicate Document"})
+		log.ErrorHandler(err)
+		return
+	}
+
+	slug := strings.ToLower(strings.ReplaceAll(document.Title+document.Author+r.FormValue("edition")+"-bookateria.net", " ", "-"))
+	document.Slug = slug
+
+	db.Create(&document)
+	err = json.NewEncoder(w).Encode(document)
+	log.ErrorHandler(err)
+	return
+	/*err := json.NewDecoder(r.Body).Decode(&document)
+	log.ErrorHandler(err)
+	var count int64
 	// Check If The Document Is A Duplicate Before Processing It
-	isDuplicate := CheckDuplicate(&document)
+	isDuplicate := checkDuplicate(&document)
 	if isDuplicate {
 		// The Document Is A Duplicate
 		// Duplicate Documents Not Allowed
@@ -72,7 +114,7 @@ func PostDocument(w http.ResponseWriter, r *http.Request) {
 	db.Create(&document)
 	err = json.NewEncoder(w).Encode(document)
 	log.ErrorHandler(err)
-	return
+	return*/
 }
 
 func UpdateDocument(w http.ResponseWriter, r *http.Request) {
@@ -84,7 +126,7 @@ func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 	//documentID := strconv.FormatUint(uint64(document.ID), 10)
 
 	// Check If The Document Exists
-	if !XExists(uint(idToUpdate)) {
+	if !xExists(uint(idToUpdate)) {
 		// If The Document Doesn't Exist
 		// Users Shouldn't Be Allowed To Modify What Doesn't Exists
 
@@ -96,7 +138,7 @@ func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Checks If A Document Like That Already Exists
-	if CheckDuplicate(&document) {
+	if checkDuplicate(&document) {
 		w.WriteHeader(http.StatusConflict)
 		err := json.NewEncoder(w).Encode(Response{Message: "The document is a duplicate"})
 		log.ErrorHandler(err)
@@ -115,7 +157,7 @@ func DeleteDocument(w http.ResponseWriter, r *http.Request) {
 	idToDelete := uint(idInUint)
 
 	//Check If The Document to Delete Exists
-	if !XExists(idToDelete) {
+	if !xExists(idToDelete) {
 		//Deletion Of Non-Existent Documents Is Not Permitted
 		//Throw An Error
 
