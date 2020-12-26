@@ -18,7 +18,7 @@ import (
 	"time"
 )
 
-var GmailService *gmail.Service
+var gmailService *gmail.Service
 var viperConfig = ReadViper()
 
 type data struct {
@@ -26,6 +26,7 @@ type data struct {
 	SenderName   string
 }
 
+// OAuthGmailService Creates a connection to gmail service
 func OAuthGmailService() {
 	config := oauth2.Config{
 		ClientID:     fmt.Sprintf("%s", viperConfig.Get("email.client.id")),
@@ -49,12 +50,13 @@ func OAuthGmailService() {
 		fmt.Println(err)
 	}
 
-	GmailService = service
-	if GmailService != nil {
+	gmailService = service
+	if gmailService != nil {
 		fmt.Println("Email Service Initiated")
 	}
 }
 
+// parseTemplate is for preparing the template from the email/templates directory
 func parseTemplate(templateFileName string, data interface{}) (string, error) {
 	templatePath, err := filepath.Abs(fmt.Sprintf("../email/templates/%s", templateFileName))
 
@@ -77,6 +79,7 @@ func parseTemplate(templateFileName string, data interface{}) (string, error) {
 	return body, nil
 }
 
+// SendEmailNoAttachment is for sending emails with no attachments, like OTP, password reset
 func SendEmailNoAttachment(to, title string, data interface{}, template string) (bool, error) {
 	emailBody, err := parseTemplate(template, data)
 
@@ -93,7 +96,7 @@ func SendEmailNoAttachment(to, title string, data interface{}, template string) 
 
 	message.Raw = base64.URLEncoding.EncodeToString(msg)
 
-	_, err = GmailService.Users.Messages.Send("me", &message).Do()
+	_, err = gmailService.Users.Messages.Send("me", &message).Do()
 	if err != nil {
 		return false, err
 	}
@@ -140,6 +143,7 @@ func chunkSplit(body string, limit int, end string) string {
 	return result
 }
 
+// SendEmailWithAttachment for attaching files to an email.
 func SendEmailWithAttachment(to, subject, content, fileDir, fileName string) (bool, error) {
 	var message gmail.Message
 
@@ -173,7 +177,7 @@ func SendEmailWithAttachment(to, subject, content, fileDir, fileName string) (bo
 	message.Raw = base64.URLEncoding.EncodeToString(messageBody)
 
 	// Send the mail
-	_, err = GmailService.Users.Messages.Send("me", &message).Do()
+	_, err = gmailService.Users.Messages.Send("me", &message).Do()
 	if err != nil {
 		return false, err
 	}

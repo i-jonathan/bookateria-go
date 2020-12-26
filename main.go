@@ -24,7 +24,7 @@ func main() {
 	forum.Router(versionRouter.PathPrefix("/forum").Subrouter())
 	assignment.Router(versionRouter.PathPrefix("/assignment").Subrouter())
 
-	log.AccessHandler("Starting server")
+	log.Start("Starting Server")
 	err := http.ListenAndServe(":5000", router)
 	log.ErrorHandler(err)
 
