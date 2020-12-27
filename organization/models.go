@@ -1,15 +1,16 @@
 package organization
 
 import (
-	"gorm.io/gorm"
 	"bookateriago/account"
+	"time"
 )
 
 // Class -
 type Class struct {
-	gorm.Model
-	Name    string 		`json:"name"`
-	Owner 	account.User `json:"owner"`
-	Members []account.User `json:"members"`
-
+	ID        uint           `json:"id"`
+	CreatedAt time.Time      `json:"created_at" gorm:"autoCreateTime:nano"`
+	UpdatedAt time.Time      `json:"updated_at" gorm:"autoUpdateTime:nano"`
+	Name      string         `json:"name"`
+	Owner     account.User   `json:"owner"`
+	Members   []account.User `json:"members"`
 }

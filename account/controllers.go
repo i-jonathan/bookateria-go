@@ -54,7 +54,7 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 	userID := params["id"]
-	db.First(&user, userID)
+	db.Find(&user, "id = ?", userID)
 	err := json.NewEncoder(w).Encode(user)
 	log.ErrorHandler(err)
 	log.AccessHandler(r, 200)
@@ -247,4 +247,11 @@ func RequestOTP(w http.ResponseWriter, r *http.Request) {
 	log.AccessHandler(r, 200)
 	return
 
+}
+
+func DeleteUser(w http.ResponseWriter, r *http.Request) {
+	
+	params := mux.Vars(r)
+	userID := params["id"]
+	db.Delete(&user, userID)
 }

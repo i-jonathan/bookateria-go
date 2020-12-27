@@ -5,12 +5,14 @@ import (
 	"bookateriago/core"
 	"bookateriago/log"
 	"encoding/json"
-	"github.com/gorilla/mux"
-	"gorm.io/gorm/clause"
+	"fmt"
 	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
+	"reflect"
+	"github.com/gorilla/mux"
+	"gorm.io/gorm/clause"
 )
 
 var (
@@ -23,6 +25,7 @@ var (
 	questions       []Question
 	questionUpVote  QuestionUpVote
 	questionUpVotes []QuestionUpVote
+	questionTags	[]QuestionTag
 	user            account.User
 )
 

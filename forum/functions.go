@@ -48,7 +48,12 @@ func InitDatabase() *gorm.DB {
 	db, err := gorm.Open(postgres.Open(postgresConnection), &gorm.Config{})
 	log.ErrorHandler(err)
 
-	err = db.AutoMigrate(&QuestionTag{}, &Question{}, &Answer{}, &QuestionUpVote{}, &AnswerUpvote{})
+	// err = db.AutoMigrate(&QuestionTag{}, &Question{}, &Answer{}, &QuestionUpVote{}, &AnswerUpvote{})
+	err = db.AutoMigrate(&QuestionTag{})
+	err = db.AutoMigrate(&Question{})
+	err = db.AutoMigrate(&Answer{})
+	err = db.AutoMigrate(&QuestionUpVote{})
+	err = db.AutoMigrate(&AnswerUpvote{})
 	log.ErrorHandler(err)
 	return db
 }
