@@ -2,19 +2,22 @@ package document
 
 import (
 	"bookateriago/account"
-	//"bookateriago/core"
+	"bookateriago/core"
 	"bookateriago/log"
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"gorm.io/gorm/clause"
 	"net/http"
 	//"regexp"
+	"fmt"
 	"strconv"
 	"strings"
 )
 
 var (
 	documents []Document
+	tags      []Tag
+	tag       Tag
 	document  Document
 	db        = InitDatabase()
 	user      account.User
@@ -25,6 +28,8 @@ type Response struct {
 	Message string `json:"message"`
 }
 
+//GetDocuments fetches all documents in the database
+//
 func GetDocuments(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	// Load data from DB
@@ -34,6 +39,7 @@ func GetDocuments(w http.ResponseWriter, _ *http.Request) {
 	return
 }
 
+//GetDocument fetches a specific document from the database
 func GetDocument(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
@@ -55,29 +61,40 @@ func GetDocument(w http.ResponseWriter, r *http.Request) {
 	db.Preload(clause.Associations).Find(&document, "id = ?", documentID)
 	err := json.NewEncoder(w).Encode(document)
 	log.ErrorHandler(err)
-	return
 }
 
+//PostDocument puts a provided document into the db
 func PostDocument(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "multipart/form-data")
 
 	//Checks If Current User Is Logged In
-	/*if _, email = core.GetTokenEmail(r); email == "" {
+	if _, email = core.GetTokenEmail(r); email == "" {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(Response{Message: "Login Required"})
 		log.ErrorHandler(err)
 		return
-	}*/
+	}
 
 	err := r.ParseMultipartForm(32 << 20)
+	if err != nil {
+		log.ErrorHandler(err)
+	}
 	db.Find(&user, "email = ?", strings.ToLower(email))
 	//reg, _ := regexp.Compile("[^a-zA-Z0-9]+")
 	edition, _ := strconv.Atoi(r.FormValue("edition"))
+
+	str_tags := strings.Split(r.FormValue("tags"), ",")
+
+	for _, str_tag := range str_tags {
+		tag.TagName = strings.TrimSpace(string(str_tag))
+		tags = append(tags, tag)
+		fmt.Println(tags)
+	}
 	document = Document{
-		Title:   r.FormValue("title"),
+		Title:   strings.Join(strings.Fields(r.FormValue("title")), " "),
 		Author:  r.FormValue("author"),
 		Edition: edition,
-		//Tags:     r.FormValue("tags"),
+		//Tags:     tags,
 		Summary:  r.FormValue("summary"),
 		Uploader: user,
 	}
@@ -89,13 +106,13 @@ func PostDocument(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	slug := strings.ToLower(strings.ReplaceAll(document.Title+document.Author+r.FormValue("edition")+"-bookateria.net", " ", "-"))
+	fmt.Println(tags)
+	slug := strings.ToLower(strings.ReplaceAll(document.Title+"-"+document.Author+"-"+r.FormValue("edition"), " ", "-"))
 	document.Slug = slug
 
 	db.Create(&document)
 	err = json.NewEncoder(w).Encode(document)
 	log.ErrorHandler(err)
-	return
 	/*err := json.NewDecoder(r.Body).Decode(&document)
 	log.ErrorHandler(err)
 	var count int64
