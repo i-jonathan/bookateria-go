@@ -3,9 +3,14 @@ package document
 import (
 	"bookateriago/core"
 	"bookateriago/log"
+	"errors"
 	"fmt"
+	"github.com/gorilla/mux"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"net/http"
+	"strconv"
+	"strings"
 )
 
 func InitDatabase() *gorm.DB {
@@ -40,6 +45,33 @@ func xExists(id uint) bool {
 	var count int64
 	db.Model(&Document{}).Where("id = ?", id).Count(&count)
 	return count > 0
+}
+
+/*validate=========================
+params: r type: http.Request
+Returns: string, string, int, error
+===================================*/
+func validate(r *http.Request) (string, string, int, error) {
+
+	title := strings.TrimSpace(r.FormValue("title"))
+	author := strings.TrimSpace(r.FormValue("author"))
+	edition, err := strconv.Atoi(r.FormValue("edition"))
+
+	title = strings.ToLower(title)
+	author = strings.ToLower(author)
+
+	if err != nil {
+		return "", "", -1, errors.New("Value of edition is not of valid type")
+	}
+
+	if title != "" && author != "" {
+		title = strings.Join(strings.Fields(title), " ")
+		author = strings.Join(strings.Fields(author), " ")
+		return strings.Title(title), strings.Title(author), edition, err
+	}
+
+	return "", "", -1, errors.New("Either Title Or Author Is Empty")
+
 }
 
 func search(queryType string, queryValue string) []Document {
