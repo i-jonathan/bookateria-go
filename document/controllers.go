@@ -9,7 +9,6 @@ import (
 	"gorm.io/gorm/clause"
 	"net/http"
 	//"regexp"
-	"fmt"
 	"strconv"
 	"strings"
 )
@@ -24,10 +23,6 @@ var (
 	email     string
 )
 
-type Response struct {
-	Message string `json:"message"`
-}
-
 //GetDocuments fetches all documents in the database
 //
 func GetDocuments(w http.ResponseWriter, _ *http.Request) {
@@ -36,7 +31,6 @@ func GetDocuments(w http.ResponseWriter, _ *http.Request) {
 	db.Preload(clause.Associations).Find(&documents)
 	err := json.NewEncoder(w).Encode(documents)
 	log.ErrorHandler(err)
-	return
 }
 
 //GetDocument fetches a specific document from the database
@@ -52,7 +46,7 @@ func GetDocument(w http.ResponseWriter, r *http.Request) {
 		// Users Shouldn't Be Allowed To Modify What Doesn't Exists
 
 		w.WriteHeader(http.StatusNotFound)
-		err := json.NewEncoder(w).Encode(Response{Message: "The document doesn't exist"})
+		err := json.NewEncoder(w).Encode(core.FourOFour)
 		log.ErrorHandler(err)
 		return
 
@@ -70,70 +64,67 @@ func PostDocument(w http.ResponseWriter, r *http.Request) {
 	//Checks If Current User Is Logged In
 	if _, email = core.GetTokenEmail(r); email == "" {
 		w.WriteHeader(http.StatusUnauthorized)
-		err := json.NewEncoder(w).Encode(Response{Message: "Login Required"})
+		err := json.NewEncoder(w).Encode(core.FourOOne)
 		log.ErrorHandler(err)
 		return
 	}
 
+	//Creates memory space to store form-data
 	err := r.ParseMultipartForm(32 << 20)
 	if err != nil {
 		log.ErrorHandler(err)
 	}
-	db.Find(&user, "email = ?", strings.ToLower(email))
+
+	db.Find(&user, "email = ?", strings.ToLower(email)) //Check for user attached to mail
 	//reg, _ := regexp.Compile("[^a-zA-Z0-9]+")
-	edition, _ := strconv.Atoi(r.FormValue("edition"))
 
-	str_tags := strings.Split(r.FormValue("tags"), ",")
+	title, author, edition, err := validate(r)
 
-	for _, str_tag := range str_tags {
-		tag.TagName = strings.TrimSpace(string(str_tag))
-		tags = append(tags, tag)
-		fmt.Println(tags)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		err := json.NewEncoder(w).Encode(core.FourTwoTwo)
+		log.ErrorHandler(err)
+		return
 	}
+
+	strTags := strings.Split(r.FormValue("tags"), ",") //Get tags from request and split into a slice
+
+	//Parse tags and store into the Tags model
+	for _, strTag := range strTags {
+		tag.TagName = strings.TrimSpace(string(strTag))
+		tag.Slug = strings.ReplaceAll(strings.ToLower(string(strTag)), " ", "-")
+		tags = append(tags, tag)
+	}
+
+	//Store documents info
 	document = Document{
-		Title:   strings.Join(strings.Fields(r.FormValue("title")), " "),
-		Author:  r.FormValue("author"),
-		Edition: edition,
-		//Tags:     tags,
+		Title:    title,
+		Author:   author,
+		Edition:  edition,
+		Tags:     tags,
 		Summary:  r.FormValue("summary"),
 		Uploader: user,
 	}
 
+	//Checks if the document is a duplicate
 	if checkDuplicate(&document) {
 		w.WriteHeader(http.StatusConflict)
-		err := json.NewEncoder(w).Encode(Response{Message: "Duplicate Document"})
+		err := json.NewEncoder(w).Encode(core.FourONine)
 		log.ErrorHandler(err)
 		return
 	}
 
-	fmt.Println(tags)
+	//Gets document slug from request and stores it into the document
 	slug := strings.ToLower(strings.ReplaceAll(document.Title+"-"+document.Author+"-"+r.FormValue("edition"), " ", "-"))
 	document.Slug = slug
 
+	//Create an entry for the document in the database
 	db.Create(&document)
 	err = json.NewEncoder(w).Encode(document)
 	log.ErrorHandler(err)
-	/*err := json.NewDecoder(r.Body).Decode(&document)
-	log.ErrorHandler(err)
-	var count int64
-	// Check If The Document Is A Duplicate Before Processing It
-	isDuplicate := checkDuplicate(&document)
-	if isDuplicate {
-		// The Document Is A Duplicate
-		// Duplicate Documents Not Allowed
-
-		w.WriteHeader(http.StatusConflict)
-		err := json.NewEncoder(w).Encode(Response{Message: "The document is a duplicate"})
-		log.ErrorHandler(err)
-		return
-	}
-
-	db.Create(&document)
-	err = json.NewEncoder(w).Encode(document)
-	log.ErrorHandler(err)
-	return*/
 }
 
+//UpdateDocument overwrites the details of a specified document with the provided ones.
 func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	err := json.NewDecoder(r.Body).Decode(&document)
@@ -148,7 +139,7 @@ func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 		// Users Shouldn't Be Allowed To Modify What Doesn't Exists
 
 		w.WriteHeader(http.StatusNotFound)
-		err := json.NewEncoder(w).Encode(Response{Message: "The document doesn't exist"})
+		err := json.NewEncoder(w).Encode(core.FourOFour)
 		log.ErrorHandler(err)
 		return
 
@@ -157,7 +148,7 @@ func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 	// Checks If A Document Like That Already Exists
 	if checkDuplicate(&document) {
 		w.WriteHeader(http.StatusConflict)
-		err := json.NewEncoder(w).Encode(Response{Message: "The document is a duplicate"})
+		err := json.NewEncoder(w).Encode(core.FourONine)
 		log.ErrorHandler(err)
 		return
 	}
@@ -167,6 +158,7 @@ func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 	log.ErrorHandler(err)
 }
 
+//DeleteDocument removes a specified document from the DB
 func DeleteDocument(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
@@ -179,7 +171,7 @@ func DeleteDocument(w http.ResponseWriter, r *http.Request) {
 		//Throw An Error
 
 		w.WriteHeader(http.StatusNotFound)
-		err := json.NewEncoder(w).Encode(Response{Message: "The document doesn't exist"})
+		err := json.NewEncoder(w).Encode(core.FourOFour)
 		log.ErrorHandler(err)
 		return
 
