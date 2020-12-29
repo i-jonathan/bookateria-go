@@ -1,8 +1,6 @@
 package forum
 
-import (
-	"gorm.io/gorm"
-)
+import "time"
 
 // QuestionRequest for interfacing with the question request
 type QuestionRequest struct {
@@ -12,9 +10,11 @@ type QuestionRequest struct {
 
 // QuestionResponse is the structure of a response returned
 type QuestionResponse struct {
-	gorm.Model
-	Title        string `json:"title"`
-	Description  string `json:"description"`
+	ID           uint      `json:"id"`
+	CreatedAt    time.Time `json:"created_at" gorm:"autoCreateTime:nano"`
+	UpdatedAt    time.Time `json:"updated_at" gorm:"autoUpdateTime:nano"`
+	Title        string    `json:"title"`
+	Description  string    `json:"description"`
 	QuestionTags []TagsResponse
 	UpVotes      int `json:"up_votes"`
 	UpVoters     []QUpVotesResponse

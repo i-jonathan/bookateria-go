@@ -2,20 +2,24 @@ package forum
 
 import (
 	"bookateriago/account"
-	"gorm.io/gorm"
+	"time"
 )
 
 // QuestionTag model for tags attached to questions
 type QuestionTag struct {
-	gorm.Model
-	QuestionID uint   `json:"question_id"`
-	Name       string `json:"name"`
-	Slug       string `json:"slug"`
+	ID         uint      `json:"id"`
+	CreatedAt  time.Time `json:"created_at" gorm:"autoCreateTime:nano"`
+	UpdatedAt  time.Time `json:"updated_at" gorm:"autoUpdateTime:nano"`
+	QuestionID uint      `json:"question_id"`
+	Name       string    `json:"name"`
+	Slug       string    `json:"slug"`
 }
 
 // Question is the model for forum questions
 type Question struct {
-	gorm.Model
+	ID           uint          `json:"id"`
+	CreatedAt    time.Time     `json:"created_at" gorm:"autoCreateTime:nano"`
+	UpdatedAt    time.Time     `json:"updated_at" gorm:"autoUpdateTime:nano"`
 	Title        string        `json:"title"`
 	Description  string        `json:"description"`
 	QuestionTags []QuestionTag `json:"tags"`
@@ -28,7 +32,9 @@ type Question struct {
 
 // Answer are replies to Questions
 type Answer struct {
-	gorm.Model
+	ID         uint         `json:"id"`
+	CreatedAt  time.Time    `json:"created_at" gorm:"autoCreateTime:nano"`
+	UpdatedAt  time.Time    `json:"updated_at" gorm:"autoUpdateTime:nano"`
 	QuestionID int          `json:"question_id"`
 	Question   Question     `json:"question"`
 	Response   string       `json:"response"`
@@ -40,7 +46,9 @@ type Answer struct {
 
 // QuestionUpVote for keeping a list of up votes on a question
 type QuestionUpVote struct {
-	gorm.Model
+	ID         uint         `json:"id"`
+	CreatedAt  time.Time    `json:"created_at" gorm:"autoCreateTime:nano"`
+	UpdatedAt  time.Time    `json:"updated_at" gorm:"autoUpdateTime:nano"`
 	QuestionID int          `json:"question_id"`
 	Question   Question     `json:"question"`
 	UserID     int          `json:"user_id"`
@@ -49,9 +57,11 @@ type QuestionUpVote struct {
 
 // AnswerUpvote for keeping a lost of upvotes on an answer
 type AnswerUpvote struct {
-	gorm.Model
-	AnswerID int          `json:"answer_id"`
-	Answer   Answer       `json:"answer"`
-	UserID   int          `json:"user_id"`
-	User     account.User `json:"user" gorm:"constraints:OnDelete:CASCADE"`
+	ID        uint         `json:"id"`
+	CreatedAt time.Time    `json:"created_at" gorm:"autoCreateTime:nano"`
+	UpdatedAt time.Time    `json:"updated_at" gorm:"autoUpdateTime:nano"`
+	AnswerID  int          `json:"answer_id"`
+	Answer    Answer       `json:"answer"`
+	UserID    int          `json:"user_id"`
+	User      account.User `json:"user" gorm:"constraints:OnDelete:CASCADE"`
 }

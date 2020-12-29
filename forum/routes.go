@@ -4,6 +4,7 @@ import "github.com/gorilla/mux"
 
 // Router - All routes for forum feature
 func Router(router *mux.Router) *mux.Router {
+	router.HandleFunc("/test", MultiTest).Methods("POST")
 	subRouter := router.PathPrefix("/question").Subrouter()
 	subRouter.HandleFunc("/all", QuestionSearch).Queries("search", "{search}").Methods("GET")
 	subRouter.HandleFunc("/all", FilterQuestionByTags).Queries("filter", "{filter}").Methods("GET")
