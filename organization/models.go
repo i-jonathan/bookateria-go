@@ -5,8 +5,8 @@ import (
 	"time"
 )
 
-// Class -
-type Class struct {
+// class -
+type class struct {
 	ID        uint           `json:"id"`
 	CreatedAt time.Time      `json:"created_at" gorm:"autoCreateTime:nano"`
 	UpdatedAt time.Time      `json:"updated_at" gorm:"autoUpdateTime:nano"`

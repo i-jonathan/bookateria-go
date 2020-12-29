@@ -37,7 +37,7 @@ func GeneratePasswordHash(password string) (string, error) {
 	if _, err := rand.Read(salt); err != nil {
 		return "", err
 	}
-	config := &PasswordConfig{
+	config := &passwordConfig{
 		time:    1,
 		memory:  64 * 1024,
 		threads: 4,
@@ -61,7 +61,7 @@ func GeneratePasswordHash(password string) (string, error) {
 // if password is correct
 func ComparePassword(password, hash string) (bool, error) {
 	parts := strings.Split(hash, "$")
-	config := &PasswordConfig{}
+	config := &passwordConfig{}
 
 	_, err := fmt.Sscanf(parts[3], "m=%d,t=%d,p=%d", &config.memory, &config.time, &config.threads)
 	if err != nil {
@@ -196,7 +196,7 @@ func InitDatabase() *gorm.DB {
 	log.ErrorHandler(err)
 
 	err = db.AutoMigrate(&User{})
-	err = db.AutoMigrate(&Profile{})
+	err = db.AutoMigrate(&profile{})
 	log.ErrorHandler(err)
 	return db
 }
