@@ -1,18 +1,30 @@
 package document
 
-import "gorm.io/gorm"
+import "bookateriago/account"
+import "time"
 
 type Tag struct {
-	DocumentID uint `json:"documentid"`
-	TagName string `json:"tagname"`
+	ID         uint   `json:"id" gorm:"primaryKey;autoIncrement; unique"`
+	DocumentID uint   `json:"documentid"`
+	TagName    string `json:"tagname"`
+	Slug       string `json:"tag_slug"`
 }
 
 type Document struct {
-	gorm.Model
-	ID      uint   `json:"id" gorm:"primaryKey;autoIncrement"`
-	Title   string `json:"title" gorm:"not null"`
-	Edition int32  `json:"edition"`
-	Author  string `json:"author"`
-	Summary string `json:"summary"`
-	Tags    []Tag  `json:"tags"`
+	CreatedAt  time.Time    `json:"created_at"`
+	UpdatedAt  time.Time    `json:"updated_at"`
+	Size       string       `json:"size"`
+	Downloads  int64        `json:"downloads"`
+	ID         uint         `json:"id" gorm:"primaryKey;autoIncrement; unique"`
+	Title      string       `json:"title" gorm:"not null"`
+	Edition    int          `json:"edition" gorm:"default:0"`
+	Author     string       `json:"author"`
+	Summary    string       `json:"summary"`
+	Tags       []Tag        `json:"tags"`
+	FileSlug   string       `json:"file_slug"`
+	Slug       string       `json:"slug"`
+	CoverSlug  string       `json:"cover_slug"`
+	UploaderID int          `json:"uploader_id"`
+	Uploader   account.User `json:"uploader"`
+	Category   string       `json:"string"`
 }
