@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -40,7 +41,7 @@ func AccessHandler(r *http.Request, code int) {
 	if len(r.URL.Query()) > 0 {
 		text += strings.ReplaceAll(r.URL.Query().Encode(), "%2C", ",")
 	}
-	log.Println(text + " - " + "[" + string(rune(code)) + "]")
+	log.Println(text + " - " + "[" + strconv.Itoa(code) + "]")
 	err := file.Close()
 	ErrorHandler(err)
 	return

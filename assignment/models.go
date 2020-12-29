@@ -2,13 +2,14 @@ package assignment
 
 import (
 	"bookateriago/account"
-	"gorm.io/gorm"
 	"time"
 )
 
-// Problem is the model for creating assignment questions or problems
-type Problem struct {
-	gorm.Model
+// problem is the model for creating assignment questions or problems
+type problem struct {
+	ID              uint         `json:"id"`
+	CreatedAt       time.Time    `json:"created_at" gorm:"autoCreateTime:nano"`
+	UpdatedAt       time.Time    `json:"updated_at" gorm:"autoUpdateTime:nano"`
 	Title           string       `json:"title"`
 	Description     string       `json:"description"`
 	Deadline        time.Time    `json:"deadline"`
@@ -18,10 +19,12 @@ type Problem struct {
 	SubmissionCount int          `json:"submission_count"`
 }
 
-// Submission is the model for storing submission data
-type Submission struct {
-	gorm.Model
-	Problem     Problem      `json:"problem"`
+// submission is the model for storing submission data
+type submission struct {
+	ID          uint         `json:"id"`
+	CreatedAt   time.Time    `json:"created_at" gorm:"autoCreateTime:nano"`
+	UpdatedAt   time.Time    `json:"updated_at" gorm:"autoUpdateTime:nano"`
+	Problem     problem      `json:"problem"`
 	ProblemID   int          `json:"problem_id"`
 	User        account.User `json:"user"`
 	UserID      int          `json:"user_id"`

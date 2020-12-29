@@ -20,7 +20,7 @@ import (
 
 // GenerateOTP Uses crypto/rand package to generate a usique OTP which is used for verification
 //  And probably reset password
-func GenerateOTP() string {
+func generateOTP() string {
 	otp, err := rand.Int(rand.Reader, big.NewInt(9999999))
 	if err != nil {
 		fmt.Println(err)
@@ -32,12 +32,12 @@ func GenerateOTP() string {
 // GeneratePasswordHash generates the hash that would be stored in the database.
 // It takes the password as a string and using argon2id hashing algorithm, sends output of
 // the proper format for storing argon2 hashes.
-func GeneratePasswordHash(password string) (string, error) {
+func generatePasswordHash(password string) (string, error) {
 	salt := make([]byte, 16)
 	if _, err := rand.Read(salt); err != nil {
 		return "", err
 	}
-	config := &PasswordConfig{
+	config := &passwordConfig{
 		time:    1,
 		memory:  64 * 1024,
 		threads: 4,
@@ -57,11 +57,11 @@ func GeneratePasswordHash(password string) (string, error) {
 // ComparePassword : This function takes in the password and the hash stored in the database as strings
 // to compare and confirm that the password is correct.
 // Uses constant time compare to prevent timing attacks
-// 		return true, nil 
+// 		return true, nil
 // if password is correct
 func ComparePassword(password, hash string) (bool, error) {
 	parts := strings.Split(hash, "$")
-	config := &PasswordConfig{}
+	config := &passwordConfig{}
 
 	_, err := fmt.Sscanf(parts[3], "m=%d,t=%d,p=%d", &config.memory, &config.time, &config.threads)
 	if err != nil {
@@ -89,7 +89,7 @@ func ComparePassword(password, hash string) (bool, error) {
 // The list has been trimmed down to save time. Since no password that is less than 8 characters
 // is to be allowed, the list doesn't include them. Also all numeric passwords are not included.
 // This implements a binary search to check if the password is common.
-// 		return true 
+// 		return true
 // if the password is common, false if it isn't
 func commonPasswordValidator(password string) bool {
 	index := sort.Search(len(core.CommonPasswords), func(i int) bool {
@@ -104,7 +104,7 @@ func commonPasswordValidator(password string) bool {
 
 // SimilarToUser checks if the password is in any case similar to the inputted user information
 // Returns true if password is similar to first name, last name, user name
-func SimilarToUser(firstName, lastName, username, password string) bool {
+func similarToUser(firstName, lastName, username, password string) bool {
 	containsFirst := strings.Contains(strings.ToLower(password), strings.ToLower(firstName))
 	containsLast := strings.Contains(strings.ToLower(password), strings.ToLower(lastName))
 	containsUser := strings.Contains(strings.ToLower(password), strings.ToLower(username))
@@ -116,7 +116,7 @@ func SimilarToUser(firstName, lastName, username, password string) bool {
 // Length, common, uppercase, lowercase and number
 // If the password is good to go, it returns true.
 // And then the password can be hashed then saved.
-func PasswordValidator(password string) bool {
+func passwordValidator(password string) bool {
 	var (
 		passLen     = len(password) >= 8
 		isNotCommon = !commonPasswordValidator(password)
@@ -139,10 +139,10 @@ func PasswordValidator(password string) bool {
 	return passLen && isNotCommon && hasNumber && hasLower && hasUpper
 }
 
-// UserDetails : This attempts to normalize the user details. If they are not empty
+// userDetails : This attempts to normalize the user details. If they are not empty
 // If empty, returns false
 // Else, returns the details as Title case
-func UserDetails(firstName, lastName, email string) (string, string, string, bool) {
+func userDetails(firstName, lastName, email string) (string, string, string, bool) {
 	firstName = strings.ReplaceAll(firstName, " ", "")
 	lastName = strings.ReplaceAll(lastName, " ", "")
 	email = strings.ReplaceAll(email, " ", "")
@@ -157,13 +157,13 @@ func UserDetails(firstName, lastName, email string) (string, string, string, boo
 	return firstName, lastName, email, true
 }
 
-// EmailValidator : This function does (currently) 2 checks on the email to ensure it is correct
+// emailValidator : This function does (currently) 2 checks on the email to ensure it is correct
 // A regex check and an MX lookup that checks if the domain has MX records
 // The regex check is ridiculously simple because.
 // 1, We are still doing an MX lookup
 // 2, We would still send a verification email. So why make it complex.
 // Returns true if the email is good to go and false otherwise
-func EmailValidator(email string) bool {
+func emailValidator(email string) bool {
 	re := regexp.MustCompile("^.+@.+\\..+$")
 	validity := re.MatchString(email)
 	if !validity {
@@ -196,7 +196,7 @@ func InitDatabase() *gorm.DB {
 	log.ErrorHandler(err)
 
 	err = db.AutoMigrate(&User{})
-	err = db.AutoMigrate(&Profile{})
+	err = db.AutoMigrate(&profile{})
 	log.ErrorHandler(err)
 	return db
 }

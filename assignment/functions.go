@@ -9,7 +9,7 @@ import (
 )
 
 // InitDatabase initializes the models for assignments
-func InitDatabase() *gorm.DB {
+func initDatabase() *gorm.DB {
 	viperConfig := core.ReadViper()
 	var (
 		databaseName = viperConfig.Get("database.name")
@@ -25,23 +25,23 @@ func InitDatabase() *gorm.DB {
 	db, err := gorm.Open(postgres.Open(postgresConnection), &gorm.Config{})
 	log.ErrorHandler(err)
 
-	err = db.AutoMigrate(&Problem{}, &Submission{})
+	err = db.AutoMigrate(&problem{}, &submission{})
 	log.ErrorHandler(err)
 
 	return db
 }
 
 // XExists checks the existence of an object given the slug and the model
-func XExists(slug, model string) bool {
+func xExists(slug, model string) bool {
 	var count int64
-	var db = InitDatabase()
+	var db = initDatabase()
 
 	switch model {
 	case "question":
-		db.Model(&Problem{}).Where("slug = ?", slug).Count(&count)
+		db.Model(&problem{}).Where("slug = ?", slug).Count(&count)
 		return count > 0
 	case "submission":
-		db.Model(&Submission{}).Where("slug = ?", slug).Count(&count)
+		db.Model(&submission{}).Where("slug = ?", slug).Count(&count)
 		return count > 0
 	default:
 		return false

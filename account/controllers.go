@@ -29,18 +29,18 @@ var (
 )
 
 // OTP is the structure of the OTP itself
-type OTP struct {
+type otp struct {
 	Email string `json:"email"`
 	Pin   string `json:"pin"`
 }
 
 // OTPRequest carries paramaeters for requesting OTPs
-type OTPRequest struct {
+type otpRequest struct {
 	Email string `json:"email"`
 }
 
 // AllUsers gets and returns a list of all users in the DB
-func AllUsers(w http.ResponseWriter, r *http.Request) {
+func allUsers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	db.Find(&users)
 	err := json.NewEncoder(w).Encode(users)
@@ -49,20 +49,20 @@ func AllUsers(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-// GetUser returns a user by id. TODO change to by slug
-func GetUser(w http.ResponseWriter, r *http.Request) {
+// getUser returns a user by id. TODO change to by slug
+func getUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 	userID := params["id"]
-	db.First(&user, userID)
+	db.Find(&user, "id = ?", userID)
 	err := json.NewEncoder(w).Encode(user)
 	log.ErrorHandler(err)
 	log.AccessHandler(r, 200)
 	return
 }
 
-// PostUser for creating a new user. Does all the checks.
-func PostUser(w http.ResponseWriter, r *http.Request) {
+// postUser for creating a new user. Does all the checks.
+func postUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	err := json.NewDecoder(r.Body).Decode(&user)
 	log.ErrorHandler(err)
@@ -73,12 +73,12 @@ func PostUser(w http.ResponseWriter, r *http.Request) {
 		password      = user.Password
 		firstName     = user.FirstName
 		safeNames     bool
-		safeEmail     = EmailValidator(email)
-		safePassword  = PasswordValidator(password)
-		similarToUser = SimilarToUser(firstName, lastName, userName, password)
+		safeEmail     = emailValidator(email)
+		safePassword  = passwordValidator(password)
+		similarToUser = similarToUser(firstName, lastName, userName, password)
 	)
 
-	firstName, lastName, email, safeNames = UserDetails(firstName, lastName, email)
+	firstName, lastName, email, safeNames = userDetails(firstName, lastName, email)
 
 	if !safeNames {
 		// Some or all of the details in the body are empty
@@ -120,7 +120,7 @@ func PostUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	passwordHash, _ := GeneratePasswordHash(password)
+	passwordHash, _ := generatePasswordHash(password)
 
 	user = User{
 		UserName:        userName,
@@ -141,7 +141,7 @@ func PostUser(w http.ResponseWriter, r *http.Request) {
 	// Create OTP to verify email by
 	// OTP expires in 30 minutes
 	// Stored in Redis with key new_user_otp_email
-	verifiableToken := GenerateOTP()
+	verifiableToken := generateOTP()
 	err = redisClient.Set(ctx, "new_user_otp_"+email, verifiableToken, 30*time.Minute).Err()
 	log.ErrorHandler(err)
 
@@ -165,11 +165,11 @@ func PostUser(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-// VerifyEmail is used to verify emails and make sure they exists.
+// verifyEmail is used to verify emails and make sure they exists.
 // Supplementary to the regex check and the MX lookup
-func VerifyEmail(w http.ResponseWriter, r *http.Request) {
+func verifyEmail(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	var data OTP
+	var data otp
 	err := json.NewDecoder(r.Body).Decode(&data)
 	log.ErrorHandler(err)
 
@@ -192,7 +192,7 @@ func VerifyEmail(w http.ResponseWriter, r *http.Request) {
 	// If the OTP is empty, or the key doesn't exist or the pin provided is incorrect,
 	// the pin has either elapsed the 30 minutes given or just plain wrong
 	// So they need to request a new one
-	if storedOTP == "" || storedOTP != data.Pin{
+	if storedOTP == "" || storedOTP != data.Pin {
 		w.WriteHeader(http.StatusUnauthorized)
 		err = json.NewEncoder(w).Encode(core.FourOOne)
 		log.ErrorHandler(err)
@@ -208,11 +208,11 @@ func VerifyEmail(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// RequestOTP : In case the OTP sent expires, users can request for a new OTP
-func RequestOTP(w http.ResponseWriter, r *http.Request) {
+// requestOTP : In case the OTP sent expires, users can request for a new OTP
+func requestOTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var (
-		data      OTPRequest
+		data      otpRequest
 		storedOTP string
 	)
 
@@ -223,7 +223,7 @@ func RequestOTP(w http.ResponseWriter, r *http.Request) {
 	storedOTP, err = redisClient.Get(ctx, key).Result()
 
 	if storedOTP == "" {
-		verifiableToken := GenerateOTP()
+		verifiableToken := generateOTP()
 		err = redisClient.Set(ctx, key, verifiableToken, 30*time.Minute).Err()
 		storedOTP = verifiableToken
 	}

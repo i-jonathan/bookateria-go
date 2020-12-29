@@ -41,7 +41,7 @@ type tokenResponse struct {
 type credentials struct {
 	Password string `json:"password"`
 	Email    string `json:"email"`
-	StayIn	 bool	`json:"stay_in"`
+	StayIn   bool   `json:"stay_in"`
 }
 
 // tokenClaims for building jwt token
@@ -51,7 +51,7 @@ type tokenClaims struct {
 }
 
 // SignIn takes a post request with the credentials to be logged in with
-func SignIn(w http.ResponseWriter, r *http.Request) {
+func signIn(w http.ResponseWriter, r *http.Request) {
 	// Reads the body for email and password, gets the user and the password from DB
 	// Compares the password, if correct, returns the token
 	err := json.NewDecoder(r.Body).Decode(&cred)
@@ -164,7 +164,7 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 // }
 
 // Logout immediately deletes a valid
-func Logout(w http.ResponseWriter, r *http.Request) {
+func logout(w http.ResponseWriter, r *http.Request) {
 	// This function deletes the token from redis, rendering it invalid
 	// Make sure to delete the token on the frontend too
 
