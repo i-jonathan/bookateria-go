@@ -24,14 +24,14 @@ var (
 	oneQUpVote      questionUpVote
 	questionUpVotes []questionUpVote
 	//questionTags    []questionTag
-	user            account.User
+	user account.User
 )
 
 // GetQuestion responds with a oneQuestion if the given slug exists
 func GetQuestion(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
-	slugToFind:= params["slug"]
+	slugToFind := params["slug"]
 
 	if !XExists(slugToFind, "question") {
 		// Checks if oneQuestion exists
@@ -75,7 +75,7 @@ func PostQuestion(w http.ResponseWriter, r *http.Request) {
 			isValid = false
 		}
 	}
-	
+
 	if !isValid {
 		w.WriteHeader(http.StatusBadRequest)
 		err = json.NewEncoder(w).Encode(core.FourHundred)
@@ -83,7 +83,7 @@ func PostQuestion(w http.ResponseWriter, r *http.Request) {
 		log.AccessHandler(r, 400)
 		return
 	}
-	
+
 	_, email := core.GetTokenEmail(r)
 	if email == "" {
 		w.WriteHeader(http.StatusUnauthorized)
@@ -92,7 +92,7 @@ func PostQuestion(w http.ResponseWriter, r *http.Request) {
 		log.AccessHandler(r, 401)
 		return
 	}
-	
+
 	// get user
 	db.Find(&user, "email = ?", strings.ToLower(email))
 	oneQuestion.User = user
@@ -104,7 +104,7 @@ func PostQuestion(w http.ResponseWriter, r *http.Request) {
 	oneQuestion.Slug = reg.ReplaceAllString(oneQuestion.Slug, "")
 
 	oneQuestion.Title = strings.Title(oneQuestion.Title)
-	
+
 	db.Create(&oneQuestion)
 	err = json.NewEncoder(w).Encode(oneQuestion)
 	log.ErrorHandler(err)
@@ -125,7 +125,7 @@ func UpdateQuestion(w http.ResponseWriter, r *http.Request) {
 		log.AccessHandler(r, 401)
 		return
 	}
-	
+
 	// Get oneQuestion
 	params := mux.Vars(r)
 	slug := params["slug"]
@@ -162,7 +162,7 @@ func UpdateQuestion(w http.ResponseWriter, r *http.Request) {
 			isValid = false
 		}
 	}
-	
+
 	if !isValid {
 		w.WriteHeader(http.StatusBadRequest)
 		err = json.NewEncoder(w).Encode(core.FourHundred)
@@ -342,7 +342,7 @@ func GetAnswers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	db.Find(&oneQuestion, "slug = ?", questionSlug)
-	
+
 	db.Find(&answers, "question_id = ?", oneQuestion.ID)
 	err := json.NewEncoder(w).Encode(answers)
 	log.ErrorHandler(err)
@@ -366,7 +366,7 @@ func PostAnswer(w http.ResponseWriter, r *http.Request) {
 
 	params := mux.Vars(r)
 	questionSlug := params["questionSlug"]
-	
+
 	// Check if oneQuestion exists
 	if !XExists(questionSlug, "question") {
 		w.WriteHeader(http.StatusNotFound)
@@ -375,7 +375,7 @@ func PostAnswer(w http.ResponseWriter, r *http.Request) {
 		log.AccessHandler(r, 404)
 		return
 	}
-	
+
 	db.Find(&oneQuestion, "slug = ?", questionSlug)
 
 	err := json.NewDecoder(r.Body).Decode(&oneAnswer)
@@ -506,7 +506,7 @@ func GetAnswerUpVotes(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	slug := params["slug"]
 	questionSlug := params["questionSlug"]
-	
+
 	// Checks if oneQuestion and oneAnswer exists
 	if !(XExists(questionSlug, "question") && XExists(slug, "answer")) {
 		// If it doesn't return message accordingly
@@ -558,7 +558,7 @@ func PostAnswerUpVote(w http.ResponseWriter, r *http.Request) {
 	db.Find(&oneQuestion, "slug = ?", questionSlug)
 	db.Find(&oneAnswer, "question_id = ? AND slug = ?", oneQuestion.ID, slug)
 	db.Find(&user, "email = ?", strings.ToLower(email))
-	
+
 	// Check if upvote exists
 	var count int64
 	db.Model(&answerUpvote{}).Where("user_id = ?", user.ID).Count(&count)
@@ -609,7 +609,7 @@ func DeleteAnswerUpvote(w http.ResponseWriter, r *http.Request) {
 	db.Find(&oneAnswer, "slug = ? AND question_id = ?", slug, oneQuestion.ID)
 
 	db.Find(&user, "email = ?", strings.ToLower(email))
-	
+
 	// Check if upvote exists
 	var count int64
 	db.Model(&answerUpvote{}).Where("user_id = ? AND answer_id = ?", user.ID, oneAnswer.ID).Count(&count)
@@ -662,7 +662,7 @@ func QuestionSearch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	individualWords := strings.Fields(final)
-	
+
 	var questionList []question
 	for _, word := range individualWords {
 		db.Where("lower(title) LIKE ?", "%"+strings.ToLower(word)+"%").Find(&questions)
@@ -689,7 +689,7 @@ func FilterQuestionByTags(w http.ResponseWriter, r *http.Request) {
 	for _, questionTag := range questionTags {
 		questionIDs = append(questionIDs, questionTag.QuestionID)
 	}
-	
+
 	db.Preload(clause.Associations).Find(&questions, "id IN ?", questionIDs)
 	w.WriteHeader(http.StatusOK)
 	err := json.NewEncoder(w).Encode(questions)

@@ -60,7 +60,7 @@ func InitDatabase() *gorm.DB {
 	return db
 }
 
-// validator checks if a string is empty 
+// validator checks if a string is empty
 func validator(values []string) bool {
 	for _, value := range values {
 		if strings.Join(strings.Fields(value), " ") == "" {
