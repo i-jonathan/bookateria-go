@@ -20,8 +20,8 @@ type User struct {
 	UpdatedAt		time.Time	`json:"updated_at" gorm:"autoUpdateTime:nano"`
 }
 
-// Profile model. Could be extended soon
-type Profile struct {
+// profile model. Could be extended soon
+type profile struct {
 	ID			uint		`json:"id"`
 	CreatedAt	time.Time	`json:"created_at" gorm:"autoCreateTime:nano"`
 	UpdatedAt	time.Time	`json:"updated_at" gorm:"autoUpdateTime:nano"`
@@ -32,8 +32,8 @@ type Profile struct {
 	User   User `json:"user" gorm:"constraints:OnDelete:CASCADE;not null;unique"`
 }
 
-// PasswordConfig for contructing really nice and secure passwords. Make sense? No
-type PasswordConfig struct {
+// passwordConfig for contructing really nice and secure passwords. Make sense? No
+type passwordConfig struct {
 	time    uint32
 	memory  uint32
 	threads uint8

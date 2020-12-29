@@ -15,16 +15,16 @@ func XExists(slug string, model string) bool {
 	var db = InitDatabase()
 	switch model {
 	case "question":
-		db.Model(&Question{}).Where("slug = ?", slug).Count(&count)
+		db.Model(&question{}).Where("slug = ?", slug).Count(&count)
 		return count > 0
 	case "answer":
-		db.Model(&Answer{}).Where("slug = ?", slug).Count(&count)
+		db.Model(&answer{}).Where("slug = ?", slug).Count(&count)
 		return count > 0
 	case "qUpvote":
-		db.Model(&QuestionUpVote{}).Where("slug = ?", slug).Count(&count)
+		db.Model(&questionUpVote{}).Where("slug = ?", slug).Count(&count)
 		return count > 0
 	case "aUpvote":
-		db.Model(&AnswerUpvote{}).Where("slug = ?", slug).Count(&count)
+		db.Model(&answerUpvote{}).Where("slug = ?", slug).Count(&count)
 		return count > 0
 	default:
 		return false
@@ -48,12 +48,12 @@ func InitDatabase() *gorm.DB {
 	db, err := gorm.Open(postgres.Open(postgresConnection), &gorm.Config{})
 	log.ErrorHandler(err)
 
-	// err = db.AutoMigrate(&QuestionTag{}, &Question{}, &Answer{}, &QuestionUpVote{}, &AnswerUpvote{})
-	err = db.AutoMigrate(&QuestionTag{})
-	err = db.AutoMigrate(&Question{})
-	err = db.AutoMigrate(&Answer{})
-	err = db.AutoMigrate(&QuestionUpVote{})
-	err = db.AutoMigrate(&AnswerUpvote{})
+	// err = db.AutoMigrate(&questionTag{}, &oneQuestion{}, &oneAnswer{}, &oneQUpVote{}, &answerUpvote{})
+	err = db.AutoMigrate(&questionTag{})
+	err = db.AutoMigrate(&question{})
+	err = db.AutoMigrate(&answer{})
+	err = db.AutoMigrate(&questionUpVote{})
+	err = db.AutoMigrate(&answerUpvote{})
 	log.ErrorHandler(err)
 	return db
 }
