@@ -73,12 +73,12 @@ func postUser(w http.ResponseWriter, r *http.Request) {
 		password      = user.Password
 		firstName     = user.FirstName
 		safeNames     bool
-		safeEmail     = EmailValidator(email)
-		safePassword  = PasswordValidator(password)
-		similarToUser = SimilarToUser(firstName, lastName, userName, password)
+		safeEmail     = emailValidator(email)
+		safePassword  = passwordValidator(password)
+		similarToUser = similarToUser(firstName, lastName, userName, password)
 	)
 
-	firstName, lastName, email, safeNames = UserDetails(firstName, lastName, email)
+	firstName, lastName, email, safeNames = userDetails(firstName, lastName, email)
 
 	if !safeNames {
 		// Some or all of the details in the body are empty
@@ -120,7 +120,7 @@ func postUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	passwordHash, _ := GeneratePasswordHash(password)
+	passwordHash, _ := generatePasswordHash(password)
 
 	user = User{
 		UserName:        userName,
@@ -141,7 +141,7 @@ func postUser(w http.ResponseWriter, r *http.Request) {
 	// Create OTP to verify email by
 	// OTP expires in 30 minutes
 	// Stored in Redis with key new_user_otp_email
-	verifiableToken := GenerateOTP()
+	verifiableToken := generateOTP()
 	err = redisClient.Set(ctx, "new_user_otp_"+email, verifiableToken, 30*time.Minute).Err()
 	log.ErrorHandler(err)
 
@@ -223,7 +223,7 @@ func requestOTP(w http.ResponseWriter, r *http.Request) {
 	storedOTP, err = redisClient.Get(ctx, key).Result()
 
 	if storedOTP == "" {
-		verifiableToken := GenerateOTP()
+		verifiableToken := generateOTP()
 		err = redisClient.Set(ctx, key, verifiableToken, 30*time.Minute).Err()
 		storedOTP = verifiableToken
 	}
