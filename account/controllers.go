@@ -192,7 +192,7 @@ func verifyEmail(w http.ResponseWriter, r *http.Request) {
 	// If the OTP is empty, or the key doesn't exist or the pin provided is incorrect,
 	// the pin has either elapsed the 30 minutes given or just plain wrong
 	// So they need to request a new one
-	if storedOTP == "" || storedOTP != data.Pin{
+	if storedOTP == "" || storedOTP != data.Pin {
 		w.WriteHeader(http.StatusUnauthorized)
 		err = json.NewEncoder(w).Encode(core.FourOOne)
 		log.ErrorHandler(err)

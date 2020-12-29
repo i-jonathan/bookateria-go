@@ -57,7 +57,7 @@ func generatePasswordHash(password string) (string, error) {
 // ComparePassword : This function takes in the password and the hash stored in the database as strings
 // to compare and confirm that the password is correct.
 // Uses constant time compare to prevent timing attacks
-// 		return true, nil 
+// 		return true, nil
 // if password is correct
 func ComparePassword(password, hash string) (bool, error) {
 	parts := strings.Split(hash, "$")
@@ -89,7 +89,7 @@ func ComparePassword(password, hash string) (bool, error) {
 // The list has been trimmed down to save time. Since no password that is less than 8 characters
 // is to be allowed, the list doesn't include them. Also all numeric passwords are not included.
 // This implements a binary search to check if the password is common.
-// 		return true 
+// 		return true
 // if the password is common, false if it isn't
 func commonPasswordValidator(password string) bool {
 	index := sort.Search(len(core.CommonPasswords), func(i int) bool {

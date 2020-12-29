@@ -16,12 +16,12 @@ import (
 )
 
 var (
-	oneSubmission  submission
-	submissions []submission
-	oneProblem     problem
-	problems    []problem
-	user        account.User
-	db          = initDatabase()
+	oneSubmission submission
+	submissions   []submission
+	oneProblem    problem
+	problems      []problem
+	user          account.User
+	db            = initDatabase()
 )
 
 // questionRequest - Accepted structure for taking data from request body
