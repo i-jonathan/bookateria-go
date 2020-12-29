@@ -29,18 +29,18 @@ var (
 )
 
 // OTP is the structure of the OTP itself
-type OTP struct {
+type otp struct {
 	Email string `json:"email"`
 	Pin   string `json:"pin"`
 }
 
 // OTPRequest carries paramaeters for requesting OTPs
-type OTPRequest struct {
+type otpRequest struct {
 	Email string `json:"email"`
 }
 
 // AllUsers gets and returns a list of all users in the DB
-func AllUsers(w http.ResponseWriter, r *http.Request) {
+func allUsers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	db.Find(&users)
 	err := json.NewEncoder(w).Encode(users)
@@ -49,8 +49,8 @@ func AllUsers(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-// GetUser returns a user by id. TODO change to by slug
-func GetUser(w http.ResponseWriter, r *http.Request) {
+// getUser returns a user by id. TODO change to by slug
+func getUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 	userID := params["id"]
@@ -61,8 +61,8 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-// PostUser for creating a new user. Does all the checks.
-func PostUser(w http.ResponseWriter, r *http.Request) {
+// postUser for creating a new user. Does all the checks.
+func postUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	err := json.NewDecoder(r.Body).Decode(&user)
 	log.ErrorHandler(err)
@@ -165,11 +165,11 @@ func PostUser(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-// VerifyEmail is used to verify emails and make sure they exists.
+// verifyEmail is used to verify emails and make sure they exists.
 // Supplementary to the regex check and the MX lookup
-func VerifyEmail(w http.ResponseWriter, r *http.Request) {
+func verifyEmail(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	var data OTP
+	var data otp
 	err := json.NewDecoder(r.Body).Decode(&data)
 	log.ErrorHandler(err)
 
@@ -208,11 +208,11 @@ func VerifyEmail(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// RequestOTP : In case the OTP sent expires, users can request for a new OTP
-func RequestOTP(w http.ResponseWriter, r *http.Request) {
+// requestOTP : In case the OTP sent expires, users can request for a new OTP
+func requestOTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var (
-		data      OTPRequest
+		data      otpRequest
 		storedOTP string
 	)
 
@@ -247,11 +247,4 @@ func RequestOTP(w http.ResponseWriter, r *http.Request) {
 	log.AccessHandler(r, 200)
 	return
 
-}
-
-func DeleteUser(w http.ResponseWriter, r *http.Request) {
-	
-	params := mux.Vars(r)
-	userID := params["id"]
-	db.Delete(&user, userID)
 }
