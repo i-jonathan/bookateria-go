@@ -65,6 +65,25 @@ func PostQuestion(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	err := json.NewDecoder(r.Body).Decode(&oneQuestion)
 	log.ErrorHandler(err)
+
+	oneQuestion.Title = strings.Join(strings.Fields(oneQuestion.Title), " ")
+
+	isValid := validator([]string{oneQuestion.Title})
+
+	for _, tag := range oneQuestion.QuestionTags {
+		if tag.Name == "" {
+			isValid = false
+		}
+	}
+	
+	if !isValid {
+		w.WriteHeader(http.StatusBadRequest)
+		err = json.NewEncoder(w).Encode(core.FourHundred)
+		log.ErrorHandler(err)
+		log.AccessHandler(r, 400)
+		return
+	}
+	
 	_, email := core.GetTokenEmail(r)
 	if email == "" {
 		w.WriteHeader(http.StatusUnauthorized)
@@ -83,6 +102,8 @@ func PostQuestion(w http.ResponseWriter, r *http.Request) {
 	oneQuestion.Slug = strings.Join(strings.Fields(oneQuestion.Title), " ")
 	oneQuestion.Slug = strings.ToLower(strings.ReplaceAll(oneQuestion.Slug, " ", "-"))
 	oneQuestion.Slug = reg.ReplaceAllString(oneQuestion.Slug, "")
+
+	oneQuestion.Title = strings.Title(oneQuestion.Title)
 	
 	db.Create(&oneQuestion)
 	err = json.NewEncoder(w).Encode(oneQuestion)
@@ -133,6 +154,23 @@ func UpdateQuestion(w http.ResponseWriter, r *http.Request) {
 	// Update the oneQuestion
 	err := json.NewDecoder(r.Body).Decode(&oneQuestion)
 	log.ErrorHandler(err)
+
+	isValid := validator([]string{oneQuestion.Title})
+
+	for _, tag := range oneQuestion.QuestionTags {
+		if tag.Name == "" {
+			isValid = false
+		}
+	}
+	
+	if !isValid {
+		w.WriteHeader(http.StatusBadRequest)
+		err = json.NewEncoder(w).Encode(core.FourHundred)
+		log.ErrorHandler(err)
+		log.AccessHandler(r, 400)
+		return
+	}
+
 	db.Save(&oneQuestion)
 
 	// Return the oneQuestion details

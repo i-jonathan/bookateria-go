@@ -4,6 +4,8 @@ import (
 	"bookateriago/core"
 	"bookateriago/log"
 	"fmt"
+	"strings"
+
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -56,4 +58,14 @@ func InitDatabase() *gorm.DB {
 	err = db.AutoMigrate(&answerUpvote{})
 	log.ErrorHandler(err)
 	return db
+}
+
+// validator checks if a string is empty 
+func validator(values []string) bool {
+	for _, value := range values {
+		if strings.Join(strings.Fields(value), " ") == "" {
+			return false
+		}
+	}
+	return true
 }
