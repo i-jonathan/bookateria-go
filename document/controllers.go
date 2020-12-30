@@ -5,6 +5,7 @@ import (
 	"bookateriago/core"
 	"bookateriago/log"
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/mux"
 	"gorm.io/gorm/clause"
 	"net/http"
@@ -78,7 +79,13 @@ func PostDocument(w http.ResponseWriter, r *http.Request) {
 	db.Find(&user, "email = ?", strings.ToLower(email)) //Check for user attached to mail
 	//reg, _ := regexp.Compile("[^a-zA-Z0-9]+")
 
-	title, author, edition, err := validate(r)
+	var fields = map[string]string{
+		"title":  r.FormValue("title"),
+		"author": r.FormValue("author"),
+	}
+
+	title, author, err := validate(fields)
+	edition := 0
 
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -87,7 +94,19 @@ func PostDocument(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	strTags := strings.Split(r.FormValue("tags"), ",") //Get tags from request and split into a slice
+	if r.FormValue("edition") != "" {
+		var err error
+		edition, err = strconv.Atoi(r.FormValue("edition"))
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			err := json.NewEncoder(w).Encode(core.FourONine)
+			log.ErrorHandler(err)
+			return
+		}
+	}
+
+	//Get tags from request and split into a slice
+	strTags := strings.Split(r.FormValue("tags"), ",")
 
 	//Parse tags and store into the Tags model
 	for _, strTag := range strTags {
@@ -127,11 +146,24 @@ func PostDocument(w http.ResponseWriter, r *http.Request) {
 //UpdateDocument overwrites the details of a specified document with the provided ones.
 func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
+	//Checks If Current User Is Logged In
+	if _, email = core.GetTokenEmail(r); email == "" {
+		fmt.Println("login")
+		w.WriteHeader(http.StatusUnauthorized)
+		err := json.NewEncoder(w).Encode(core.FourOOne)
+		log.ErrorHandler(err)
+		return
+	}
+
+	//db.Find(&user, "email = ?", strings.ToLower(email))
+
 	err := json.NewDecoder(r.Body).Decode(&document)
 	log.ErrorHandler(err)
 	params := mux.Vars(r)
 	idToUpdate, _ := strconv.ParseUint(params["id"], 10, 0)
 	//documentID := strconv.FormatUint(uint64(document.ID), 10)
+	var doc Document
 
 	// Check If The Document Exists
 	if !xExists(uint(idToUpdate)) {
@@ -145,13 +177,61 @@ func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 
 	}
 
-	// Checks If A Document Like That Already Exists
+	/*db.Find(&doc, "id = ?", idToUpdate)
+
+	fmt.Println(doc.Uploader.Email)
+
+	if email != document.Uploader.Email {
+		fmt.Printf("Phony - %s - %s", email, document.Uploader.Email)
+		w.WriteHeader(http.StatusUnauthorized)
+		err := json.NewEncoder(w).Encode(core.FourOOne)
+		log.ErrorHandler(err)
+		return
+	}*/
+
+	var fields = map[string]string{
+		"title":  string(document.Title),
+		"author": string(document.Author),
+	}
+
+	title, author, err := validate(fields)
+
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		err := json.NewEncoder(w).Encode(core.FourTwoTwo)
+		log.ErrorHandler(err)
+		return
+	}
+
+	document.Title = title
+	document.Author = author
+
+	edition, err := strconv.Atoi(fmt.Sprint(document.Edition))
+
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		err := json.NewEncoder(w).Encode(core.FourTwoTwo)
+		log.ErrorHandler(err)
+		return
+	}
+
+	document.Edition = edition
+
+	fmt.Println(document.Tags)
+
+	for _, tag := range document.Tags {
+		slug := strings.ReplaceAll(strings.ToLower(string(tag.TagName)), " ", "-")
+		tag.Slug = slug
+	}
+
+	/*// Checks If A Document Like That Already Exists
 	if checkDuplicate(&document) {
 		w.WriteHeader(http.StatusConflict)
 		err := json.NewEncoder(w).Encode(core.FourONine)
 		log.ErrorHandler(err)
 		return
-	}
+	}*/
 
 	db.Save(&document)
 	err = json.NewEncoder(w).Encode(document)
@@ -175,6 +255,13 @@ func DeleteDocument(w http.ResponseWriter, r *http.Request) {
 		log.ErrorHandler(err)
 		return
 
+	}
+
+	db.Find(&tags, "document_id = ?", idToDelete)
+
+	for _, tag := range tags {
+		fmt.Println(tag)
+		db.Delete(&tag)
 	}
 
 	db.Where("id = ?", idToDelete).Delete(&document)
