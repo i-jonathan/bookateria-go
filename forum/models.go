@@ -22,11 +22,11 @@ type question struct {
 	UpdatedAt    time.Time     `json:"updated_at" gorm:"autoUpdateTime:nano"`
 	Title        string        `json:"title"`
 	Description  string        `json:"description"`
-	QuestionTags []questionTag `json:"tags"`
+	QuestionTags []questionTag `json:"tags" gorm:"foreignKey:QuestionID"`
 	UserID       int           `json:"user_id"`
 	User         account.User  `json:"user"`
 	//UpVotes      int           `json:"up_votes"`
-	UpVoters []questionUpVote `json:"up_voters"`
+	UpVoters []questionUpVote `json:"up_voters" gorm:"foreignKey:QuestionID"`
 	Slug     string           `json:"slug"`
 }
 
@@ -36,7 +36,7 @@ type answer struct {
 	CreatedAt  time.Time    `json:"created_at" gorm:"autoCreateTime:nano"`
 	UpdatedAt  time.Time    `json:"updated_at" gorm:"autoUpdateTime:nano"`
 	QuestionID int          `json:"question_id"`
-	Question   question     `json:"oneQuestion"`
+	Question   question     `json:"question"`
 	Response   string       `json:"response"`
 	UpVotes    string       `json:"up_votes"`
 	UserID     int          `json:"user_id"`
@@ -50,7 +50,7 @@ type questionUpVote struct {
 	CreatedAt  time.Time    `json:"created_at" gorm:"autoCreateTime:nano"`
 	UpdatedAt  time.Time    `json:"updated_at" gorm:"autoUpdateTime:nano"`
 	QuestionID int          `json:"question_id"`
-	Question   question     `json:"oneQuestion"`
+	Question   question     `json:"question"`
 	UserID     int          `json:"user_id"`
 	User       account.User `json:"user" gorm:"constraints:OnDelete:CASCADE"`
 }
