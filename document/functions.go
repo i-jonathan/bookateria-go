@@ -5,11 +5,8 @@ import (
 	"bookateriago/log"
 	"errors"
 	"fmt"
-	"github.com/gorilla/mux"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"net/http"
-	"strconv"
 	"strings"
 )
 
@@ -51,26 +48,20 @@ func xExists(id uint) bool {
 params: r type: http.Request
 Returns: string, string, int, error
 ===================================*/
-func validate(r *http.Request) (string, string, int, error) {
+func validate(field string) (string, error) {
 
-	title := strings.TrimSpace(r.FormValue("title"))
-	author := strings.TrimSpace(r.FormValue("author"))
-	edition, err := strconv.Atoi(r.FormValue("edition"))
+	field = strings.ToLower(strings.TrimSpace(field))
+	//author := strings.TrimSpace(fields["author"])
 
-	title = strings.ToLower(title)
-	author = strings.ToLower(author)
+	/*title = strings.ToLower(title)
+	author = strings.ToLower(author)*/
 
-	if err != nil {
-		return "", "", -1, errors.New("Value of edition is not of valid type")
+	if field != "" {
+		field = strings.Join(strings.Fields(field), " ")
+		return strings.Title(field), nil
 	}
 
-	if title != "" && author != "" {
-		title = strings.Join(strings.Fields(title), " ")
-		author = strings.Join(strings.Fields(author), " ")
-		return strings.Title(title), strings.Title(author), edition, err
-	}
-
-	return "", "", -1, errors.New("Either Title Or Author Is Empty")
+	return "", errors.New("Either Title Or Author Is Empty")
 
 }
 

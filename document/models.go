@@ -5,8 +5,8 @@ import "time"
 
 type Tag struct {
 	ID         uint   `json:"id" gorm:"primaryKey;autoIncrement; unique"`
-	DocumentID uint   `json:"documentid"`
-	TagName    string `json:"tagname"`
+	DocumentID uint   `json:"document_id"`
+	TagName    string `json:"tag_name"`
 	Slug       string `json:"tag_slug"`
 }
 
@@ -26,5 +26,5 @@ type Document struct {
 	CoverSlug  string       `json:"cover_slug"`
 	UploaderID int          `json:"uploader_id"`
 	Uploader   account.User `json:"uploader"`
-	Category   string       `json:"string"`
+	Category   string       `json:"category"`
 }
