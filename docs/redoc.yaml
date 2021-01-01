@@ -58,41 +58,6 @@ paths:
           content: {}
       x-codegen-request-body-name: body
 
-  /auth/refresh:
-    get:
-      tags:
-        - auth
-      summary: Refreshes token of logged in user
-      description: Refreshes token within 30 seconds of expiry.
-      parameters:
-        - name: Authorization
-          in: header
-          required: true
-          schema:
-            type: string
-      responses:
-        200:
-          description: A Token object
-          content:
-            'application/json':
-              schema:
-                type: object
-                properties:
-                  name:
-                    type: string
-                    description: Authentication Type.
-                  value:
-                    type: string
-                    description: The token of authenticated user.
-                  expiry:
-                    type: string
-                    description: Token expiry time
-        401:
-          description: Unauthorized. Wrong Details
-          content: {}
-      security:
-        - authorization: []
-
   /auth/logout:
     post:
       tags:
@@ -187,6 +152,418 @@ paths:
                   message:
                     type: string
       x-codegen-request-body-name: body
+
+  /account/verify-email:
+    post:
+      tags:
+        - account
+      summary: Verify email of already created account
+      requestBody:
+        description: Data required
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyEmail'
+        required: true
+      responses:
+        200:
+          description: OK
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+
+    /account/request-otp:
+      get:
+        tags:
+          - account
+        summary: Generates and sends new OTP for email verification
+        responses:
+          200:
+            description: OK
+          401:
+            description: Unauthorized
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Response'
+          500:
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Response'
+
+    /account/request-password-reset:
+      post:
+        tags:
+          - account
+        summary: Submit a request to reset User password
+        requestBody:
+          description: Information neccessary to process request
+          content:
+            application/jsom:
+              schema:
+                type: object
+                properties:
+                  email:
+                    type: string
+          required: true
+        responses:
+          200:
+            description: OK
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Response'
+          400:
+            description: Bad Request
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Response'
+          401:
+            description: Unauthorized
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Response'
+          500:
+            description: Server Error
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Response'
+
+    account/reset-password:
+      post:
+        tags:
+          - account
+        summary: Actually reset your password.
+        requestBody:
+          description: JSON expected for password reset
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  email:
+                    type: string
+                  password:
+                    type: string
+                  otp:
+                    type: string
+          required: true
+        responses:
+          200:
+            description: OK
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Response'
+          401:
+            description: Unauthorized
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Response'
+          422:
+            description: Unprocessable Entity
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Response'
+
+  #  Assignment Portal paths
+
+  /assignment/all:
+    get:
+      tags:
+        - assignment
+      summary: Get all assignment questions
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  - $ref: '#/components/schemas/Problem'
+
+  /assignment/add:
+    post:
+      tags:
+        - assignment
+      summary: Create a new assignment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestProblem'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        401:
+          description: Access Denied
+
+  /assignment/{slug}:
+    get:
+      tags:
+        - assignment
+      summary: Get question with slug
+      parameters:
+        - name: slug
+          in: path
+          description: Assignment Problem Slug
+          schema:
+            type: string
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        404:
+          description: Not Found
+    put:
+      tags:
+        - assignment
+      summary: Update an assignment question
+      parameters:
+        - name: slug
+          in: path
+          description: Slug of question
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestProblem'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        401:
+          description: Access Denied
+
+  /application/{slug}/delete:
+    delete:
+      tags:
+        - assignment
+      summary: Delete an assignment question
+      parameters:
+        - name: slug
+          in: path
+          description: Slug of question
+          schema:
+            type: string
+      responses:
+        204:
+          description: Deleted Successfully
+        401:
+          description: Access Denied
+
+  /application/{qSlug}/submit:
+    post:
+      tags:
+        - assignment
+      summary: Submit assignment solution
+      parameters:
+        - name: qSlug
+          in: path
+          description: Slug of assignment in question
+          schema:
+            type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Submission'
+        400:
+          description: File not found
+        401:
+          description: Access Denied
+        404:
+          description: Resource not found
+        500:
+          description: Server error
+
+  /assignment/{qSlug}/submissions:
+    get:
+      tags:
+        - assignment
+      summary: Get all submissions for assignment
+      parameters:
+        - name: qSlug
+          in: path
+          description: Slug of question
+          schema:
+            type: string
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Submission'
+        401:
+          description: Access Denied
+        404:
+          description: Resource not found
+
+  /assignment/{qSlug}/submission/{aSlug}:
+    get:
+      tags:
+        - assignment
+      parameters:
+        - name: qSlug
+          in: path
+          description: Question slug
+          schema:
+            type: string
+        - name: aSlug
+          in: path
+          description: Answer Slug
+          schema:
+            type: string
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Submission'
+        401:
+          description: Access Denied
+
+  # Document paths
+
+  /document:
+    get:
+      tags:
+        - document
+      summary: Get all Documents
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  - $ref: '#/components/schemas/Document'
+    post:
+      tags:
+        - document
+      summary: Add a document
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostDocument'
+        required: true
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        409:
+          description: Duplicate document
+
+  /document/{id}:
+    get:
+      tags:
+        - document
+      summary: Get document by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        404:
+          description: Document doesn't exist
+
+    put:
+      tags:
+        - document
+      summary: Update a document
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostDocument'
+        required: true
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+    delete:
+      tags:
+        - document
+      summary: Delete a document
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        404:
+          description: Document not found
+        204:
+          description: Document deleted
+
+
+        # Models
 
   # Forum paths
 
@@ -530,290 +907,6 @@ paths:
       security:
         - authorization: [ ]
 
-  # Document paths
-
-  /document:
-    get:
-      tags:
-        - document
-      summary: Get all Documents
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  - $ref: '#/components/schemas/Document'
-    post:
-      tags:
-        - document
-      summary: Add a document
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PostDocument'
-        required: true
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Document'
-        409:
-          description: Duplicate document
-
-  /document/{id}:
-    get:
-      tags:
-        - document
-      summary: Get document by ID
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Document'
-        404:
-          description: Document doesn't exist
-
-    put:
-      tags:
-        - document
-      summary: Update a document
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PostDocument'
-        required: true
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Document'
-    delete:
-      tags:
-        - document
-      summary: Delete a document
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        404:
-          description: Document not found
-        204:
-          description: Document deleted
-
-
-        # Models
-
-  #  Assignment Portal paths
-
-  /assignment/all:
-    get:
-      tags:
-        - assignment
-      summary: Get all assignment questions
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  - $ref: '#/components/schemas/Problem'
-
-  /assignment/add:
-    post:
-      tags:
-        - assignment
-      summary: Create a new assignment
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RequestProblem'
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Problem'
-        401:
-          description: Access Denied
-
-  /assignment/{slug}:
-    get:
-      tags:
-        - assignment
-      summary: Get question with slug
-      parameters:
-        - name: slug
-          in: path
-          description: Assignment Problem Slug
-          schema:
-            type: string
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Problem'
-        404:
-          description: Not Found
-    put:
-      tags:
-        - assignment
-      summary: Update an assignment question
-      parameters:
-        - name: slug
-          in: path
-          description: Slug of question
-          schema:
-            type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RequestProblem'
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Problem'
-        401:
-          description: Access Denied
-
-  /application/{slug}/delete:
-    delete:
-      tags:
-        - assignment
-      summary: Delete an assignment question
-      parameters:
-        - name: slug
-          in: path
-          description: Slug of question
-          schema:
-            type: string
-      responses:
-        204:
-          description: Deleted Successfully
-        401:
-          description: Access Denied
-
-  /application/{qSlug}/submit:
-    post:
-      tags:
-        - assignment
-      summary: Submit assignment solution
-      parameters:
-        - name: qSlug
-          in: path
-          description: Slug of assignment in question
-          schema:
-            type: string
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                file:
-                  type: string
-                  format: binary
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Submission'
-        400:
-          description: File not found
-        401:
-          description: Access Denied
-        404:
-          description: Resource not found
-        500:
-          description: Server error
-
-  /assignment/{qSlug}/submissions:
-    get:
-      tags:
-        - assignment
-      summary: Get all submissions for assignment
-      parameters:
-        - name: qSlug
-          in: path
-          description: Slug of question
-          schema:
-            type: string
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Submission'
-        401:
-          description: Access Denied
-        404:
-          description: Resource not found
-
-  /assignment/{qSlug}/submission/{aSlug}:
-    get:
-      tags:
-        - assignment
-      parameters:
-        - name: qSlug
-          in: path
-          description: Question slug
-          schema:
-            type: string
-        - name: aSlug
-          in: path
-          description: Answer Slug
-          schema:
-            type: string
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Submission'
-        401:
-          description: Access Denied
-
 # Models
 components:
   schemas:
@@ -824,6 +917,8 @@ components:
           type: string
         password:
           type: string
+        stay_in:
+          type: bool
 
     User:
       type: object
@@ -859,6 +954,14 @@ components:
         email:
           type: string
         password:
+          type: string
+
+    VerifyEmail:
+      type: object
+      properties:
+        email:
+          type: string
+        pin:
           type: string
 
     Profile:
@@ -1034,6 +1137,12 @@ components:
           type: string
         submissions:
           type: int
+
+    Response:
+      type: object
+        properties:
+          message:
+            type: string
 
   securitySchemes:
     authorization:

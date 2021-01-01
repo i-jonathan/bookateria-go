@@ -53,3 +53,11 @@ GET http://localhost:5000/v1/forum/question/all?filter=One Tag
 
 ###
 GET http://localhost:5000/v1/account/all?filter=one,two,five&search=airtel
+
+###
+POST http://localhost:5000/v1/account/request-password-reset
+Content-Type: application/json
+
+{
+  "email": "farinloyejonathan@gmail.com"
+}
