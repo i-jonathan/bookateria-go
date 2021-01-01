@@ -5,18 +5,19 @@ import (
 	"bookateriago/log"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"github.com/go-redis/redis/v8"
-	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/go-redis/redis/v8"
+	"github.com/gorilla/mux"
+	"gorm.io/gorm"
 )
 
 var (
-	users       []User
-	user        User
 	db          = InitDatabase()
 	viperConfig = core.ReadViper()
 	redisDB, _  = strconv.Atoi(fmt.Sprintf("%s", viperConfig.Get("redis.database")))
@@ -28,20 +29,21 @@ var (
 	ctx = context.Background()
 )
 
-// OTP is the structure of the OTP itself
+// otp is the structure of the OTP itself
 type otp struct {
 	Email string `json:"email"`
 	Pin   string `json:"pin"`
 }
 
-// OTPRequest carries paramaeters for requesting OTPs
+// otpRequest carries paramaeters for requesting OTPs
 type otpRequest struct {
 	Email string `json:"email"`
 }
 
-// AllUsers gets and returns a list of all users in the DB
+// allUsers gets and returns a list of all users in the DB
 func allUsers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	var users []User
 	db.Find(&users)
 	err := json.NewEncoder(w).Encode(users)
 	log.ErrorHandler(err)
@@ -52,6 +54,7 @@ func allUsers(w http.ResponseWriter, r *http.Request) {
 // getUser returns a user by id. TODO change to by slug
 func getUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	var user User
 	params := mux.Vars(r)
 	userID := params["id"]
 	db.Find(&user, "id = ?", userID)
@@ -64,6 +67,7 @@ func getUser(w http.ResponseWriter, r *http.Request) {
 // postUser for creating a new user. Does all the checks.
 func postUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	var user User
 	err := json.NewDecoder(r.Body).Decode(&user)
 	log.ErrorHandler(err)
 	var (
@@ -120,7 +124,8 @@ func postUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	passwordHash, _ := generatePasswordHash(password)
+	passwordHash, err := generatePasswordHash(password)
+	log.ErrorHandler(err)
 
 	user = User{
 		UserName:        userName,
@@ -169,17 +174,20 @@ func postUser(w http.ResponseWriter, r *http.Request) {
 // Supplementary to the regex check and the MX lookup
 func verifyEmail(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	var data otp
+	var (
+		data otp
+		user User
+	)
 	err := json.NewDecoder(r.Body).Decode(&data)
 	log.ErrorHandler(err)
 
 	// Gets the user and checks if the mail is already verified
 	db.Find(&user, "email = ?", strings.ToLower(data.Email))
 	if user.IsEmailVerified {
-		w.WriteHeader(http.StatusTeapot)
+		w.WriteHeader(http.StatusBadRequest)
 		err = json.NewEncoder(w).Encode(core.FourHundred)
 		log.ErrorHandler(err)
-		log.AccessHandler(r, 418)
+		log.AccessHandler(r, 400)
 		return
 	}
 
@@ -214,6 +222,7 @@ func requestOTP(w http.ResponseWriter, r *http.Request) {
 	var (
 		data      otpRequest
 		storedOTP string
+		user User
 	)
 
 	err := json.NewDecoder(r.Body).Decode(&data)
@@ -249,7 +258,8 @@ func requestOTP(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func resetPassword(w http.ResponseWriter, r *http.Request) {
+// resetPasswordRequest handles the request to reset a password. Sends a mail to the user, containing the OTP
+func resetPasswordRequest(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var body otpRequest
 
@@ -318,5 +328,71 @@ func resetPassword(w http.ResponseWriter, r *http.Request) {
 	err = json.NewEncoder(w).Encode(core.TwoHundred)
 	log.ErrorHandler(err)
 	log.AccessHandler(r, 200)
+	return
+}
+
+// resetPassword actually resets the users password. Based on data provided and generated
+func resetPassword(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	// take email, token and new password
+	body := struct {
+		Email	 string	`json:"email"`
+		OTP		 string	`json:"otp"`
+		Password string	`json:"password"`
+	}{}
+
+	err := json.NewDecoder(r.Body).Decode(&body)
+	log.ErrorHandler(err)
+	
+	// check email for existence
+	var user User
+	err = db.Find(&user, "email = ?", body.Email).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		w.WriteHeader(http.StatusUnauthorized)
+		log.ErrorHandler(err)
+		err = json.NewEncoder(w).Encode(core.FourOOne)
+		log.ErrorHandler(err)
+		log.AccessHandler(r, 401)
+		return
+	}
+
+	// check if token exists
+	storedOtp, err := redisClient.Get(ctx, "password_reset_"+body.Email).Result()
+	log.ErrorHandler(err)
+	
+	if storedOtp != body.OTP {
+		w.WriteHeader(http.StatusUnauthorized)
+		err = json.NewEncoder(w).Encode(core.FourOOne)
+		log.ErrorHandler(err)
+		log.AccessHandler(r, 401)
+		return
+	}
+
+	// validate password
+	safePassword := passwordValidator(body.Password)
+	if !safePassword {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		err = json.NewEncoder(w).Encode(core.FourTwoTwo)
+		log.ErrorHandler(err)
+		log.AccessHandler(r, 422)
+		return
+	}
+
+	// Generate password hash and save
+	hashedPassword, err := generatePasswordHash(body.Password)
+	log.ErrorHandler(err)
+
+	user.Password = hashedPassword
+	db.Save(&user)
+
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(core.TwoHundred)
+	log.ErrorHandler(err)
+	log.AccessHandler(r, 200)
+
+	// Delete from redis
+	redisClient.Del(ctx, "password_reset_"+body.Email)
+
 	return
 }
