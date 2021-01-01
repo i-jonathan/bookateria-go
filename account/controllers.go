@@ -266,6 +266,18 @@ func resetPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var count int64
+	var user User
+	db.Find(&user, "email = ?", body.Email).Count(&count)
+
+	if count <= 0 {
+		w.WriteHeader(http.StatusUnauthorized)
+		err = json.NewEncoder(w).Encode(core.FourOOne)
+		log.ErrorHandler(err)
+		log.AccessHandler(r, 401)
+		return
+	}
+
 	// generate token
 	var data otp
 	data = otp{
