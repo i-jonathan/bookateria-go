@@ -15,12 +15,12 @@ tags:
     description: Everything about authentication
   - name: account
     description: Operations on User accounts
+  - name: assignment
+    description: Assignment submission portal
   - name: document
     description: Everything Documents
   - name: forum
     description: Thing you can do on Forum. Netflix and chill stuff
-  - name: assignment
-    description: Assignment submission portal
 paths:
   # Authorization paths
 
@@ -1140,9 +1140,9 @@ components:
 
     Response:
       type: object
-        properties:
-          message:
-            type: string
+      properties:
+        message:
+          type: string
 
   securitySchemes:
     authorization:

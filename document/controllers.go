@@ -82,7 +82,7 @@ func PostDocument(w http.ResponseWriter, r *http.Request) {
 
 	//Check for user attached to mail
 	db.Find(&user, "email = ?", strings.ToLower(email))
-	reg, err := regexp.Compile("[^a-zA-Z0-9-]+")
+	// reg, err := regexp.Compile("[^a-zA-Z0-9-]+")
 
 	//If The Regexp Doesn't Compile, Throw An Error
 	if err != nil {
