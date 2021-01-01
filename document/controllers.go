@@ -9,7 +9,7 @@ import (
 	"github.com/gorilla/mux"
 	"gorm.io/gorm/clause"
 	"net/http"
-	//"regexp"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -117,6 +117,8 @@ func PostDocument(w http.ResponseWriter, r *http.Request) {
 	//Default Value For Edition
 	edition := 0
 
+	fmt.Println(r.FormValue("edition"))
+
 	//Check If The Edition Sent By The User Is Not Empty
 	if r.FormValue("edition") != "" {
 		var err error
@@ -136,6 +138,7 @@ func PostDocument(w http.ResponseWriter, r *http.Request) {
 	for _, strTag := range strTags {
 		tag.TagName = strings.TrimSpace(string(strTag))
 		tag.Slug = strings.ReplaceAll(strings.ToLower(tag.TagName), " ", "-")
+		tag.Slug = reg.ReplaceAllString(tag.Slug, "")
 		tags = append(tags, tag)
 	}
 
@@ -158,7 +161,8 @@ func PostDocument(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//Gets document slug from request and stores it into the document
-	slug := strings.ToLower(strings.ReplaceAll(document.Title+"-"+document.Author+"-"+string(document.Edition), " ", "-"))
+	slug := strings.ToLower(strings.ReplaceAll(document.Title+"-"+document.Author+"-"+fmt.Sprint(edition), " ", "-"))
+	slug = reg.ReplaceAllString(slug, "")
 	document.Slug = slug
 
 	//Create an entry for the document in the database
@@ -228,6 +232,16 @@ func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	reg, err := regexp.Compile("[^a-zA-Z0-9-]+")
+
+	//If The Regexp Doesn't Compile, Throw An Error
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		err := json.NewEncoder(w).Encode(core.FourTwoTwo)
+		log.ErrorHandler(err)
+		return
+	}
+
 	//Check If The Title Is To Be Updated
 	if string(temp.Title) != "" {
 		title, err := validate(string(temp.Title))
@@ -275,10 +289,15 @@ func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 		//Parse Tags If They're Not Empty
 		for _, tag := range temp.Tags {
 			slug := strings.ReplaceAll(strings.ToLower(string(tag.TagName)), " ", "-")
-			tag.Slug = slug
+			tag.Slug = reg.ReplaceAllString(slug, "")
 			document.Tags = append(document.Tags, tag)
 		}
 	}
+
+	//Gets document slug from request and stores it into the document
+	slug := strings.ToLower(strings.ReplaceAll(document.Title+"-"+document.Author+"-"+fmt.Sprint(document.Edition), " ", "-"))
+	slug = reg.ReplaceAllString(slug, "")
+	document.Slug = slug
 
 	//Update The Document Uploader
 	document.Uploader = user
