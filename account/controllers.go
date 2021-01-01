@@ -184,10 +184,10 @@ func verifyEmail(w http.ResponseWriter, r *http.Request) {
 	// Gets the user and checks if the mail is already verified
 	db.Find(&user, "email = ?", strings.ToLower(data.Email))
 	if user.IsEmailVerified {
-		w.WriteHeader(http.StatusTeapot)
+		w.WriteHeader(http.StatusBadRequest)
 		err = json.NewEncoder(w).Encode(core.FourHundred)
 		log.ErrorHandler(err)
-		log.AccessHandler(r, 418)
+		log.AccessHandler(r, 400)
 		return
 	}
 
@@ -337,9 +337,9 @@ func resetPassword(w http.ResponseWriter, r *http.Request) {
 
 	// take email, token and new password
 	body := struct {
-		Email	 string
-		OTP		 string
-		Password string
+		Email	 string	`json:"email"`
+		OTP		 string	`json:"otp"`
+		Password string	`json:"password"`
 	}{}
 
 	err := json.NewDecoder(r.Body).Decode(&body)
