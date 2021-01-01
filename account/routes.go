@@ -9,6 +9,7 @@ func Router(router *mux.Router) *mux.Router {
 	router.HandleFunc("/{id}", getUser).Methods("GET")
 	router.HandleFunc("/verify-email", verifyEmail).Methods("POST")
 	router.HandleFunc("/request-otp", requestOTP).Methods("POST")
+	router.HandleFunc("/request-password-reset", resetPassword).Methods("POST")
 
 	return router
 }

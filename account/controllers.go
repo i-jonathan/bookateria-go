@@ -248,3 +248,63 @@ func requestOTP(w http.ResponseWriter, r *http.Request) {
 	return
 
 }
+
+func resetPassword(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	var body otpRequest
+
+	err := json.NewDecoder(r.Body).Decode(&body)
+	log.ErrorHandler(err)
+	
+	// Verify email
+	emailStatus := emailValidator(body.Email)
+	if !emailStatus {
+		w.WriteHeader(http.StatusBadRequest)
+		err = json.NewEncoder(w).Encode(core.FourHundred)
+		log.ErrorHandler(err)
+		log.AccessHandler(r, 400)
+		return
+	}
+
+	// generate token
+	var data otp
+	data = otp{
+		Email: body.Email,
+		Pin: generateOTP(),
+	}
+
+	// save token to redis
+	err = redisClient.Set(ctx, "password_reset_"+data.Email, data.Pin, 30*time.Minute).Err()
+	if err != nil {
+		log.ErrorHandler(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		err := json.NewEncoder(w).Encode(core.FiveHundred)
+		log.ErrorHandler(err)
+		log.AccessHandler(r, 500)
+		return
+	}
+
+	// Send token to email
+	payload := struct {
+		Token string
+	}{
+		Token: data.Pin,
+	}
+
+	status, err := core.SendEmailNoAttachment(data.Email, "Reset Password", payload, "password_reset.txt")
+	if !status {
+		log.ErrorHandler(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		err = json.NewEncoder(w).Encode(core.FiveHundred)
+		log.ErrorHandler(err)
+		log.AccessHandler(r, 500)
+		return
+	}
+
+	// respond okay
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(core.TwoHundred)
+	log.ErrorHandler(err)
+	log.AccessHandler(r, 200)
+	return
+}
