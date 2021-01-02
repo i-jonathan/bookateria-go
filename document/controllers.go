@@ -289,7 +289,7 @@ func PostDocument(w http.ResponseWriter, r *http.Request) {
 	slug := strings.ToLower(strings.ReplaceAll(document.Title+"-"+document.Author+"-"+fmt.Sprint(edition), " ", "-"))
 	slug = reg.ReplaceAllString(slug, "")
 	document.Slug = slug
-	//document.FileSlug = fileSlug
+	document.FileSlug = fileSlug
 
 	//Create an entry for the document in the database
 	db.Create(&document)
