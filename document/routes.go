@@ -4,6 +4,8 @@ import "github.com/gorilla/mux"
 
 func Router(router *mux.Router) *mux.Router {
 	router.HandleFunc("", GetDocuments).Methods("GET")
+	router.HandleFunc("", SearchDocuments).Queries("search", "{search}").Methods("GET")
+	router.HandleFunc("", FilterByTags).Queries("filter", "{filter}").Methods("GET")
 	router.HandleFunc("/{id}", GetDocument).Methods("GET")
 	router.HandleFunc("", PostDocument).Methods("POST")
 	router.HandleFunc("/{id}", UpdateDocument).Methods("PUT")
