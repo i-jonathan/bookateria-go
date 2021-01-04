@@ -3,6 +3,13 @@ package document
 import "bookateriago/account"
 import "time"
 
+type Category struct {
+	ID           uint   `json:"id" gorm:"primaryKey;autoIncrement; unique"`
+	DocumentID   uint   `json:"document_id"`
+	CategoryName string `json:"category_name"`
+	Slug         string `json:"category_slug"`
+}
+
 type Tag struct {
 	ID         uint   `json:"id" gorm:"primaryKey;autoIncrement; unique"`
 	DocumentID uint   `json:"document_id"`
@@ -26,5 +33,5 @@ type Document struct {
 	CoverSlug  string       `json:"cover_slug"`
 	UploaderID int          `json:"uploader_id"`
 	Uploader   account.User `json:"uploader"`
-	Category   string       `json:"category"`
+	Category   Category     `json:"category"`
 }
