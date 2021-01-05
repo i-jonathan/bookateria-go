@@ -142,27 +142,45 @@ func passwordValidator(password string) bool {
 // userDetails : This attempts to normalize the user details. If they are not empty
 // If empty, returns false
 // Else, returns the details as Title case
-func userDetails(firstName, lastName, email string) (string, string, string, bool) {
-	firstName = strings.ReplaceAll(firstName, " ", "")
-	lastName = strings.ReplaceAll(lastName, " ", "")
-	email = strings.ReplaceAll(email, " ", "")
+func userDetails(firstName, lastName, userName string) (string, string, string, bool) {
 
-	if firstName == "" || lastName == "" || email == "" {
-		return firstName, lastName, email, false
+	cleanName := regexp.MustCompile(`^[a-zA-Z-]+$`).MatchString
+
+	if !(cleanName(firstName) && cleanName(lastName)) {
+		return "", "", "", false
+	}
+
+	cleanUserName := regexp.MustCompile(`^[a-zA-Z0-9_]+$`).MatchString
+
+	if !cleanUserName(userName) {
+		return "", "", "", false
+	}
+
+	regex, err := regexp.Compile("[^a-zA-Z-]+")
+	firstName = regex.ReplaceAllString(firstName, "")
+	lastName = regex.ReplaceAllString(lastName, "")
+	log.ErrorHandler(err)
+
+	regex, err = regexp.Compile("[^a-zA-Z0-9_]+")
+	userName = regex.ReplaceAllString(userName, "")
+
+	log.ErrorHandler(err)
+
+	if firstName == "" || lastName == "" || userName == "" {
+		return firstName, lastName, userName, false
 	}
 	firstName = strings.Title(firstName)
 	lastName = strings.Title(lastName)
-	email = strings.ToLower(email)
 
-	return firstName, lastName, email, true
+	return firstName, lastName, userName, true
 }
 
-// emailValidator : This function does (currently) 2 checks on the email to ensure it is correct
-// A regex check and an MX lookup that checks if the domain has MX records
-// The regex check is ridiculously simple because.
-// 1, We are still doing an MX lookup
-// 2, We would still send a verification email. So why make it complex.
-// Returns true if the email is good to go and false otherwise
+/*  emailValidator : This function does (currently) 2 checks on the email to ensure it is correct
+	A regex check and an MX lookup that checks if the domain has MX records
+	The regex check is ridiculously simple because.
+	1, We are still doing an MX lookup
+	2, We would still send a verification email. So why make it complex.
+	Returns true if the email is good to go and false otherwise */
 func emailValidator(email string) bool {
 	re := regexp.MustCompile("^.+@.+\\..+$")
 	validity := re.MatchString(email)

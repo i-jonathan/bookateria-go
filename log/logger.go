@@ -41,7 +41,7 @@ func AccessHandler(r *http.Request, code int) {
 	log.SetOutput(file)
 	text := r.Method + " - " + r.URL.Path
 	if len(r.URL.Query()) > 0 {
-		text += strings.ReplaceAll(r.URL.Query().Encode(), "%2C", ",")
+		text += "?" + strings.ReplaceAll(r.URL.Query().Encode(), "%2C", ",")
 	}
 	log.Println(text + " - " + "[" + strconv.Itoa(code) + "]")
 	err := file.Close()

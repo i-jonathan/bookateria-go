@@ -1,58 +1,36 @@
-POST http://localhost:5000/forum/question
-Content-Type: application/json
-Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImpvbmF0aGFuZmFyaW5sb3llQG91dGxvb2suY29tIiwiZXhwIjoxNjA0MTA3MTI0fQ.I7_cbFeKuRnhK1ttjga7EbLH1c3LjgXfTXxkPKnBrGk
-
-{
-"title": "Test Question 9",
-  "description": "s if get affects it??",
-  "tags": [{
-     "name": "one"
-  },
-    {
-      "name": "four"
-    }]
-}
-
-###
-
-POST http://localhost:5000/v1/auth/login
-Content-Type: application/json
-
-{
-"email": "jonathanfarinloye@outlook.com",
-  "password": "TestingMic1!"
-}
-
-###
-
 POST http://localhost:5000/v1/account
 Content-Type: application/json
 
 {
-  "email": "jonathanfarinloye@outlook.com",
-  "first_name": "One",
-  "last_name": "T",
-  "password": "TestingMic1!",
-  "user_name": "family man"
+  "email": "farinloyejonathan@gmail.com",
+  "first_name": "Jonathan",
+  "last_name": "Farinloye",
+  "password": "ghjk%6789R",
+  "user_name": "Jay"
 }
 
 ###
+GET http://localhost:5000/v1/account/all
 
-POST http://localhost:5000/v1/forum/question
+###
+POST http://localhost:5000/v1/account/verify-email
 Content-Type: application/json
-Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImpvbmF0aGFuZmFyaW5sb3llQG91dGxvb2suY29tIiwiZXhwIjoxNjA3OTUyNDc3fQ.NBQdJvvblyasDCdZrO81-MbE5RtTw11FziJw63hSG6I
 
 {
-  "title": "Testing question five",
-  "description": "Trying tagain ohho hard",
-  "tags": [{"name": "Two"}, {"name": "five tag"}]
+  "email": "farinloyejonathan@gmail.com",
+  "pin": "4720375"
 }
 
 ###
-GET http://localhost:5000/v1/forum/question/all?filter=One Tag
+GET http://localhost:5000/v1/account/1
 
 ###
-GET http://localhost:5000/v1/account/all?filter=one,two,five&search=airtel
+POST http://localhost:5000/v1/account/request-otp
+Content-Type: application/json
+
+{
+  "email": "farinloyejonathan@gmail.com"
+}
 
 ###
 POST http://localhost:5000/v1/account/request-password-reset
@@ -61,3 +39,64 @@ Content-Type: application/json
 {
   "email": "farinloyejonathan@gmail.com"
 }
+
+###
+POST http://localhost:5000/v1/account/reset-password
+Content-Type: application/json
+
+{
+  "email": "farinloyejonathan@gmail.com",
+  "password": "Amazing@2",
+  "otp": "8173748"
+}
+
+###
+POST http://localhost:5000/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "farinloyejonathan@gmail.com",
+  "password": "ghjk%6789R"
+}
+
+###
+POST http://localhost:5000/v1/auth/logout
+Content-Type: application/json
+Authorization: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImZhcmlubG95ZWpvbmF0aGFuQGdtYWlsLmNvbSIsImV4cCI6MTYxMDM4NzE3NH0.r0ioWk5q4lgM0Fq9qOpAla6YqDXE899bXYkAj9TSpH0"
+
+###
+POST http://localhost:5000/v1/document
+Content-Type: application/json
+Authorization: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImZhcmlubG95ZWpvbmF0aGFuQGdtYWlsLmNvbSIsImV4cCI6MTYxMDM4NzE3NH0.r0ioWk5q4lgM0Fq9qOpAla6YqDXE899bXYkAj9TSpH0"
+
+{
+  "title": "Stuff",
+  "author": "Jay",
+  "edition": 1,
+  "summary"
+}
+
+
+###
+GET http://localhost:5000/v1/document?search=too
+Content-Type: application/json
+
+###
+GET http://localhost:5000/v1/document?filter=Nice one
+Content-Type: application/json
+
+###
+GET http://localhost:5000/v1/document/1
+
+###
+PUT http://localhost:5000/v1/document/1
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImZhcmlubG95ZWpvbmF0aGFuQGdtYWlsLmNvbSIsImV4cCI6MTYxMDM4OTIzMX0.Fsb6qHauX7_BDqMHm23FS2YOhBuro_s_PNyRn6NCfqE
+Content-Type: application/json
+
+{
+  "title": hjlk
+}
+
+###
+DELETE http://localhost:5000/v1/document/1
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImZhcmlubG95ZWpvbmF0aGFuQGdtYWlsLmNvbSIsImV4cCI6MTYxMDM4OTIzMX0.Fsb6qHauX7_BDqMHm23FS2YOhBuro_s_PNyRn6NCfqE

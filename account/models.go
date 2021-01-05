@@ -16,15 +16,15 @@ type User struct {
 	LastLogin       time.Time `json:"last_login"`
 	IsActive        bool      `json:"is_active" gorm:"default:false"`
 	IsEmailVerified bool      `json:"is_email_verified" gorm:"default:false"`
-	CreatedAt       time.Time `json:"created_at" gorm:"autoCreateTime:nano"`
-	UpdatedAt       time.Time `json:"updated_at" gorm:"autoUpdateTime:nano"`
+	CreatedAt       time.Time `json:"created_at"`
+	UpdatedAt       time.Time `json:"updated_at"`
 }
 
 // profile model. Could be extended soon
 type profile struct {
 	ID        uint      `json:"id"`
-	CreatedAt time.Time `json:"created_at" gorm:"autoCreateTime:nano"`
-	UpdatedAt time.Time `json:"updated_at" gorm:"autoUpdateTime:nano"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 	//Bio		string	`json:"bio"`
 	//Picture	string	`json:"picture"`
 	Points int  `json:"points" gorm:"default:20"`
