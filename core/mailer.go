@@ -13,7 +13,6 @@ import (
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 )
 
-var viperConfig = ReadViper()
 var key = fmt.Sprintf("%s", viperConfig.Get("email.key"))
 
 // parseTemplate is for preparing the template from the email/templates directory

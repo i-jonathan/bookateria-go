@@ -270,10 +270,11 @@ func PostDocument(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//Rename The File Using The Document Fields
-	fileName := document.Title + " " + document.Author + " " + fmt.Sprint(document.Edition) + "bookaterai.net" + fileExtension[len(fileExtension)-1]
+	fileName := strings.Join(strings.Fields(document.Title), "-") + "-" + strings.Join(strings.Fields(document.Author), "-") + 
+		"-" + fmt.Sprint(document.Edition) + "-bookateria.net." + fileExtension[len(fileExtension)-1]
 
 	//Initiate An Upload To S3 Server
-	status, fileSlug, err := core.S3Upload(file, fileName)
+	status, fileSlug, err := core.S3Upload(file, "media/file/"+fileName)
 
 	//Check If The Upload Was Successful
 	if !status {

@@ -23,7 +23,7 @@ var (
 	ctx         = context.Background()
 	redisClient = redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s", viperConfig.Get("redis.address")),
-		Password: fmt.Sprintf("%s", viperConfig.Get("redis.password")),
+		// Password: fmt.Sprintf("%s", viperConfig.Get("redis.password")),
 		DB:       redisDb,
 	})
 	user account.User
@@ -81,10 +81,13 @@ func signIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	redisTime := 168 * time.Hour
+
 	expirationTime := time.Now().Add(168 * time.Hour)
 
 	if cred.StayIn {
 		expirationTime = time.Now().Add(720 * time.Hour)
+		redisTime = 720 * time.Hour
 	}
 
 	claims := tokenClaims{
@@ -98,19 +101,21 @@ func signIn(w http.ResponseWriter, r *http.Request) {
 	tokenString, errToken := token.SignedString(jwtKey)
 	if errToken != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		log.ErrorHandler(err)
+		log.AccessHandler(r, 500)
 		return
 	}
-	err = redisClient.Set(ctx, user.Email, tokenString, 5*time.Minute).Err()
-	if err != nil {
-		//panic(err)
-	}
+	err = redisClient.Set(ctx, user.Email, tokenString, redisTime).Err()
+	log.ErrorHandler(err)
 
-	_ = json.NewEncoder(w).Encode(tokenResponse{
-		Name:   "Token",
+	err = json.NewEncoder(w).Encode(tokenResponse{
+		Name:   "Authorization",
 		Value:  tokenString,
 		Expiry: expirationTime,
 	})
 
+	log.ErrorHandler(err)
+	log.AccessHandler(r, 200)
 	return
 }
 

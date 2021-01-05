@@ -71,7 +71,7 @@ func postUser(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&user)
 	log.ErrorHandler(err)
 	var (
-		email         = user.Email
+		email         = strings.ToLower(user.Email)
 		lastName      = user.LastName
 		userName      = user.UserName
 		password      = user.Password
@@ -82,7 +82,7 @@ func postUser(w http.ResponseWriter, r *http.Request) {
 		similarToUser = similarToUser(firstName, lastName, userName, password)
 	)
 
-	firstName, lastName, email, safeNames = userDetails(firstName, lastName, email)
+	firstName, lastName, userName, safeNames = userDetails(firstName, lastName, userName)
 
 	if !safeNames {
 		// Some or all of the details in the body are empty
@@ -167,6 +167,7 @@ func postUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.ErrorHandler(err)
+	log.AccessHandler(r, 200)
 	return
 }
 
@@ -212,6 +213,8 @@ func verifyEmail(w http.ResponseWriter, r *http.Request) {
 	user.IsEmailVerified = true
 	db.Save(&user)
 	log.AccessHandler(r, 200)
+
+	redisClient.Del(ctx, key)
 	return
 
 }
