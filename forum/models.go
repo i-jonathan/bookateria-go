@@ -55,7 +55,7 @@ type questionUpVote struct {
 	User       account.User `json:"user" gorm:"constraints:OnDelete:CASCADE"`
 }
 
-// answerUpvote for keeping a lost of upvotes on an answer
+// answerUpvote for keeping a lost of up votes on an answer
 type answerUpvote struct {
 	ID        uint         `json:"id"`
 	CreatedAt time.Time    `json:"created_at" gorm:"autoCreateTime:nano"`

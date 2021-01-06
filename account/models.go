@@ -8,8 +8,8 @@ type User struct {
 	// Seems there's no write only for json or gorm for that matter
 	ID              uint      `json:"id"`
 	UserName        string    `json:"user_name"`
-	FirstName       string    `json:"first_name" gorm:"not null"`
-	LastName        string    `json:"last_name" gorm:"not null"`
+	FullName        string    `json:"full_name" gorm:"not null"`
+	Alias	        string    `json:"alias"`
 	Email           string    `json:"email" gorm:"not null;unique"`
 	IsAdmin         bool      `json:"is_admin" gorm:"default:false"`
 	Password        string    `json:"password"`
@@ -32,7 +32,7 @@ type profile struct {
 	User   User `json:"user" gorm:"constraints:OnDelete:CASCADE;not null;unique"`
 }
 
-// passwordConfig for contructing really nice and secure passwords. Make sense? No
+// passwordConfig for constructing really nice and secure passwords. Make sense? No
 type passwordConfig struct {
 	time    uint32
 	memory  uint32

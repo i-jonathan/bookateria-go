@@ -72,8 +72,7 @@ Authorization: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImZhcmlubG95ZWp
 {
   "title": "Stuff",
   "author": "Jay",
-  "edition": 1,
-  "summary"
+  "edition": 1
 }
 
 
@@ -94,7 +93,7 @@ Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImZhcmlubG95ZWpv
 Content-Type: application/json
 
 {
-  "title": hjlk
+  "title": "hjlk"
 }
 
 ###

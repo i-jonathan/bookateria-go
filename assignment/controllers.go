@@ -54,6 +54,7 @@ func postQuestion(w http.ResponseWriter, r *http.Request) {
 
 	// Remove all symbols and spaces to generate slug.
 	regex, err := regexp.Compile("[^a-zA-Z0-9 ]+")
+	log.ErrorHandler(err)
 	processed := regex.ReplaceAllString(oneProblem.Title, "")
 	oneProblem.Title = strings.Join(strings.Fields(oneProblem.Title), " ")
 	slug := strings.ReplaceAll(processed, " ", "-")
@@ -263,7 +264,7 @@ func PostSubmission(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	submissionSlug := oneProblem.Slug + oneProblem.User.FirstName + "-" + oneProblem.User.LastName
+	submissionSlug := oneProblem.Slug + strings.Join(strings.Fields(oneProblem.User.Alias), "-")
 
 	oneSubmission = submission{
 		Problem:     oneProblem,

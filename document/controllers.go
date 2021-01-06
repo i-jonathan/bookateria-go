@@ -33,7 +33,7 @@ func FilterByTags(w http.ResponseWriter, r *http.Request) {
 	//Split The Queries Into A Slice
 	filterTags := strings.Split(query, ",")
 
-	//Find Which Tags Contain The Specified Tagnames And Store In The Tags Struct
+	//Find Which Tags Contain The Specified Tag names And Store In The Tags Struct
 	db.Where("tag_name IN ?", filterTags).Find(&tags)
 
 	//Append Into The documentIDs Struct, The ID Of The Documents That Contain The Specified Tags
@@ -43,8 +43,10 @@ func FilterByTags(w http.ResponseWriter, r *http.Request) {
 
 	db.Preload(clause.Associations).Find(&documents, "id IN ?", documentIDs)
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(documents)
+	err := json.NewEncoder(w).Encode(documents)
+	log.ErrorHandler(err)
 	log.AccessHandler(r, 200)
+	return
 }
 
 //SearchDocuments returns documents whose fields match the search term
@@ -213,7 +215,7 @@ func PostDocument(w http.ResponseWriter, r *http.Request) {
 
 	//Parse tags and store into the Tags model
 	for _, strTag := range strTags {
-		tag.TagName = strings.TrimSpace(string(strTag))
+		tag.TagName = strings.TrimSpace(strTag)
 		tag.Slug = strings.ReplaceAll(strings.ToLower(tag.TagName), " ", "-")
 		tag.Slug = reg.ReplaceAllString(tag.Slug, "")
 		tags = append(tags, tag)
@@ -258,7 +260,7 @@ func PostDocument(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//Split The FIlename Using A Dot As The Delimiter
+	//Split The File name Using A Dot As The Delimiter
 	fileExtension := strings.Split(header.Filename, ".")
 
 	//Check If The File Has An Extension
@@ -365,8 +367,8 @@ func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//Check If The Title Is To Be Updated
-	if string(temp.Title) != "" {
-		title, err := validate(string(temp.Title))
+	if temp.Title != "" {
+		title, err := validate(temp.Title)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			err := json.NewEncoder(w).Encode(core.FourTwoTwo)
@@ -377,10 +379,10 @@ func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//Check If The Author Is To Be Updated
-	if string(temp.Author) != "" {
+	if temp.Author != "" {
 
 		//Validate The Title Field
-		author, err := validate(string(temp.Author))
+		author, err := validate(temp.Author)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			err := json.NewEncoder(w).Encode(core.FourTwoTwo)
@@ -390,8 +392,8 @@ func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 		document.Author = author
 	}
 
-	if string(temp.Summary) != "" {
-		document.Summary = strings.Join(strings.Fields(string(temp.Summary)), " ")
+	if temp.Summary != "" {
+		document.Summary = strings.Join(strings.Fields(temp.Summary), " ")
 	}
 
 	//Check If The Edition Is To Be Updated
@@ -414,15 +416,15 @@ func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 
 		//Parse Tags If They're Not Empty
 		for _, tag := range temp.Tags {
-			slug := strings.ReplaceAll(strings.ToLower(string(tag.TagName)), " ", "-")
+			slug := strings.ReplaceAll(strings.ToLower(tag.TagName), " ", "-")
 			tag.Slug = reg.ReplaceAllString(slug, "")
 			document.Tags = append(document.Tags, tag)
 		}
 	}
 
 	//Parse Categories Too
-	if string(temp.Category.CategoryName) != "" {
-		document.Category.CategoryName = string(temp.Category.CategoryName)
+	if temp.Category.CategoryName != "" {
+		document.Category.CategoryName = temp.Category.CategoryName
 		document.Category.Slug = strings.ReplaceAll(document.Category.CategoryName, " ", "-")
 	}
 

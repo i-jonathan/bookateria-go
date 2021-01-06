@@ -37,7 +37,7 @@ type tokenResponse struct {
 	Expiry time.Time `json:"expiry"`
 }
 
-// credentials is the expected struct for the signin endpoint
+// credentials is the expected struct for the sign in endpoint
 type credentials struct {
 	Password string `json:"password"`
 	Email    string `json:"email"`
