@@ -442,9 +442,6 @@ func UpdateAnswer(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&oneAnswer)
 	log.ErrorHandler(err)
 	db.Find(&user, "email = ?", strings.ToLower(email))
-	// reg, _ := regexp.Compile("[^a-zA-Z0-9]+")
-	// oneAnswer.Slug = strings.ToLower(strings.ReplaceAll(oneAnswer.oneQuestion.Title+"oneAnswer"+strconv.Itoa(int(oneAnswer.ID)),
-	// 	" ", "-"))
 	oneAnswer.Slug = slug
 	oneAnswer.User = user
 	db.Save(&oneAnswer)
@@ -500,7 +497,7 @@ func DeleteAnswer(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-// GetAnswerUpVotes returns all upvotes on a given oneQuestion
+// GetAnswerUpVotes returns all up votes on a given oneQuestion
 func GetAnswerUpVotes(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
@@ -527,7 +524,7 @@ func GetAnswerUpVotes(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-// PostAnswerUpVote upvotes an oneAnswer
+// PostAnswerUpVote up votes an oneAnswer
 func PostAnswerUpVote(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 

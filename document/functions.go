@@ -62,6 +62,6 @@ func validate(field string) (string, error) {
 		return strings.Title(field), nil
 	}
 
-	return "", errors.New("Either Title Or Author Is Empty")
+	return "", errors.New("either title or author is empty")
 
 }

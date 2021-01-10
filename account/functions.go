@@ -18,7 +18,7 @@ import (
 	"unicode"
 )
 
-// GenerateOTP Uses crypto/rand package to generate a usique OTP which is used for verification
+// GenerateOTP Uses crypto/rand package to generate a unique OTP which is used for verification
 //  And probably reset password
 func generateOTP() string {
 	otp, err := rand.Int(rand.Reader, big.NewInt(9999999))
@@ -104,12 +104,12 @@ func commonPasswordValidator(password string) bool {
 
 // SimilarToUser checks if the password is in any case similar to the inputted user information
 // Returns true if password is similar to first name, last name, user name
-func similarToUser(firstName, lastName, username, password string) bool {
-	containsFirst := strings.Contains(strings.ToLower(password), strings.ToLower(firstName))
-	containsLast := strings.Contains(strings.ToLower(password), strings.ToLower(lastName))
+func similarToUser(fullName, alias, username, password string) bool {
+	containsFull := strings.Contains(strings.ToLower(password), strings.ToLower(fullName))
+	containsLast := strings.Contains(strings.ToLower(password), strings.ToLower(alias))
 	containsUser := strings.Contains(strings.ToLower(password), strings.ToLower(username))
 
-	return containsFirst && containsLast && containsUser
+	return containsFull && containsLast && containsUser
 }
 
 // PasswordValidator : Complete password validator. This aggregates all the conditions that a password needs to meet
@@ -139,40 +139,17 @@ func passwordValidator(password string) bool {
 	return passLen && isNotCommon && hasNumber && hasLower && hasUpper
 }
 
-// userDetails : This attempts to normalize the user details. If they are not empty
-// If empty, returns false
-// Else, returns the details as Title case
-func userDetails(firstName, lastName, userName string) (string, string, string, bool) {
-
-	cleanName := regexp.MustCompile(`^[a-zA-Z-]+$`).MatchString
-
-	if !(cleanName(firstName) && cleanName(lastName)) {
-		return "", "", "", false
+/* userDetails
+	Checks if string is empty
+	return true || false
+*/
+func userDetails(fullName, alias, userName string) bool {
+	if strings.Join(strings.Fields(fullName), " ") == "" ||
+		strings.Join(strings.Fields(alias), " ") == "" ||
+		strings.Join(strings.Fields(userName), " ") == "" {
+		return true
 	}
-
-	cleanUserName := regexp.MustCompile(`^[a-zA-Z0-9_]+$`).MatchString
-
-	if !cleanUserName(userName) {
-		return "", "", "", false
-	}
-
-	regex, err := regexp.Compile("[^a-zA-Z-]+")
-	firstName = regex.ReplaceAllString(firstName, "")
-	lastName = regex.ReplaceAllString(lastName, "")
-	log.ErrorHandler(err)
-
-	regex, err = regexp.Compile("[^a-zA-Z0-9_]+")
-	userName = regex.ReplaceAllString(userName, "")
-
-	log.ErrorHandler(err)
-
-	if firstName == "" || lastName == "" || userName == "" {
-		return firstName, lastName, userName, false
-	}
-	firstName = strings.Title(firstName)
-	lastName = strings.Title(lastName)
-
-	return firstName, lastName, userName, true
+	return false
 }
 
 /*  emailValidator : This function does (currently) 2 checks on the email to ensure it is correct

@@ -19,10 +19,6 @@ func ErrorHandler(err error) {
 		return
 	}
 
-	if err == nil {
-		return
-	}
-
 	log.SetOutput(file)
 	log.Println(err)
 	err = file.Close()

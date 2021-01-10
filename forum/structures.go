@@ -1,5 +1,5 @@
 package forum
-
+/*
 import "time"
 
 // questionRequest for interfacing with the oneQuestion request
@@ -35,6 +35,7 @@ type qUpVotesResponse struct {
 type User struct {
 	UserName  string
 	Email     string
-	FirstName string
-	LastName  string
+	FullName  string
+	ToCallYou  string
 }
+*/
