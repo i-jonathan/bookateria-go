@@ -18,7 +18,7 @@ import (
 	"unicode"
 )
 
-// GenerateOTP Uses crypto/rand package to generate a usique OTP which is used for verification
+// GenerateOTP Uses crypto/rand package to generate a unique OTP which is used for verification
 //  And probably reset password
 func generateOTP() string {
 	otp, err := rand.Int(rand.Reader, big.NewInt(9999999))
@@ -104,12 +104,12 @@ func commonPasswordValidator(password string) bool {
 
 // SimilarToUser checks if the password is in any case similar to the inputted user information
 // Returns true if password is similar to first name, last name, user name
-func similarToUser(firstName, lastName, username, password string) bool {
-	containsFirst := strings.Contains(strings.ToLower(password), strings.ToLower(firstName))
-	containsLast := strings.Contains(strings.ToLower(password), strings.ToLower(lastName))
+func similarToUser(fullName, alias, username, password string) bool {
+	containsFull := strings.Contains(strings.ToLower(password), strings.ToLower(fullName))
+	containsLast := strings.Contains(strings.ToLower(password), strings.ToLower(alias))
 	containsUser := strings.Contains(strings.ToLower(password), strings.ToLower(username))
 
-	return containsFirst && containsLast && containsUser
+	return containsFull && containsLast && containsUser
 }
 
 // PasswordValidator : Complete password validator. This aggregates all the conditions that a password needs to meet
@@ -139,30 +139,25 @@ func passwordValidator(password string) bool {
 	return passLen && isNotCommon && hasNumber && hasLower && hasUpper
 }
 
-// userDetails : This attempts to normalize the user details. If they are not empty
-// If empty, returns false
-// Else, returns the details as Title case
-func userDetails(firstName, lastName, email string) (string, string, string, bool) {
-	firstName = strings.ReplaceAll(firstName, " ", "")
-	lastName = strings.ReplaceAll(lastName, " ", "")
-	email = strings.ReplaceAll(email, " ", "")
-
-	if firstName == "" || lastName == "" || email == "" {
-		return firstName, lastName, email, false
+/* userDetails
+	Checks if string is empty
+	return true || false
+*/
+func userDetails(fullName, alias, userName string) bool {
+	if strings.Join(strings.Fields(fullName), " ") == "" ||
+		strings.Join(strings.Fields(alias), " ") == "" ||
+		strings.Join(strings.Fields(userName), " ") == "" {
+		return true
 	}
-	firstName = strings.Title(firstName)
-	lastName = strings.Title(lastName)
-	email = strings.ToLower(email)
-
-	return firstName, lastName, email, true
+	return false
 }
 
-// emailValidator : This function does (currently) 2 checks on the email to ensure it is correct
-// A regex check and an MX lookup that checks if the domain has MX records
-// The regex check is ridiculously simple because.
-// 1, We are still doing an MX lookup
-// 2, We would still send a verification email. So why make it complex.
-// Returns true if the email is good to go and false otherwise
+/*  emailValidator : This function does (currently) 2 checks on the email to ensure it is correct
+	A regex check and an MX lookup that checks if the domain has MX records
+	The regex check is ridiculously simple because.
+	1, We are still doing an MX lookup
+	2, We would still send a verification email. So why make it complex.
+	Returns true if the email is good to go and false otherwise */
 func emailValidator(email string) bool {
 	re := regexp.MustCompile("^.+@.+\\..+$")
 	validity := re.MatchString(email)

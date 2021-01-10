@@ -1,0 +1,12 @@
+Hi {{.Name}}, 
+<br><br>
+We hope you are doing well and keeping safe.
+<br>
+In a bid to make your experience with using Bookateria better, we'd love to have a short conversation with you.
+<br>
+This will be used towards making the platform work better so your participation is very important to us. Your Identity and data from this conversation will be protected and not be made public.
+<br>
+If you have some time to spare, please fill the form below:
+https://forms.gle/FMTvkMynSSeTudaa7
+<br><br>
+Thank you and Happy holidays!

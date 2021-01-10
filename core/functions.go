@@ -1,21 +1,37 @@
 package core
 
 import (
+	"bookateriago/log"
+	"context"
 	"fmt"
+	"mime/multipart"
+	"net/http"
+	"strconv"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/go-redis/redis/v8"
 	"github.com/spf13/viper"
-	"mime/multipart"
-	"net/http"
 )
 
 type tokenClaims struct {
 	Email string `json:"email"`
 	jwt.StandardClaims
 }
+
+var (
+	viperConfig = ReadViper()
+	redisDB, _  = strconv.Atoi(fmt.Sprintf("%s", viperConfig.Get("redis.database")))
+	redisClient = redis.NewClient(&redis.Options{
+		Addr: fmt.Sprintf("%s", viperConfig.Get("redis.address")),
+		//Password: fmt.Sprintf("%s", viperConfig.Get("redis.password")),
+		DB: redisDB,
+	})
+	ctx = context.Background()
+)
 
 // ReadViper : A simple function utilizing the viper package for reading from configuration file.
 // Reads specifically from config.yaml located in the root directory.
@@ -53,12 +69,18 @@ func GetTokenEmail(r *http.Request) (*jwt.Token, string) {
 
 	email := claims.Email
 
+	storedOTP, err := redisClient.Get(ctx, email).Result()
+	log.ErrorHandler(err)
+
+	if storedOTP == "" || storedOTP != authorization {
+		return nil, ""
+	}
+
 	return token, email
 }
 
 // connectAWS connects to AWS with correct credentials and creates a session
 func connectAWS() *session.Session {
-	viperConfig := ReadViper()
 	// This is used to connect to AWS with the credentials
 	accessKeyID := fmt.Sprintf("%s", viperConfig.Get("aws.accessKeyID"))
 	secretAccessKey := fmt.Sprintf("%s", viperConfig.Get("aws.secretAccessKey"))

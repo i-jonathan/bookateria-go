@@ -18,8 +18,88 @@ var (
 	db = InitDatabase()
 )
 
+//FilterByTags fetches the documents that have the requested tag
+func FilterByTags(w http.ResponseWriter, r *http.Request) {
+	var (
+		documents   []Document
+		documentIDs []uint
+		tags        []Tag
+	)
+	w.Header().Set("Content-Type", "application/json")
+
+	//Get Queries From The URL
+	query := r.URL.Query().Get("filter")
+
+	//Split The Queries Into A Slice
+	filterTags := strings.Split(query, ",")
+
+	//Find Which Tags Contain The Specified Tag names And Store In The Tags Struct
+	db.Where("tag_name IN ?", filterTags).Find(&tags)
+
+	//Append Into The documentIDs Struct, The ID Of The Documents That Contain The Specified Tags
+	for _, tag := range tags {
+		documentIDs = append(documentIDs, tag.DocumentID)
+	}
+
+	db.Preload(clause.Associations).Find(&documents, "id IN ?", documentIDs)
+	w.WriteHeader(http.StatusOK)
+	err := json.NewEncoder(w).Encode(documents)
+	log.ErrorHandler(err)
+	log.AccessHandler(r, 200)
+	return
+}
+
+//SearchDocuments returns documents whose fields match the search term
+func SearchDocuments(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Here")
+	var documents []Document
+	var results []Document
+
+	w.Header().Set("Content-Type", "application/json")
+
+	searchTerm := r.URL.Query().Get("search")
+
+	//Strip Symbols And Special Characters From The Search Query
+	regex, err := regexp.Compile("[\\W+]")
+
+	//If The Regexp Doesn't Compile, Throw An Error
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		err := json.NewEncoder(w).Encode(core.FourTwoTwo)
+		log.ErrorHandler(err)
+		return
+	}
+
+	finalSearchTerm := regex.ReplaceAllString(searchTerm, "")
+
+	//Split The Search Query Into Individual Words
+	searchWords := strings.Fields(finalSearchTerm)
+
+	//Loop Through The Words
+	for _, word := range searchWords {
+		word = strings.ToLower(word)
+
+		//Search For Documents Whose Title Fields Match The Words
+		db.Where("lower(title) LIKE ?", "%"+word+"%").Find(&results)
+		documents = append(documents, results...)
+
+		//Search For Documents Whose Author Fields Match The Words
+		db.Where("lower(author) LIKE ?", "%"+word+"%").Find(&results)
+		documents = append(documents, results...)
+
+		//Search For Documents Whose Summary Fields Match The Words
+		db.Where("lower(summary) LIKE ?", "%"+word+"%").Find(&results)
+		documents = append(documents, results...)
+	}
+
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(documents)
+	log.ErrorHandler(err)
+	log.AccessHandler(r, 200)
+
+}
+
 //GetDocuments fetches all documents in the database
-//
 func GetDocuments(w http.ResponseWriter, _ *http.Request) {
 	var documents []Document
 	w.Header().Set("Content-Type", "application/json")
@@ -57,6 +137,7 @@ func GetDocument(w http.ResponseWriter, r *http.Request) {
 //PostDocument puts a provided document into the db
 func PostDocument(w http.ResponseWriter, r *http.Request) {
 	var (
+		category Category
 		document Document
 		tags     []Tag
 		tag      Tag
@@ -117,8 +198,6 @@ func PostDocument(w http.ResponseWriter, r *http.Request) {
 	//Default Value For Edition
 	edition := 0
 
-	fmt.Println(r.FormValue("edition"))
-
 	//Check If The Edition Sent By The User Is Not Empty
 	if r.FormValue("edition") != "" {
 		var err error
@@ -136,11 +215,15 @@ func PostDocument(w http.ResponseWriter, r *http.Request) {
 
 	//Parse tags and store into the Tags model
 	for _, strTag := range strTags {
-		tag.TagName = strings.TrimSpace(string(strTag))
+		tag.TagName = strings.TrimSpace(strTag)
 		tag.Slug = strings.ReplaceAll(strings.ToLower(tag.TagName), " ", "-")
 		tag.Slug = reg.ReplaceAllString(tag.Slug, "")
 		tags = append(tags, tag)
 	}
+
+	//Parse The Categories
+	category.CategoryName = strings.TrimSpace(r.FormValue("category"))
+	category.Slug = strings.ReplaceAll(strings.ToLower(category.CategoryName), " ", "-")
 
 	//Store documents info
 	document = Document{
@@ -150,6 +233,7 @@ func PostDocument(w http.ResponseWriter, r *http.Request) {
 		Tags:     tags,
 		Summary:  r.FormValue("summary"),
 		Uploader: user,
+		Category: category,
 	}
 
 	//Checks if the document is a duplicate
@@ -159,11 +243,56 @@ func PostDocument(w http.ResponseWriter, r *http.Request) {
 		log.ErrorHandler(err)
 		return
 	}
+	/*
+		==========================
+		Document Checks Are Passed
+		Saving Process Starts Here
+		==========================
+	*/
+
+	//ProcessFile For Uploading To S3
+	file, header, err := r.FormFile("file")
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		err = json.NewEncoder(w).Encode(core.FourHundred)
+		log.ErrorHandler(err)
+		log.AccessHandler(r, 400)
+		return
+	}
+
+	//Split The File name Using A Dot As The Delimiter
+	fileExtension := strings.Split(header.Filename, ".")
+
+	//Check If The File Has An Extension
+	if len(fileExtension) < 2 {
+		w.WriteHeader(http.StatusBadRequest)
+		err := json.NewEncoder(w).Encode(core.FourTwoTwo)
+		log.ErrorHandler(err)
+		return
+	}
+
+	//Rename The File Using The Document Fields
+	fileName := strings.Join(strings.Fields(document.Title), "-") + "-" + strings.Join(strings.Fields(document.Author), "-") + 
+		"-" + fmt.Sprint(document.Edition) + "-bookateria.net." + fileExtension[len(fileExtension)-1]
+
+	//Initiate An Upload To S3 Server
+	status, fileSlug, err := core.S3Upload(file, "media/file/"+fileName)
+
+	//Check If The Upload Was Successful
+	if !status {
+		w.WriteHeader(http.StatusInternalServerError)
+		log.ErrorHandler(err)
+		err = json.NewEncoder(w).Encode(core.FiveHundred)
+		log.ErrorHandler(err)
+		log.AccessHandler(r, 500)
+		return
+	}
 
 	//Gets document slug from request and stores it into the document
 	slug := strings.ToLower(strings.ReplaceAll(document.Title+"-"+document.Author+"-"+fmt.Sprint(edition), " ", "-"))
 	slug = reg.ReplaceAllString(slug, "")
 	document.Slug = slug
+	document.FileSlug = fileSlug
 
 	//Create an entry for the document in the database
 	db.Create(&document)
@@ -177,14 +306,12 @@ func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 		document Document
 		temp     Document
 		email    string
-		user     account.User
 	)
 
 	w.Header().Set("Content-Type", "application/json")
 
 	//Checks If Current User Is Logged In
 	if _, email = core.GetTokenEmail(r); email == "" {
-		fmt.Println("login")
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(core.FourOOne)
 		log.ErrorHandler(err)
@@ -209,7 +336,7 @@ func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 	// Check If The Document Exists
 	if !xExists(uint(idToUpdate)) {
 		// If The Document Doesn't Exist
-		// Users Shouldn't Be Allowed To Modify What Doesn't Exists
+		// Users Shouldn't Be Allowed To Modify What Doesn't Exist
 
 		w.WriteHeader(http.StatusNotFound)
 		err := json.NewEncoder(w).Encode(core.FourOFour)
@@ -219,13 +346,10 @@ func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//Gets The Document With The Specified ID
-	db.Find(&document, "id = ?", idToUpdate)
-
-	//Gets The Uploader Of The Document Gotten Above
-	db.Find(&user, "id = ?", document.UploaderID)
+	db.Preload(clause.Associations).Find(&document, "id = ?", idToUpdate)
 
 	//Check If The Person Updating Is Authorized To Do So.
-	if email != user.Email {
+	if email != document.Uploader.Email {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(core.FourOOne)
 		log.ErrorHandler(err)
@@ -243,8 +367,8 @@ func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//Check If The Title Is To Be Updated
-	if string(temp.Title) != "" {
-		title, err := validate(string(temp.Title))
+	if temp.Title != "" {
+		title, err := validate(temp.Title)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			err := json.NewEncoder(w).Encode(core.FourTwoTwo)
@@ -255,10 +379,10 @@ func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//Check If The Author Is To Be Updated
-	if string(temp.Author) != "" {
+	if temp.Author != "" {
 
 		//Validate The Title Field
-		author, err := validate(string(temp.Author))
+		author, err := validate(temp.Author)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			err := json.NewEncoder(w).Encode(core.FourTwoTwo)
@@ -266,6 +390,10 @@ func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		document.Author = author
+	}
+
+	if temp.Summary != "" {
+		document.Summary = strings.Join(strings.Fields(temp.Summary), " ")
 	}
 
 	//Check If The Edition Is To Be Updated
@@ -288,19 +416,22 @@ func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 
 		//Parse Tags If They're Not Empty
 		for _, tag := range temp.Tags {
-			slug := strings.ReplaceAll(strings.ToLower(string(tag.TagName)), " ", "-")
+			slug := strings.ReplaceAll(strings.ToLower(tag.TagName), " ", "-")
 			tag.Slug = reg.ReplaceAllString(slug, "")
 			document.Tags = append(document.Tags, tag)
 		}
+	}
+
+	//Parse Categories Too
+	if temp.Category.CategoryName != "" {
+		document.Category.CategoryName = temp.Category.CategoryName
+		document.Category.Slug = strings.ReplaceAll(document.Category.CategoryName, " ", "-")
 	}
 
 	//Gets document slug from request and stores it into the document
 	slug := strings.ToLower(strings.ReplaceAll(document.Title+"-"+document.Author+"-"+fmt.Sprint(document.Edition), " ", "-"))
 	slug = reg.ReplaceAllString(slug, "")
 	document.Slug = slug
-
-	//Update The Document Uploader
-	document.Uploader = user
 
 	//Save The Document
 	db.Save(&document)
@@ -312,6 +443,7 @@ func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 func DeleteDocument(w http.ResponseWriter, r *http.Request) {
 	var (
 		document Document
+		category Category
 		tags     []Tag
 	)
 
@@ -339,6 +471,10 @@ func DeleteDocument(w http.ResponseWriter, r *http.Request) {
 		db.Delete(&tag)
 	}
 
+	//Delete The Document Reference From The Category Table
+	db.Where("document_id = ?", idToDelete).Delete(&category)
+
+	//Delete The Document
 	db.Where("id = ?", idToDelete).Delete(&document)
 	w.WriteHeader(http.StatusNoContent)
 }

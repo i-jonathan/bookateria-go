@@ -1,19 +1,16 @@
 package core
 
 import (
+	"bookateriago/log"
 	"bytes"
-	"encoding/base64"
 	"errors"
 	"fmt"
-	template2 "html/template"
-	"io/ioutil"
-	"net/http"
-	"path/filepath"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
+	template2 "html/template"
+	"path/filepath"
 )
 
-var viperConfig = ReadViper()
 var key = fmt.Sprintf("%s", viperConfig.Get("email.key"))
 
 // parseTemplate is for preparing the template from the email/templates directory
@@ -50,14 +47,11 @@ func SendEmailNoAttachment(toMail, subject string, data interface{}, template st
 	from := mail.NewEmail("Bookateria", "noreply@bookateria.net")
 	to := mail.NewEmail("Me", toMail)
 	message := mail.NewSingleEmail(from, subject, to, emailBody, emailBody)
-	// a := mail.NewAttachment()
-	// a.SetContent("TG9yZW0gaXBzdW0gZG9sb3Igc2l0IGFtZXQsIGNvbnNlY3RldHVyIGFkaXBpc2NpbmcgZWxpdC4gQ3JhcyBwdW12")
-	// a.SetFilename("config.yaml")
-	// a.SetType("text/plain")
-	// a.SetDisposition("attachment")
 	
 	client := sendgrid.NewSendClient(key)
 	response, err := client.Send(message)
+
+	log.ErrorHandler(err)
 
 	if response.StatusCode != 202 {
 		return false, err
@@ -68,7 +62,8 @@ func SendEmailNoAttachment(toMail, subject string, data interface{}, template st
 
 
 // SendEmailWithAttachment for attaching files to an email.
-func SendEmailWithAttachment(toMail, subject, content, fileDir, fileName, template string, data interface{}) (bool, error) {
+/*
+func SendEmailWithAttachment(toMail, subject, fileDir, fileName, template string, data interface{}) (bool, error) {
 	fileBytes, err := ioutil.ReadFile(fileDir + fileName)
 
 	if err != nil {
@@ -97,8 +92,10 @@ func SendEmailWithAttachment(toMail, subject, content, fileDir, fileName, templa
 	message.AddAttachment(a)
 	client := sendgrid.NewSendClient(key)
 	response, err := client.Send(message)
+	log.ErrorHandler(err)
 	if response.StatusCode != 202 {
 		return false, err
 	}
 	return true, nil
 }
+*/

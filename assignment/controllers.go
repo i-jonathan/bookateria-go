@@ -5,7 +5,6 @@ import (
 	"bookateriago/core"
 	"bookateriago/log"
 	"encoding/json"
-	"fmt"
 	"github.com/gorilla/mux"
 	"gorm.io/gorm/clause"
 	"net/http"
@@ -54,11 +53,13 @@ func postQuestion(w http.ResponseWriter, r *http.Request) {
 	deadline, _ := time.Parse(time.RFC3339, questionR.Deadline)
 
 	// Remove all symbols and spaces to generate slug.
-	oneProblem.Title = strings.Join(strings.Fields(oneProblem.Title), " ")
-	regex, _ := regexp.Compile("[^a-zA-Z0-9 ]+")
+	regex, err := regexp.Compile("[^a-zA-Z0-9 ]+")
+	log.ErrorHandler(err)
 	processed := regex.ReplaceAllString(oneProblem.Title, "")
+	oneProblem.Title = strings.Join(strings.Fields(oneProblem.Title), " ")
 	slug := strings.ReplaceAll(processed, " ", "-")
-	fmt.Println(slug)
+	
+	log.ErrorHandler(err)
 
 	oneProblem = problem{
 		Title:           questionR.Title,
@@ -263,7 +264,7 @@ func PostSubmission(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	submissionSlug := oneProblem.Slug + oneProblem.User.FirstName + "-" + oneProblem.User.LastName
+	submissionSlug := oneProblem.Slug + strings.Join(strings.Fields(oneProblem.User.Alias), "-")
 
 	oneSubmission = submission{
 		Problem:     oneProblem,

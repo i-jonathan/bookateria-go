@@ -35,7 +35,7 @@ type otp struct {
 	Pin   string `json:"pin"`
 }
 
-// otpRequest carries paramaeters for requesting OTPs
+// otpRequest carries parameters for requesting OTPs
 type otpRequest struct {
 	Email string `json:"email"`
 }
@@ -71,20 +71,20 @@ func postUser(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&user)
 	log.ErrorHandler(err)
 	var (
-		email         = user.Email
-		lastName      = user.LastName
+		email         = strings.ToLower(user.Email)
+		alias      = user.Alias
 		userName      = user.UserName
 		password      = user.Password
-		firstName     = user.FirstName
+		fullName     = user.FullName
 		safeNames     bool
 		safeEmail     = emailValidator(email)
 		safePassword  = passwordValidator(password)
-		similarToUser = similarToUser(firstName, lastName, userName, password)
+		similarToUser = similarToUser(fullName, alias, userName, password)
 	)
 
-	firstName, lastName, email, safeNames = userDetails(firstName, lastName, email)
+	safeNames = userDetails(fullName, alias, userName)
 
-	if !safeNames {
+	if safeNames {
 		// Some or all of the details in the body are empty
 		//	All fields are required
 		w.WriteHeader(http.StatusUnprocessableEntity)
@@ -129,8 +129,8 @@ func postUser(w http.ResponseWriter, r *http.Request) {
 
 	user = User{
 		UserName:        userName,
-		FirstName:       firstName,
-		LastName:        lastName,
+		FullName:        fullName,
+		Alias:           alias,
 		Email:           email,
 		IsAdmin:         false,
 		Password:        passwordHash,
@@ -167,6 +167,7 @@ func postUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.ErrorHandler(err)
+	log.AccessHandler(r, 200)
 	return
 }
 
@@ -212,6 +213,8 @@ func verifyEmail(w http.ResponseWriter, r *http.Request) {
 	user.IsEmailVerified = true
 	db.Save(&user)
 	log.AccessHandler(r, 200)
+
+	redisClient.Del(ctx, key)
 	return
 
 }

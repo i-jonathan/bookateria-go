@@ -27,6 +27,7 @@ func InitDatabase() *gorm.DB {
 
 	err = db.AutoMigrate(&Document{})
 	err = db.AutoMigrate(&Tag{})
+	err = db.AutoMigrate(&Category{})
 
 	log.ErrorHandler(err)
 	return db
@@ -61,17 +62,6 @@ func validate(field string) (string, error) {
 		return strings.Title(field), nil
 	}
 
-	return "", errors.New("Either Title Or Author Is Empty")
-
-}
-
-func search(queryType string, queryValue string) []Document {
-	switch queryType {
-	case "title":
-		//Todo
-	case "author":
-		//Todo
-	}
-	return nil
+	return "", errors.New("either title or author is empty")
 
 }
