@@ -8,8 +8,8 @@ import (
 // questionTag model for tags attached to questions
 type questionTag struct {
 	ID         uint      `json:"id"`
-	CreatedAt  time.Time `json:"created_at" gorm:"autoCreateTime:nano"`
-	UpdatedAt  time.Time `json:"updated_at" gorm:"autoUpdateTime:nano"`
+	CreatedAt  time.Time `json:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at"`
 	QuestionID uint      `json:"question_id"`
 	Name       string    `json:"name"`
 	Slug       string    `json:"slug"`
@@ -18,8 +18,8 @@ type questionTag struct {
 // question is the model for forum questions
 type question struct {
 	ID           uint          `json:"id"`
-	CreatedAt    time.Time     `json:"created_at" gorm:"autoCreateTime:nano"`
-	UpdatedAt    time.Time     `json:"updated_at" gorm:"autoUpdateTime:nano"`
+	CreatedAt    time.Time     `json:"created_at"`
+	UpdatedAt    time.Time     `json:"updated_at"`
 	Title        string        `json:"title"`
 	Description  string        `json:"description"`
 	QuestionTags []questionTag `json:"tags" gorm:"foreignKey:QuestionID"`
@@ -33,12 +33,11 @@ type question struct {
 // answer are replies to Questions
 type answer struct {
 	ID         uint         `json:"id"`
-	CreatedAt  time.Time    `json:"created_at" gorm:"autoCreateTime:nano"`
-	UpdatedAt  time.Time    `json:"updated_at" gorm:"autoUpdateTime:nano"`
+	CreatedAt  time.Time    `json:"created_at"`
+	UpdatedAt  time.Time    `json:"updated_at"`
 	QuestionID int          `json:"question_id"`
 	Question   question     `json:"question"`
 	Response   string       `json:"response"`
-	UpVotes    string       `json:"up_votes"`
 	UserID     int          `json:"user_id"`
 	User       account.User `json:"user" gorm:"constraints:OnDelete:SET NULL"`
 	Slug       string       `json:"slug"`
@@ -47,8 +46,8 @@ type answer struct {
 // questionUpVote for keeping a list of up votes on a oneQuestion
 type questionUpVote struct {
 	ID         uint         `json:"id"`
-	CreatedAt  time.Time    `json:"created_at" gorm:"autoCreateTime:nano"`
-	UpdatedAt  time.Time    `json:"updated_at" gorm:"autoUpdateTime:nano"`
+	CreatedAt  time.Time    `json:"created_at"`
+	UpdatedAt  time.Time    `json:"updated_at"`
 	QuestionID int          `json:"question_id"`
 	Question   question     `json:"question"`
 	UserID     int          `json:"user_id"`
@@ -58,8 +57,8 @@ type questionUpVote struct {
 // answerUpvote for keeping a lost of up votes on an answer
 type answerUpvote struct {
 	ID        uint         `json:"id"`
-	CreatedAt time.Time    `json:"created_at" gorm:"autoCreateTime:nano"`
-	UpdatedAt time.Time    `json:"updated_at" gorm:"autoUpdateTime:nano"`
+	CreatedAt time.Time    `json:"created_at"`
+	UpdatedAt time.Time    `json:"updated_at"`
 	AnswerID  int          `json:"answer_id"`
 	Answer    answer       `json:"answer"`
 	UserID    int          `json:"user_id"`

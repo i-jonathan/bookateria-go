@@ -11,8 +11,8 @@ type questionRequest struct {
 // questionResponse is the structure of a response returned
 type questionResponse struct {
 	ID           uint      `json:"id"`
-	CreatedAt    time.Time `json:"created_at" gorm:"autoCreateTime:nano"`
-	UpdatedAt    time.Time `json:"updated_at" gorm:"autoUpdateTime:nano"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
 	Title        string    `json:"title"`
 	Description  string    `json:"description"`
 	QuestionTags []tagsResponse

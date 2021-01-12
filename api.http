@@ -3,8 +3,8 @@ Content-Type: application/json
 
 {
   "email": "farinloyejonathan@gmail.com",
-  "first_name": "Jonathan",
-  "last_name": "Farinloye",
+  "full_name": "Jonathan Farinloye",
+  "alias": "Farinloye",
   "password": "ghjk%6789R",
   "user_name": "Jay"
 }
@@ -18,7 +18,7 @@ Content-Type: application/json
 
 {
   "email": "farinloyejonathan@gmail.com",
-  "pin": "4720375"
+  "pin": "1631113"
 }
 
 ###
@@ -62,12 +62,12 @@ Content-Type: application/json
 ###
 POST http://localhost:5000/v1/auth/logout
 Content-Type: application/json
-Authorization: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImZhcmlubG95ZWpvbmF0aGFuQGdtYWlsLmNvbSIsImV4cCI6MTYxMDM4NzE3NH0.r0ioWk5q4lgM0Fq9qOpAla6YqDXE899bXYkAj9TSpH0"
+Authorization: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImZhcmlubG95ZWpvbmF0aGFuQGdtYWlsLmNvbSIsImV4cCI6MTYxMTA0NDQ0NX0.UxrNJixYsLADYDUdaHnIAjrV95cclh6LkJDpFCnyrrg"
 
 ###
 POST http://localhost:5000/v1/document
 Content-Type: application/json
-Authorization: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImZhcmlubG95ZWpvbmF0aGFuQGdtYWlsLmNvbSIsImV4cCI6MTYxMDM4NzE3NH0.r0ioWk5q4lgM0Fq9qOpAla6YqDXE899bXYkAj9TSpH0"
+Authorization: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImZhcmlubG95ZWpvbmF0aGFuQGdtYWlsLmNvbSIsImV4cCI6MTYxMTA0NDQ0NX0.UxrNJixYsLADYDUdaHnIAjrV95cclh6LkJDpFCnyrrg"
 
 {
   "title": "Stuff",
@@ -99,3 +99,110 @@ Content-Type: application/json
 ###
 DELETE http://localhost:5000/v1/document/1
 Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImZhcmlubG95ZWpvbmF0aGFuQGdtYWlsLmNvbSIsImV4cCI6MTYxMDM4OTIzMX0.Fsb6qHauX7_BDqMHm23FS2YOhBuro_s_PNyRn6NCfqE
+
+###
+GET http://localhost:5000/v1/forum/question/all
+
+###
+POST http://localhost:5000/v1/forum/question
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImZhcmlubG95ZWpvbmF0aGFuQGdtYWlsLmNvbSIsImV4cCI6MTYxMTA0OTU2MX0.U_-MddNFriS5C2d8K6Pd4UvNr_Ygug0l8xq22G7gxts
+Content-Type: application/json
+
+{
+  "title": "Stuff do you want now?",
+  "description": "I wahiodfjv0s nolds dv9ush9jv9w vdhfvowjsdv 09dsfjbvw9sfvd",
+  "tags": [{"name": "Physics"}, {"name":  "Maths"}]
+}
+
+###
+GET http://localhost:5000/v1/forum/question/stuffdoyouwant
+
+###
+DELETE http://localhost:5000/v1/forum/question/stuffdoyouwant
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImZhcmlubG95ZWpvbmF0aGFuQGdtYWlsLmNvbSIsImV4cCI6MTYxMTA1MDg1OX0.xea7FCyNpAlYG71yq2CMVXTujODH680XheUVxAF_HEc
+
+
+###
+DELETE http://localhost:5000/v1/forum/question/stuff-do-you-want-now-5758182/up-votes/2
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImZhcmlubG95ZWpvbmF0aGFuQGdtYWlsLmNvbSIsImV4cCI6MTYxMTA1MDg1OX0.xea7FCyNpAlYG71yq2CMVXTujODH680XheUVxAF_HEc
+
+###
+POST http://localhost:5000/v1/forum/stuff-do-you-want-now-5758182/answer
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImZhcmlubG95ZWpvbmF0aGFuQGdtYWlsLmNvbSIsImV4cCI6MTYxMTA1MDg1OX0.xea7FCyNpAlYG71yq2CMVXTujODH680XheUVxAF_HEc
+Content-Type: application/json
+
+{
+  "response": "yufivhjwoijwvhuwiev wucfhwuehcv9 qwe7vhw8eh9cwhe fwh7q7e9v w9vhw98hvwh79v wev7wh98ucw89ehc89w 7hw9hec98w h89hw89ehcv89wr v8wh89wjhrv"
+}
+
+###
+GET http://localhost:5000/v1/forum/stuff-do-you-want-now-5758182/answer/all
+
+###
+GET http://localhost:5000/v1/forum/stuff-do-you-want-now-5758182/answer/stuffdoyouwantnowoneanswer0
+
+###
+PUT http://localhost:5000/v1/forum/stuff-do-you-want-now-5758182/answer/stuffdoyouwantnowoneanswer0
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImZhcmlubG95ZWpvbmF0aGFuQGdtYWlsLmNvbSIsImV4cCI6MTYxMTA1MDg1OX0.xea7FCyNpAlYG71yq2CMVXTujODH680XheUVxAF_HEc
+Content-Type: application/json
+
+{
+  "response": "If wishes were clouds"
+}
+
+###
+GET http://localhost:5000/v1/forum/stuff-do-you-want-now-5758182/answer/stuffdoyouwantnowoneanswer0/up-votes
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImZhcmlubG95ZWpvbmF0aGFuQGdtYWlsLmNvbSIsImV4cCI6MTYxMTA1MDg1OX0.xea7FCyNpAlYG71yq2CMVXTujODH680XheUVxAF_HEc
+Content-Type: application/json
+
+###
+POST http://localhost:5000/v1/forum/stuff-do-you-want-now-5758182/answer/stuffdoyouwantnowoneanswer0/up-votes
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImZhcmlubG95ZWpvbmF0aGFuQGdtYWlsLmNvbSIsImV4cCI6MTYxMTA1MDg1OX0.xea7FCyNpAlYG71yq2CMVXTujODH680XheUVxAF_HEc
+Content-Type: application/json
+
+###
+DELETE http://localhost:5000/v1/forum/stuff-do-you-want-now-5758182/answer/stuffdoyouwantnowoneanswer0/up-votes/
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImZhcmlubG95ZWpvbmF0aGFuQGdtYWlsLmNvbSIsImV4cCI6MTYxMTA1MDg1OX0.xea7FCyNpAlYG71yq2CMVXTujODH680XheUVxAF_HEc
+Content-Type: application/json
+
+
+###
+POST http://localhost:5000/v1/assignment/add
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImZhcmlubG95ZWpvbmF0aGFuQGdtYWlsLmNvbSIsImV4cCI6MTYxMTA1MDg1OX0.xea7FCyNpAlYG71yq2CMVXTujODH680XheUVxAF_HEc
+Content-Type: application/json
+
+{
+  "title": "Kill 2 cows then and nope",
+  "description": "Murder them you murderer",
+  "deadline": "2021-01-14T11:30:58.987Z",
+  "submission_count": 2
+}
+
+###
+PUT http://localhost:5000/v1/assignment/Kill-2-cows-then-and-then
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImZhcmlubG95ZWpvbmF0aGFuQGdtYWlsLmNvbSIsImV4cCI6MTYxMTA1MDg1OX0.xea7FCyNpAlYG71yq2CMVXTujODH680XheUVxAF_HEc
+Content-Type: application/json
+
+{
+  "submission_count": 4
+}
+
+###
+GET http://localhost:5000/v1/assignment/all
+
+###
+GET http://localhost:5000/v1/assignment/Kill-2-cows-then-and-then
+
+
+###
+POST http://localhost:5000/v1/assignment/Kill-2-cows-then-and-then/submit
+
+###
+GET http://localhost:5000/v1/assignment/Kill-2-cows-then-and-nope-64/submissions
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImZhcmlubG95ZWpvbmF0aGFuQGdtYWlsLmNvbSIsImV4cCI6MTYxMTA1MDg1OX0.xea7FCyNpAlYG71yq2CMVXTujODH680XheUVxAF_HEc
+
+
+###
+GET http://localhost:5000/v1/assignment/Kill-2-cows-then-and-nope-64/submission/Kill-2-cows-then-and-nope-64-Farinloye-5
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImZhcmlubG95ZWpvbmF0aGFuQGdtYWlsLmNvbSIsImV4cCI6MTYxMTA1OTc0OH0.9954UDp5SjY3BJRPW6DXeMUrwFwAbfXMFzSNtQdwpNM
+

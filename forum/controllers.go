@@ -4,12 +4,16 @@ import (
 	"bookateriago/account"
 	"bookateriago/core"
 	"bookateriago/log"
+	"crypto/rand"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"github.com/gorilla/mux"
+	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+	"math/big"
 	"net/http"
 	"regexp"
-	"strconv"
 	"strings"
 )
 
@@ -97,11 +101,17 @@ func PostQuestion(w http.ResponseWriter, r *http.Request) {
 	db.Find(&user, "email = ?", strings.ToLower(email))
 	oneQuestion.User = user
 
+	// get random string
+	otp, err := rand.Int(rand.Reader, big.NewInt(999))
+	if err != nil {
+		fmt.Println(err)
+	}
+
 	// generate slug from title
-	reg, _ := regexp.Compile("[^a-zA-Z0-9 ]+")
-	oneQuestion.Slug = strings.Join(strings.Fields(oneQuestion.Title), " ")
+	reg, _ := regexp.Compile("[^a-zA-Z0-9-]+")
+	oneQuestion.Slug = strings.Join(strings.Fields(oneQuestion.Title), "-")
 	oneQuestion.Slug = strings.ToLower(strings.ReplaceAll(oneQuestion.Slug, " ", "-"))
-	oneQuestion.Slug = reg.ReplaceAllString(oneQuestion.Slug, "")
+	oneQuestion.Slug = reg.ReplaceAllString(oneQuestion.Slug, "") + "-" + otp.String()
 
 	oneQuestion.Title = strings.Title(oneQuestion.Title)
 
@@ -207,7 +217,7 @@ func DeleteQuestion(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if logged in user has permission to delete oneQuestion
-	db.Where("slug = ?", slug).Find(&oneQuestion)
+	db.Preload(clause.Associations).Where("slug = ?", slug).Find(&oneQuestion)
 	if email != oneQuestion.User.Email {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(core.FourOOne)
@@ -225,7 +235,10 @@ func GetQuestionUpVotes(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	slug := params["slug"]
 
-	db.Where("questionupvote_question_slug = ?", slug).Find(&questionUpVotes)
+	var problem question
+	db.Where("slug = ?", slug).Find(&problem)
+
+	db.Preload(clause.Associations).Where("question_id = ?", problem.ID).Find(&questionUpVotes)
 	err := json.NewEncoder(w).Encode(questionUpVotes)
 	log.ErrorHandler(err)
 	log.AccessHandler(r, 200)
@@ -248,7 +261,7 @@ func PostQuestionUpVote(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	slug := params["slug"]
 
-	if XExists(slug, "qUpvote") {
+	if !XExists(slug, "question") {
 		// If it doesn't return message accordingly
 		w.WriteHeader(http.StatusNotFound)
 		err := json.NewEncoder(w).Encode(core.FourOFour)
@@ -259,6 +272,17 @@ func PostQuestionUpVote(w http.ResponseWriter, r *http.Request) {
 
 	db.Where("slug = ?", slug).First(&oneQuestion)
 	db.Find(&user, "email = ?", strings.ToLower(email))
+
+	err := db.Where("user_id = ?", user.ID).Error
+
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		w.WriteHeader(http.StatusBadRequest)
+		err = json.NewEncoder(w).Encode(core.FourHundred)
+		log.ErrorHandler(err)
+		log.AccessHandler(r,400)
+		return
+	}
+
 	oneQUpVote = questionUpVote{
 		Question: oneQuestion,
 		User:     user,
@@ -320,8 +344,8 @@ func GetAnswer(w http.ResponseWriter, r *http.Request) {
 		log.AccessHandler(r, 404)
 		return
 	}
-	db.Find(&oneQuestion, "slug = ?", questionSlug)
-	db.Where("slug = ?", slug).Where("question_id = ?", oneQuestion.ID).First(&oneAnswer)
+	db.Preload(clause.Associations).Find(&oneQuestion, "slug = ?", questionSlug)
+	db.Preload(clause.Associations).Where("slug = ?", slug).Where("question_id = ?", oneQuestion.ID).First(&oneAnswer)
 	err := json.NewEncoder(w).Encode(oneAnswer)
 	log.ErrorHandler(err)
 	log.AccessHandler(r, 200)
@@ -341,9 +365,9 @@ func GetAnswers(w http.ResponseWriter, r *http.Request) {
 		log.AccessHandler(r, 401)
 		return
 	}
-	db.Find(&oneQuestion, "slug = ?", questionSlug)
+	db.Preload(clause.Associations).Find(&oneQuestion, "slug = ?", questionSlug)
 
-	db.Find(&answers, "question_id = ?", oneQuestion.ID)
+	db.Preload(clause.Associations).Find(&answers, "question_id = ?", oneQuestion.ID)
 	err := json.NewEncoder(w).Encode(answers)
 	log.ErrorHandler(err)
 	log.AccessHandler(r, 200)
@@ -386,13 +410,16 @@ func PostAnswer(w http.ResponseWriter, r *http.Request) {
 	db.Find(&user, "email = ?", strings.ToLower(email))
 	oneAnswer.User = user
 
-	// Generate slug
-	reg, _ := regexp.Compile("[^a-zA-Z0-9 ]+")
-	slugText := strings.Join(strings.Fields(oneQuestion.Title), " ")
-	oneAnswer.Slug = strings.ToLower(strings.ReplaceAll(slugText+"oneAnswer"+strconv.Itoa(int(oneAnswer.ID)), " ", "-"))
-	oneAnswer.Slug = reg.ReplaceAllString(oneAnswer.Slug, "")
+	// generate random code
+	code, err := rand.Int(rand.Reader, big.NewInt(999))
+	if err != nil {
+		fmt.Println(err)
+	}
 
-	db.Create(&oneAnswer)
+	// Generate slug
+	oneAnswer.Slug = oneQuestion.Slug + "answer" + code.String()
+
+	db.Preload(clause.Associations).Create(&oneAnswer)
 	err = json.NewEncoder(w).Encode(oneAnswer)
 	log.ErrorHandler(err)
 	log.AccessHandler(r, 200)
@@ -426,9 +453,9 @@ func UpdateAnswer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db.Find(&oneQuestion, "slug = ?", questionSlug)
+	db.Find(&oneQuestion, "slug = ?", questionSlug).Preload(clause.Associations)
 	// Get oneAnswer
-	db.Where("slug = ?", slug).Where("question_id = ?", oneQuestion.ID).Find(&oneAnswer)
+	db.Preload(clause.Associations).Where("slug = ?", slug).Where("question_id = ?", oneQuestion.ID).Find(&oneAnswer)
 
 	// Check if logged in user has permission to update oneAnswer
 	if email != oneAnswer.User.Email {
@@ -602,27 +629,16 @@ func DeleteAnswerUpvote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db.Find(&oneQuestion, "slug = ?", questionSlug)
-	db.Find(&oneAnswer, "slug = ? AND question_id = ?", slug, oneQuestion.ID)
+	db.Preload(clause.Associations).Find(&oneQuestion, "slug = ?", questionSlug)
+	db.Preload(clause.Associations).Find(&oneAnswer, "slug = ? AND question_id = ?", slug, oneQuestion.ID)
 
-	db.Find(&user, "email = ?", strings.ToLower(email))
+	db.Preload(clause.Associations).Find(&user, "email = ?", strings.ToLower(email))
 
-	// Check if upvote exists
-	var count int64
-	db.Model(&answerUpvote{}).Where("user_id = ? AND answer_id = ?", user.ID, oneAnswer.ID).Count(&count)
-
-	if count > 0 {
-		w.WriteHeader(http.StatusConflict)
-		err := json.NewEncoder(w).Encode(core.FourONine)
-		log.ErrorHandler(err)
-		log.AccessHandler(r, 409)
-		return
-	}
-
-	db.Find(&oneAUpVote, "user_id = ? AND answer_id = ?", user.ID, oneAnswer.ID)
+	db.Preload(clause.Associations).Find(&oneAUpVote, "user_id = ? AND answer_id = ?", user.ID, oneAnswer.ID)
 
 	// Check if logged in user posted the upvote. If not, no permission to delete.
-	if email != oneQUpVote.User.Email {
+	if email != oneAUpVote.User.Email {
+		fmt.Println(oneAUpVote.User.Email)
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(core.FourOOne)
 		log.ErrorHandler(err)
@@ -630,7 +646,7 @@ func DeleteAnswerUpvote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db.Find(&oneAUpVote, "user_id = ? AND answer_id = ?", user.ID, oneAnswer.ID).Delete(&oneAUpVote)
+	db.Preload(clause.Associations).Find(&oneAUpVote, "user_id = ? AND answer_id = ?", user.ID, oneAnswer.ID).Delete(&oneAUpVote)
 	w.WriteHeader(http.StatusNoContent)
 	log.AccessHandler(r, 204)
 	return
