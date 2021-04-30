@@ -1,6 +1,6 @@
 module bookateriago
 
-go 1.14
+go 1.16
 
 require (
 	github.com/aws/aws-sdk-go v1.35.32
