@@ -41,7 +41,7 @@ func FilterByTags(w http.ResponseWriter, r *http.Request) {
 		documentIDs = append(documentIDs, tag.DocumentID)
 	}
 
-	db.Preload(clauses.Associations).Scopes(Paginate(r)).Find(&documents, "id IN ?", documentIDs)
+	db.Preload(clause.Associations).Scopes(Paginate(r)).Find(&documents, "id IN ?", documentIDs)
 	w.WriteHeader(http.StatusOK)
 	err := json.NewEncoder(w).Encode(documents)
 	log.ErrorHandler(err)
@@ -100,7 +100,7 @@ func SearchDocuments(w http.ResponseWriter, r *http.Request) {
 }
 
 //GetDocuments fetches all documents in the database
-func GetDocuments(w http.ResponseWriter, _ *http.Request) {
+func GetDocuments(w http.ResponseWriter, r *http.Request) {
 	var documents []Document
 	w.Header().Set("Content-Type", "application/json")
 	// Load data from DB

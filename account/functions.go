@@ -12,8 +12,10 @@ import (
 	"gorm.io/gorm"
 	"math/big"
 	"net"
+	"net/http"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"unicode"
 )
@@ -198,12 +200,12 @@ func InitDatabase() *gorm.DB {
 
 func Paginate(r *http.Request) func(db *gorm.DB) *gorm.DB {
 	return func (db *gorm.DB) *gorm.DB {
-		page, _ := strconv.Atoi(r.Query("page"))
+		page, _ := strconv.Atoi(r.URL.Query().Get("page"))
 		if page == 0 {
 			page = 1
 		}
 
-		pageSize, _ := strconv.Atoi(r.Query("page_size"))
+		pageSize, _ := strconv.Atoi(r.URL.Query().Get("page_size"))
 		switch {
 		case pageSize > 50:
 			pageSize = 50

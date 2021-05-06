@@ -234,6 +234,8 @@ func requestOTP(w http.ResponseWriter, r *http.Request) {
 	key := "new_user_otp_" + data.Email
 	storedOTP, err = redisClient.Get(ctx, key).Result()
 
+	log.ErrorHandler(err)
+
 	if storedOTP == "" {
 		verifiableToken := generateOTP()
 		err = redisClient.Set(ctx, key, verifiableToken, 30*time.Minute).Err()
