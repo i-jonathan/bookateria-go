@@ -44,7 +44,7 @@ type otpRequest struct {
 func allUsers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var users []User
-	db.Find(&users)
+	db.Scopes(Paginate(r)).Find(&users)
 	err := json.NewEncoder(w).Encode(users)
 	log.ErrorHandler(err)
 	log.AccessHandler(r, 200)

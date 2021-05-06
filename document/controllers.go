@@ -41,7 +41,7 @@ func FilterByTags(w http.ResponseWriter, r *http.Request) {
 		documentIDs = append(documentIDs, tag.DocumentID)
 	}
 
-	db.Preload(clause.Associations).Find(&documents, "id IN ?", documentIDs)
+	db.Preload(clauses.Associations).Scopes(Paginate(r)).Find(&documents, "id IN ?", documentIDs)
 	w.WriteHeader(http.StatusOK)
 	err := json.NewEncoder(w).Encode(documents)
 	log.ErrorHandler(err)
@@ -80,15 +80,15 @@ func SearchDocuments(w http.ResponseWriter, r *http.Request) {
 		word = strings.ToLower(word)
 
 		//Search For Documents Whose Title Fields Match The Words
-		db.Where("lower(title) LIKE ?", "%"+word+"%").Find(&results)
+		db.Scopes(Paginate(r)).Where("lower(title) LIKE ?", "%"+word+"%").Find(&results)
 		documents = append(documents, results...)
 
 		//Search For Documents Whose Author Fields Match The Words
-		db.Where("lower(author) LIKE ?", "%"+word+"%").Find(&results)
+		db.Scopes(Paginate(r)).Where("lower(author) LIKE ?", "%"+word+"%").Find(&results)
 		documents = append(documents, results...)
 
 		//Search For Documents Whose Summary Fields Match The Words
-		db.Where("lower(summary) LIKE ?", "%"+word+"%").Find(&results)
+		db.Scopes(Paginate(r)).Where("lower(summary) LIKE ?", "%"+word+"%").Find(&results)
 		documents = append(documents, results...)
 	}
 
@@ -104,7 +104,7 @@ func GetDocuments(w http.ResponseWriter, _ *http.Request) {
 	var documents []Document
 	w.Header().Set("Content-Type", "application/json")
 	// Load data from DB
-	db.Preload(clause.Associations).Find(&documents)
+	db.Scopes(Paginate(r)).Preload(clause.Associations).Find(&documents)
 	err := json.NewEncoder(w).Encode(documents)
 	log.ErrorHandler(err)
 }
