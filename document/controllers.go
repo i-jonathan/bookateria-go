@@ -48,12 +48,12 @@ func FilterByTags(w http.ResponseWriter, r *http.Request) {
 	var count int64
 	db.Model(&Document{}).Where("id IN ?", documentIDs).Count(&count)
 
-	prev, next := core.ResponseData(len(documents), r)
+	page, prev, next := core.ResponseData(len(documents), r)
 
 	response := core.ResponseStruct{
 		Previous: prev,
 		Next:     next,
-		Page:     0,
+		Page:     page,
 		Count:    count,
 		Result:   documents,
 	}
@@ -116,12 +116,12 @@ func SearchDocuments(w http.ResponseWriter, r *http.Request) {
 		documents = append(documents, results...)
 	}
 
-	prev, next := core.ResponseData(len(documents), r)
+	page, prev, next := core.ResponseData(len(documents), r)
 
 	response := core.ResponseStruct{
 		Previous: prev,
 		Next:     next,
-		Page:     0,
+		Page:     page,
 		Count:    totalCount,
 		Result:   documents,
 	}
@@ -143,12 +143,12 @@ func GetDocuments(w http.ResponseWriter, r *http.Request) {
 	var count int64
 	db.Preload(clause.Associations).Find(&documents).Count(&count)
 
-	prev, next := core.ResponseData(len(documents), r)
+	page, page, prev, next := core.ResponseData(len(documents), r)
 
 	response := core.ResponseStruct{
 		Previous: prev,
 		Next:     next,
-		Page:     0,
+		Page:     page,
 		Count:    count,
 		Result:   documents,
 	}
