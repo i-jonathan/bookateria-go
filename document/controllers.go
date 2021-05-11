@@ -144,7 +144,7 @@ func GetDocuments(w http.ResponseWriter, r *http.Request) {
 	var tempDocs []Document
 	db.Find(&tempDocs).Count(&count)
 
-	page, prev, next := core.ResponseData(len(documents), r)
+	page, prev, next := core.ResponseData(len(tempDocs), r)
 
 	response := core.ResponseStruct{
 		Previous: prev,
