@@ -43,7 +43,22 @@ func FilterByTags(w http.ResponseWriter, r *http.Request) {
 
 	db.Preload(clause.Associations).Scopes(Paginate(r)).Find(&documents, "id IN ?", documentIDs)
 	w.WriteHeader(http.StatusOK)
-	err := json.NewEncoder(w).Encode(documents)
+
+
+	var count int64
+	db.Model(&Document{}).Where("id IN ?", documentIDs).Count(&count)
+
+	prev, next := core.ResponseData(len(documents), r)
+
+	response := core.ResponseStruct{
+		Previous: prev,
+		Next:     next,
+		Page:     0,
+		Count:    count,
+		Result:   documents,
+	}
+
+	err := json.NewEncoder(w).Encode(response)
 	log.ErrorHandler(err)
 	log.AccessHandler(r, 200)
 	return
@@ -75,25 +90,44 @@ func SearchDocuments(w http.ResponseWriter, r *http.Request) {
 	//Split The Search Query Into Individual Words
 	searchWords := strings.Fields(finalSearchTerm)
 
+	var totalCount int64
+	var count int64
+
 	//Loop Through The Words
 	for _, word := range searchWords {
 		word = strings.ToLower(word)
 
 		//Search For Documents Whose Title Fields Match The Words
 		db.Scopes(Paginate(r)).Where("lower(title) LIKE ?", "%"+word+"%").Find(&results)
+		db.Scopes(Paginate(r)).Where("lower(title) LIKE ?", "%"+word+"%").Find(&results).Count(&count)
+		totalCount += count
 		documents = append(documents, results...)
 
 		//Search For Documents Whose Author Fields Match The Words
 		db.Scopes(Paginate(r)).Where("lower(author) LIKE ?", "%"+word+"%").Find(&results)
+		db.Scopes(Paginate(r)).Where("lower(author) LIKE ?", "%"+word+"%").Find(&results).Count(&count)
+		totalCount += count
 		documents = append(documents, results...)
 
 		//Search For Documents Whose Summary Fields Match The Words
 		db.Scopes(Paginate(r)).Where("lower(summary) LIKE ?", "%"+word+"%").Find(&results)
+		db.Scopes(Paginate(r)).Where("lower(summary) LIKE ?", "%"+word+"%").Find(&results).Count(&count)
+		totalCount += count
 		documents = append(documents, results...)
 	}
 
+	prev, next := core.ResponseData(len(documents), r)
+
+	response := core.ResponseStruct{
+		Previous: prev,
+		Next:     next,
+		Page:     0,
+		Count:    totalCount,
+		Result:   documents,
+	}
+
 	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(documents)
+	err = json.NewEncoder(w).Encode(response)
 	log.ErrorHandler(err)
 	log.AccessHandler(r, 200)
 
@@ -105,7 +139,21 @@ func GetDocuments(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	// Load data from DB
 	db.Scopes(Paginate(r)).Preload(clause.Associations).Find(&documents)
-	err := json.NewEncoder(w).Encode(documents)
+
+	var count int64
+	db.Preload(clause.Associations).Find(&documents).Count(&count)
+
+	prev, next := core.ResponseData(len(documents), r)
+
+	response := core.ResponseStruct{
+		Previous: prev,
+		Next:     next,
+		Page:     0,
+		Count:    count,
+		Result:   documents,
+	}
+
+	err := json.NewEncoder(w).Encode(response)
 	log.ErrorHandler(err)
 }
 
@@ -272,7 +320,7 @@ func PostDocument(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//Rename The File Using The Document Fields
-	fileName := strings.Join(strings.Fields(document.Title), "-") + "-" + strings.Join(strings.Fields(document.Author), "-") + 
+	fileName := strings.Join(strings.Fields(document.Title), "-") + "-" + strings.Join(strings.Fields(document.Author), "-") +
 		"-" + fmt.Sprint(document.Edition) + "-bookateria.net." + fileExtension[len(fileExtension)-1]
 
 	//Initiate An Upload To S3 Server

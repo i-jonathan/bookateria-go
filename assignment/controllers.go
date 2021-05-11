@@ -272,7 +272,7 @@ func PostSubmission(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	submissionSlug := oneProblem.Slug + "-" + strings.Join(strings.Fields(oneProblem.User.Alias), "-") + "-" + strconv.Itoa(int(count) + 1)
+	submissionSlug := oneProblem.Slug + "-" + strings.Join(strings.Fields(oneProblem.User.Alias), "-") + "-" + strconv.Itoa(int(count)+1)
 
 	oneSubmission = submission{
 		Problem:     oneProblem,

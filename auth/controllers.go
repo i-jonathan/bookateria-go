@@ -22,9 +22,9 @@ var (
 	redisDb, _  = strconv.Atoi(fmt.Sprintf("%d", viperConfig.Get("redis.database")))
 	ctx         = context.Background()
 	redisClient = redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("%s", viperConfig.Get("redis.address")),
+		Addr: fmt.Sprintf("%s", viperConfig.Get("redis.address")),
 		// Password: fmt.Sprintf("%s", viperConfig.Get("redis.password")),
-		DB:       redisDb,
+		DB: redisDb,
 	})
 	user account.User
 	cred credentials

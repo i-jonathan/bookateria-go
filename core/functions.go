@@ -123,3 +123,41 @@ func S3Upload(file multipart.File, filename string) (bool, string, error) {
 	fileSlug := "https://" + bucketName + "." + "s3.amazonaws.com/" + filename
 	return true, fileSlug, nil
 }
+
+
+// ResponseData checks if a previous and next page exists for a certain endpoint
+// returns too boolean values. Previous and next
+func ResponseData(count int, r *http.Request) (bool, bool) {
+	prev, next := false, false
+	if count != 0 {
+		var page, pageSize int
+		var err error
+		if r.URL.Query().Get("page") == "" {
+			page = 1
+		} else {
+			page, err = strconv.Atoi(r.URL.Query().Get("page"))
+			if err != nil {
+				log.ErrorHandler(err)
+			}
+		}
+		if r.URL.Query().Get("page_size") == "" {
+			pageSize = 1
+		} else {
+			pageSize, err = strconv.Atoi(r.URL.Query().Get("page_size"))
+			if err != nil {
+				log.ErrorHandler(err)
+			}
+		}
+
+		if (page * pageSize) < count {
+			next = true
+		}
+
+		if page > 1 {
+			prev = true
+		}
+
+	}
+
+	return prev, next
+}
