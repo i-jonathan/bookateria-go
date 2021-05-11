@@ -141,7 +141,8 @@ func GetDocuments(w http.ResponseWriter, r *http.Request) {
 	db.Scopes(Paginate(r)).Preload(clause.Associations).Find(&documents)
 
 	var count int64
-	db.Preload(clause.Associations).Find(&documents).Count(&count)
+	var tempDocs []Document
+	db.Find(&tempDocs).Count(&count)
 
 	page, prev, next := core.ResponseData(len(documents), r)
 
