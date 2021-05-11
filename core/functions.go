@@ -141,7 +141,7 @@ func ResponseData(count int, r *http.Request) (bool, bool) {
 			}
 		}
 		if r.URL.Query().Get("page_size") == "" {
-			pageSize = 1
+			pageSize = 10
 		} else {
 			pageSize, err = strconv.Atoi(r.URL.Query().Get("page_size"))
 			if err != nil {
