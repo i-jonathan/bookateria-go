@@ -12,8 +12,10 @@ import (
 	"gorm.io/gorm"
 	"math/big"
 	"net"
+	"net/http"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"unicode"
 )
@@ -140,8 +142,8 @@ func passwordValidator(password string) bool {
 }
 
 /* userDetails
-	Checks if string is empty
-	return true || false
+Checks if string is empty
+return true || false
 */
 func userDetails(fullName, alias, userName string) bool {
 	if strings.Join(strings.Fields(fullName), " ") == "" ||
@@ -153,11 +155,11 @@ func userDetails(fullName, alias, userName string) bool {
 }
 
 /*  emailValidator : This function does (currently) 2 checks on the email to ensure it is correct
-	A regex check and an MX lookup that checks if the domain has MX records
-	The regex check is ridiculously simple because.
-	1, We are still doing an MX lookup
-	2, We would still send a verification email. So why make it complex.
-	Returns true if the email is good to go and false otherwise */
+A regex check and an MX lookup that checks if the domain has MX records
+The regex check is ridiculously simple because.
+1, We are still doing an MX lookup
+2, We would still send a verification email. So why make it complex.
+Returns true if the email is good to go and false otherwise */
 func emailValidator(email string) bool {
 	re := regexp.MustCompile("^.+@.+\\..+$")
 	validity := re.MatchString(email)
@@ -194,4 +196,24 @@ func InitDatabase() *gorm.DB {
 	err = db.AutoMigrate(&profile{})
 	log.ErrorHandler(err)
 	return db
+}
+
+func Paginate(r *http.Request) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		page, _ := strconv.Atoi(r.URL.Query().Get("page"))
+		if page == 0 {
+			page = 1
+		}
+
+		pageSize, _ := strconv.Atoi(r.URL.Query().Get("page_size"))
+		switch {
+		case pageSize > 50:
+			pageSize = 50
+		case pageSize <= 0:
+			pageSize = 10
+		}
+
+		offset := (page - 1) * pageSize
+		return db.Offset(offset).Limit(pageSize)
+	}
 }

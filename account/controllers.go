@@ -44,7 +44,7 @@ type otpRequest struct {
 func allUsers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var users []User
-	db.Find(&users)
+	db.Scopes(Paginate(r)).Find(&users)
 	err := json.NewEncoder(w).Encode(users)
 	log.ErrorHandler(err)
 	log.AccessHandler(r, 200)
@@ -72,10 +72,10 @@ func postUser(w http.ResponseWriter, r *http.Request) {
 	log.ErrorHandler(err)
 	var (
 		email         = strings.ToLower(user.Email)
-		alias      = user.Alias
+		alias         = user.Alias
 		userName      = user.UserName
 		password      = user.Password
-		fullName     = user.FullName
+		fullName      = user.FullName
 		safeNames     bool
 		safeEmail     = emailValidator(email)
 		safePassword  = passwordValidator(password)
@@ -225,7 +225,7 @@ func requestOTP(w http.ResponseWriter, r *http.Request) {
 	var (
 		data      otpRequest
 		storedOTP string
-		user User
+		user      User
 	)
 
 	err := json.NewDecoder(r.Body).Decode(&data)
@@ -233,6 +233,8 @@ func requestOTP(w http.ResponseWriter, r *http.Request) {
 	db.Find(&user, "email = ?", data.Email)
 	key := "new_user_otp_" + data.Email
 	storedOTP, err = redisClient.Get(ctx, key).Result()
+
+	log.ErrorHandler(err)
 
 	if storedOTP == "" {
 		verifiableToken := generateOTP()
@@ -268,7 +270,7 @@ func resetPasswordRequest(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&body)
 	log.ErrorHandler(err)
-	
+
 	// Verify email
 	emailStatus := emailValidator(body.Email)
 	if !emailStatus {
@@ -295,7 +297,7 @@ func resetPasswordRequest(w http.ResponseWriter, r *http.Request) {
 	var data otp
 	data = otp{
 		Email: body.Email,
-		Pin: generateOTP(),
+		Pin:   generateOTP(),
 	}
 
 	// save token to redis
@@ -340,14 +342,14 @@ func resetPassword(w http.ResponseWriter, r *http.Request) {
 
 	// take email, token and new password
 	body := struct {
-		Email	 string	`json:"email"`
-		OTP		 string	`json:"otp"`
-		Password string	`json:"password"`
+		Email    string `json:"email"`
+		OTP      string `json:"otp"`
+		Password string `json:"password"`
 	}{}
 
 	err := json.NewDecoder(r.Body).Decode(&body)
 	log.ErrorHandler(err)
-	
+
 	// check email for existence
 	var user User
 	err = db.Find(&user, "email = ?", body.Email).Error
@@ -363,7 +365,7 @@ func resetPassword(w http.ResponseWriter, r *http.Request) {
 	// check if token exists
 	storedOtp, err := redisClient.Get(ctx, "password_reset_"+body.Email).Result()
 	log.ErrorHandler(err)
-	
+
 	if storedOtp != body.OTP {
 		w.WriteHeader(http.StatusUnauthorized)
 		err = json.NewEncoder(w).Encode(core.FourOOne)

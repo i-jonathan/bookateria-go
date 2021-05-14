@@ -9,7 +9,7 @@ type User struct {
 	ID              uint      `json:"id"`
 	UserName        string    `json:"user_name"`
 	FullName        string    `json:"full_name" gorm:"not null"`
-	Alias	        string    `json:"alias"`
+	Alias           string    `json:"alias"`
 	Email           string    `json:"email" gorm:"not null;unique"`
 	IsAdmin         bool      `json:"is_admin" gorm:"default:false"`
 	Password        string    `json:"password"`

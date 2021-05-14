@@ -279,7 +279,7 @@ func PostQuestionUpVote(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		err = json.NewEncoder(w).Encode(core.FourHundred)
 		log.ErrorHandler(err)
-		log.AccessHandler(r,400)
+		log.AccessHandler(r, 400)
 		return
 	}
 
