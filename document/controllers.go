@@ -69,6 +69,7 @@ func SearchDocuments(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Here")
 	var documents []Document
 	var results []Document
+	var duplicateResults []Document
 
 	w.Header().Set("Content-Type", "application/json")
 
@@ -98,20 +99,20 @@ func SearchDocuments(w http.ResponseWriter, r *http.Request) {
 		word = strings.ToLower(word)
 
 		//Search For Documents Whose Title Fields Match The Words
-		db.Scopes(Paginate(r)).Where("lower(title) LIKE ?", "%"+word+"%").Find(&results)
-		db.Scopes(Paginate(r)).Where("lower(title) LIKE ?", "%"+word+"%").Find(&results).Count(&count)
+		db.Scopes(Paginate(r)).Preload(clause.Associations).Where("lower(title) LIKE ?", "%"+word+"%").Find(&results)
+		db.Scopes(Paginate(r)).Where("lower(title) LIKE ?", "%"+word+"%").Find(&duplicateResults).Count(&count)
 		totalCount += count
 		documents = append(documents, results...)
 
 		//Search For Documents Whose Author Fields Match The Words
-		db.Scopes(Paginate(r)).Where("lower(author) LIKE ?", "%"+word+"%").Find(&results)
-		db.Scopes(Paginate(r)).Where("lower(author) LIKE ?", "%"+word+"%").Find(&results).Count(&count)
+		db.Scopes(Paginate(r)).Preload(clause.Associations).Where("lower(author) LIKE ?", "%"+word+"%").Find(&results)
+		db.Scopes(Paginate(r)).Where("lower(author) LIKE ?", "%"+word+"%").Find(&duplicateResults).Count(&count)
 		totalCount += count
 		documents = append(documents, results...)
 
 		//Search For Documents Whose Summary Fields Match The Words
-		db.Scopes(Paginate(r)).Where("lower(summary) LIKE ?", "%"+word+"%").Find(&results)
-		db.Scopes(Paginate(r)).Where("lower(summary) LIKE ?", "%"+word+"%").Find(&results).Count(&count)
+		db.Scopes(Paginate(r)).Preload(clause.Associations).Where("lower(summary) LIKE ?", "%"+word+"%").Find(&results)
+		db.Scopes(Paginate(r)).Where("lower(summary) LIKE ?", "%"+word+"%").Find(&duplicateResults).Count(&count)
 		totalCount += count
 		documents = append(documents, results...)
 	}
