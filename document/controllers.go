@@ -94,7 +94,7 @@ func SearchDocuments(w http.ResponseWriter, r *http.Request) {
 
 	//Loop Through The Words
 	for _, word := range searchWords {
-		word = "%" + word + "%"
+		word = "%" + strings.ToLower(word) + "%"
 
 		//Search For Documents Whose Title Fields Match The Words
 		db.Scopes(Paginate(r)).Preload(clause.Associations).Where("lower(title) LIKE ?", word).Or(
