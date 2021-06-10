@@ -44,7 +44,6 @@ func FilterByTags(w http.ResponseWriter, r *http.Request) {
 	db.Preload(clause.Associations).Scopes(Paginate(r)).Find(&documents, "id IN ?", documentIDs)
 	w.WriteHeader(http.StatusOK)
 
-
 	var count int64
 	db.Model(&Document{}).Where("id IN ?", documentIDs).Count(&count)
 
@@ -69,7 +68,6 @@ func SearchDocuments(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Here")
 	var documents []Document
 	var results []Document
-	var duplicateResults []Document
 
 	w.Header().Set("Content-Type", "application/json")
 
@@ -96,12 +94,13 @@ func SearchDocuments(w http.ResponseWriter, r *http.Request) {
 
 	//Loop Through The Words
 	for _, word := range searchWords {
-		word = fmt.Sprintf("%%s%", strings.ToLower(word))
+		word = "%" + word + "%"
 
 		//Search For Documents Whose Title Fields Match The Words
-		db.Scopes(Paginate(r)).Preload(clause.Associations).Where("lower(title) LIKE ? OR lower(author) LIKE ? " +
-			"OR lower(summary) LIKE ?", word, word, word).Find(&results)
-		db.Scopes(Paginate(r)).Where("lower(title) LIKE ?", word).Find(&duplicateResults).Count(&count)
+		db.Scopes(Paginate(r)).Preload(clause.Associations).Where("lower(title) LIKE ?", word).Or(
+			"lower(author) LIKE ?", word).Or("lower(summary) LIKE ?", word).Find(&results)
+		db.Scopes(Paginate(r)).Preload(clause.Associations).Where("lower(title) LIKE ?", word).Or(
+			"lower(author) LIKE ?", word).Or("lower(summary) LIKE ?", word).Count(&count)
 		totalCount += count
 		documents = append(documents, results...)
 
