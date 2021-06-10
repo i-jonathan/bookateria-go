@@ -12,7 +12,7 @@ type User struct {
 	Alias           string    `json:"alias"`
 	Email           string    `json:"email" gorm:"not null;unique"`
 	IsAdmin         bool      `json:"is_admin" gorm:"default:false"`
-	Password        string    `json:"password"`
+	Password        string    `json:"password" gorm:"<-"`
 	LastLogin       time.Time `json:"last_login"`
 	IsActive        bool      `json:"is_active" gorm:"default:false"`
 	IsEmailVerified bool      `json:"is_email_verified" gorm:"default:false"`
