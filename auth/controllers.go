@@ -64,7 +64,7 @@ func signIn(w http.ResponseWriter, r *http.Request) {
 	}
 	db.Find(&user, "email = ?", strings.ToLower(cred.Email))
 	if user.Password == "" {
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusUnauthorized)
 		err = json.NewEncoder(w).Encode(core.FourOOne)
 		log.ErrorHandler(err)
 		log.AccessHandler(r, 401)

@@ -82,6 +82,16 @@ func postUser(w http.ResponseWriter, r *http.Request) {
 		similarToUser = similarToUser(fullName, alias, userName, password)
 	)
 
+	duplicateEmail := DuplicateCheck(email)
+
+	if duplicateEmail {
+		w.WriteHeader(http.StatusConflict)
+		err := json.NewEncoder(w).Encode(core.FourONine)
+		log.ErrorHandler(err)
+		log.AccessHandler(r, 409)
+		return
+	}
+
 	safeNames = userDetails(fullName, alias, userName)
 
 	if safeNames {
@@ -150,22 +160,22 @@ func postUser(w http.ResponseWriter, r *http.Request) {
 	err = redisClient.Set(ctx, "new_user_otp_"+email, verifiableToken, 30*time.Minute).Err()
 	log.ErrorHandler(err)
 
-	payload := struct {
-		Token string
-	}{
-		Token: verifiableToken,
-	}
-
-	var status bool
-
-	status, err = core.SendEmailNoAttachment(email, "OTP for Verification", payload, "token.txt")
-	if !status {
-		w.WriteHeader(http.StatusInternalServerError)
-		err = json.NewEncoder(w).Encode(core.FiveHundred)
-		log.ErrorHandler(err)
-		log.AccessHandler(r, 500)
-		return
-	}
+	//payload := struct {
+	//	Token string
+	//}{
+	//	Token: verifiableToken,
+	//}
+	//
+	//var status bool
+	//
+	////status, err = core.SendEmailNoAttachment(email, "OTP for Verification", payload, "token.txt")
+	//if !status {
+	//	w.WriteHeader(http.StatusInternalServerError)
+	//	err = json.NewEncoder(w).Encode(core.FiveHundred)
+	//	log.ErrorHandler(err)
+	//	log.AccessHandler(r, 500)
+	//	return
+	//}
 	log.ErrorHandler(err)
 	log.AccessHandler(r, 200)
 	return

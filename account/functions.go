@@ -201,7 +201,7 @@ func InitDatabase() *gorm.DB {
 func Paginate(r *http.Request) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		page, _ := strconv.Atoi(r.URL.Query().Get("page"))
-		if page == 0 {
+		if page <= 0 {
 			page = 1
 		}
 
@@ -209,11 +209,21 @@ func Paginate(r *http.Request) func(db *gorm.DB) *gorm.DB {
 		switch {
 		case pageSize > 50:
 			pageSize = 50
-		case pageSize <= 0:
+		default:
 			pageSize = 10
 		}
 
 		offset := (page - 1) * pageSize
 		return db.Offset(offset).Limit(pageSize)
 	}
+}
+
+func DuplicateCheck(email string) bool {
+	// Check if email already exists in the db.
+	// Should prevent postgres incrementing ID when no new user is created
+	var count int64
+	var db = InitDatabase()
+
+	db.Model(&User{}).Where("email = ?", email).Count(&count)
+	return count > 0
 }
