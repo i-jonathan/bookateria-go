@@ -97,10 +97,10 @@ func SearchDocuments(w http.ResponseWriter, r *http.Request) {
 		word = "%" + strings.ToLower(word) + "%"
 
 		//Search For Documents Whose Title Fields Match The Words
-		db.Scopes(Paginate(r)).Preload(clause.Associations).Where("lower(title) LIKE ?", word).Or(
-			"lower(author) LIKE ?", word).Or("lower(summary) LIKE ?", word).Find(&results)
-		db.Scopes(Paginate(r)).Preload(clause.Associations).Where("lower(title) LIKE ?", word).Or(
-			"lower(author) LIKE ?", word).Or("lower(summary) LIKE ?", word).Count(&count)
+		db.Scopes(Paginate(r)).Preload(clause.Associations).Where("lower(title) LIKE ?", strings.ToLower(word)).Or(
+			"lower(author) LIKE ?", strings.ToLower(word)).Or("lower(summary) LIKE ?", strings.ToLower(word)).Find(&results)
+		db.Scopes(Paginate(r)).Preload(clause.Associations).Where("lower(title) LIKE ?", strings.ToLower(word)).Or(
+			"lower(author) LIKE ?", strings.ToLower(word)).Or("lower(summary) LIKE ?", strings.ToLower(word)).Count(&count)
 		totalCount += count
 		documents = append(documents, results...)
 
