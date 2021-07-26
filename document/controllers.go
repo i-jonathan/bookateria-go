@@ -60,7 +60,7 @@ func SearchDocuments(w http.ResponseWriter, r *http.Request) {
 	searchTerm := r.URL.Query().Get("search")
 
 	//Strip Symbols And Special Characters From The Search Query
-	regex, err := regexp.Compile("[\\W+]")
+	regex, err := regexp.Compile("[[:punct:]]")
 
 	//If The Regexp Doesn't Compile, Throw An Error
 	if err != nil {
@@ -80,15 +80,7 @@ func SearchDocuments(w http.ResponseWriter, r *http.Request) {
 		word = strings.ToLower(word)
 
 		//Search For Documents Whose Title Fields Match The Words
-		db.Where("lower(title) LIKE ?", "%"+word+"%").Find(&results)
-		documents = append(documents, results...)
-
-		//Search For Documents Whose Author Fields Match The Words
-		db.Where("lower(author) LIKE ?", "%"+word+"%").Find(&results)
-		documents = append(documents, results...)
-
-		//Search For Documents Whose Summary Fields Match The Words
-		db.Where("lower(summary) LIKE ?", "%"+word+"%").Find(&results)
+		db.Where("lower(title) LIKE ?", "%"+word+"%").Or("lower(author) LIKE ?", "%"+word+"%").Or("lower(summary) LIKE ?", "%"+word+"%").Find(&results)
 		documents = append(documents, results...)
 	}
 
@@ -272,7 +264,7 @@ func PostDocument(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//Rename The File Using The Document Fields
-	fileName := strings.Join(strings.Fields(document.Title), "-") + "-" + strings.Join(strings.Fields(document.Author), "-") + 
+	fileName := strings.Join(strings.Fields(document.Title), "-") + "-" + strings.Join(strings.Fields(document.Author), "-") +
 		"-" + fmt.Sprint(document.Edition) + "-bookateria.net." + fileExtension[len(fileExtension)-1]
 
 	//Initiate An Upload To S3 Server

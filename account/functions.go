@@ -140,8 +140,8 @@ func passwordValidator(password string) bool {
 }
 
 /* userDetails
-	Checks if string is empty
-	return true || false
+Checks if string is empty
+return true || false
 */
 func userDetails(fullName, alias, userName string) bool {
 	if strings.Join(strings.Fields(fullName), " ") == "" ||
@@ -153,11 +153,11 @@ func userDetails(fullName, alias, userName string) bool {
 }
 
 /*  emailValidator : This function does (currently) 2 checks on the email to ensure it is correct
-	A regex check and an MX lookup that checks if the domain has MX records
-	The regex check is ridiculously simple because.
-	1, We are still doing an MX lookup
-	2, We would still send a verification email. So why make it complex.
-	Returns true if the email is good to go and false otherwise */
+A regex check and an MX lookup that checks if the domain has MX records
+The regex check is ridiculously simple because.
+1, We are still doing an MX lookup
+2, We would still send a verification email. So why make it complex.
+Returns true if the email is good to go and false otherwise */
 func emailValidator(email string) bool {
 	re := regexp.MustCompile("^.+@.+\\..+$")
 	validity := re.MatchString(email)
