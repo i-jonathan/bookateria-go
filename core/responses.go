@@ -5,13 +5,12 @@ type response struct {
 }
 
 type ResponseStruct struct {
-	Previous bool          `json:"previous"`
-	Next     bool          `json:"next"`
-	Page     int           `json:"page"`
-	Count    int64         `json:"count"`
+	Previous bool        `json:"previous"`
+	Next     bool        `json:"next"`
+	Page     int         `json:"page"`
+	Count    int64       `json:"count"`
 	Result   interface{} `json:"result"`
 }
-
 
 var (
 	// TwoHundred general response for http code 200

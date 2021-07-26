@@ -124,7 +124,6 @@ func S3Upload(file multipart.File, filename string) (bool, string, error) {
 	return true, fileSlug, nil
 }
 
-
 // ResponseData checks if a previous and next page exists for a certain endpoint
 // returns too boolean values. Previous and next
 func ResponseData(count int, r *http.Request) (int, bool, bool) {

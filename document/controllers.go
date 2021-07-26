@@ -99,7 +99,7 @@ func SearchDocuments(w http.ResponseWriter, r *http.Request) {
 		//Search For Documents Whose Title Fields Match The Words
 		db.Scopes(Paginate(r)).Preload(clause.Associations).Where("lower(title) LIKE ?", "%"+word+"%").Or(
 			"lower(author) LIKE ?", "%"+word+"%").Or(
-				"lower(summary) LIKE ?", "%"+word+"%").Find(&results).Count(&count)
+			"lower(summary) LIKE ?", "%"+word+"%").Find(&results).Count(&count)
 		totalCount += count
 		documents = append(documents, results...)
 

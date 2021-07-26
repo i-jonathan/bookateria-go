@@ -20,7 +20,7 @@ type Tag struct {
 type Document struct {
 	CreatedAt  time.Time    `json:"created_at"`
 	UpdatedAt  time.Time    `json:"updated_at"`
-	Size       float64       `json:"size"`
+	Size       float64      `json:"size"`
 	Downloads  int64        `json:"downloads"`
 	ID         uint         `json:"id" gorm:"primaryKey;autoIncrement; unique"`
 	Title      string       `json:"title" gorm:"not null"`
