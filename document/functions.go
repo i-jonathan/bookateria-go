@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -64,4 +66,24 @@ func validate(field string) (string, error) {
 
 	return "", errors.New("either title or author is empty")
 
+}
+
+func Paginate(r *http.Request) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		page, _ := strconv.Atoi(r.URL.Query().Get("page"))
+		if page == 0 {
+			page = 1
+		}
+
+		pageSize, _ := strconv.Atoi(r.URL.Query().Get("page_size"))
+		switch {
+		case pageSize > 50:
+			pageSize = 50
+		case pageSize <= 0:
+			pageSize = 10
+		}
+
+		offset := (page - 1) * pageSize
+		return db.Offset(offset).Limit(pageSize)
+	}
 }

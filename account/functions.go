@@ -12,8 +12,10 @@ import (
 	"gorm.io/gorm"
 	"math/big"
 	"net"
+	"net/http"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"unicode"
 )
@@ -194,4 +196,34 @@ func InitDatabase() *gorm.DB {
 	err = db.AutoMigrate(&profile{})
 	log.ErrorHandler(err)
 	return db
+}
+
+func Paginate(r *http.Request) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		page, _ := strconv.Atoi(r.URL.Query().Get("page"))
+		if page <= 0 {
+			page = 1
+		}
+
+		pageSize, _ := strconv.Atoi(r.URL.Query().Get("page_size"))
+		switch {
+		case pageSize > 50:
+			pageSize = 50
+		default:
+			pageSize = 10
+		}
+
+		offset := (page - 1) * pageSize
+		return db.Offset(offset).Limit(pageSize)
+	}
+}
+
+func DuplicateCheck(email string) bool {
+	// Check if email already exists in the db.
+	// Should prevent postgres incrementing ID when no new user is created
+	var count int64
+	var db = InitDatabase()
+
+	db.Model(&User{}).Where("email = ?", email).Count(&count)
+	return count > 0
 }

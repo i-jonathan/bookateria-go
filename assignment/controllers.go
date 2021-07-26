@@ -4,9 +4,12 @@ import (
 	"bookateriago/account"
 	"bookateriago/core"
 	"bookateriago/log"
+	"crypto/rand"
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/mux"
 	"gorm.io/gorm/clause"
+	"math/big"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -52,13 +55,17 @@ func postQuestion(w http.ResponseWriter, r *http.Request) {
 
 	deadline, _ := time.Parse(time.RFC3339, questionR.Deadline)
 
+	/// get random string
+	slugCode, err := rand.Int(rand.Reader, big.NewInt(999))
+	if err != nil {
+		fmt.Println(err)
+	}
+
 	// Remove all symbols and spaces to generate slug.
-	regex, err := regexp.Compile("[^a-zA-Z0-9 ]+")
+	regex, err := regexp.Compile("[^a-zA-Z0-9-]+")
 	log.ErrorHandler(err)
-	processed := regex.ReplaceAllString(oneProblem.Title, "")
-	oneProblem.Title = strings.Join(strings.Fields(oneProblem.Title), " ")
-	slug := strings.ReplaceAll(processed, " ", "-")
-	
+	questionR.Title = strings.Join(strings.Fields(questionR.Title), "-")
+	processed := regex.ReplaceAllString(questionR.Title, "")
 	log.ErrorHandler(err)
 
 	oneProblem = problem{
@@ -66,7 +73,7 @@ func postQuestion(w http.ResponseWriter, r *http.Request) {
 		Description:     questionR.Description,
 		Deadline:        deadline,
 		User:            user,
-		Slug:            slug,
+		Slug:            processed + "-" + slugCode.String(),
 		SubmissionCount: questionR.SubmissionCount,
 	}
 
@@ -84,7 +91,7 @@ func getQuestion(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	slug, _ := params["slug"]
 
-	if !xExists(slug, "problem") {
+	if !xExists(slug, "question") {
 		// Checks if assignment problem exists
 		w.WriteHeader(http.StatusNotFound)
 		err := json.NewEncoder(w).Encode(core.FourOFour)
@@ -93,7 +100,7 @@ func getQuestion(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db.Preload(clause.Associations).First(&oneProblem, slug)
+	db.Preload(clause.Associations).Find(&oneProblem, "slug = ?", slug)
 	w.WriteHeader(http.StatusOK)
 	err := json.NewEncoder(w).Encode(oneProblem)
 	log.ErrorHandler(err)
@@ -132,7 +139,7 @@ func updateQuestion(w http.ResponseWriter, r *http.Request) {
 	slug := params["slug"]
 
 	// Check if problem exists
-	if !xExists(slug, "problem") {
+	if !xExists(slug, "question") {
 		w.WriteHeader(http.StatusNotFound)
 		err := json.NewEncoder(w).Encode(core.FourOFour)
 		log.ErrorHandler(err)
@@ -214,7 +221,7 @@ func PostSubmission(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	questionSlug := params["qSlug"]
 
-	if !xExists(questionSlug, "problem") {
+	if !xExists(questionSlug, "question") {
 		w.WriteHeader(http.StatusNotFound)
 		err := json.NewEncoder(w).Encode(core.FourOFour)
 		log.ErrorHandler(err)
@@ -241,9 +248,10 @@ func PostSubmission(w http.ResponseWriter, r *http.Request) {
 
 	var count int64
 
-	db.Preload(clause.Associations).Model(&submission{}).Where("user_email = ?", email).Count(&count)
-
-	if int(count) == oneProblem.SubmissionCount {
+	db.Preload(clause.Associations).Model(&submission{}).Where("user_id = ? and question_id = ?", user.ID, oneProblem.ID).Count(&count)
+	fmt.Println(count)
+	fmt.Println(oneProblem.SubmissionCount)
+	if int(count) >= oneProblem.SubmissionCount {
 		w.WriteHeader(http.StatusBadRequest)
 		err := json.NewEncoder(w).Encode(core.FourHundred)
 		log.ErrorHandler(err)
@@ -264,7 +272,7 @@ func PostSubmission(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	submissionSlug := oneProblem.Slug + strings.Join(strings.Fields(oneProblem.User.Alias), "-")
+	submissionSlug := oneProblem.Slug + "-" + strings.Join(strings.Fields(oneProblem.User.Alias), "-") + "-" + strconv.Itoa(int(count)+1)
 
 	oneSubmission = submission{
 		Problem:     oneProblem,
@@ -290,7 +298,7 @@ func getSubmissions(w http.ResponseWriter, r *http.Request) {
 
 	_, email := core.GetTokenEmail(r)
 
-	if !xExists(slug, "problem") {
+	if !xExists(slug, "question") {
 		w.WriteHeader(http.StatusNotFound)
 		err := json.NewEncoder(w).Encode(core.FourOFour)
 		log.ErrorHandler(err)
@@ -321,11 +329,11 @@ func getSubmission(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 	questionSlug := params["qSlug"]
-	submissionSlug := params["sSlug"]
+	submissionSlug := params["aSlug"]
 
 	_, email := core.GetTokenEmail(r)
 
-	if !xExists(questionSlug, "problem") {
+	if !xExists(questionSlug, "question") {
 		w.WriteHeader(http.StatusNotFound)
 		err := json.NewEncoder(w).Encode(core.FourOFour)
 		log.ErrorHandler(err)

@@ -47,7 +47,7 @@ func SendEmailNoAttachment(toMail, subject string, data interface{}, template st
 	from := mail.NewEmail("Bookateria", "noreply@bookateria.net")
 	to := mail.NewEmail("Me", toMail)
 	message := mail.NewSingleEmail(from, subject, to, emailBody, emailBody)
-	
+
 	client := sendgrid.NewSendClient(key)
 	response, err := client.Send(message)
 
@@ -56,10 +56,9 @@ func SendEmailNoAttachment(toMail, subject string, data interface{}, template st
 	if response.StatusCode != 202 {
 		return false, err
 	}
-	
+
 	return true, nil
 }
-
 
 // SendEmailWithAttachment for attaching files to an email.
 /*
@@ -88,7 +87,7 @@ func SendEmailWithAttachment(toMail, subject, fileDir, fileName, template string
 	a.SetFilename(fileDir+fileName)
 	a.SetType(fileType)
 	a.SetDisposition("attachment")
-	
+
 	message.AddAttachment(a)
 	client := sendgrid.NewSendClient(key)
 	response, err := client.Send(message)

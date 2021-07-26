@@ -22,9 +22,9 @@ var (
 	redisDb, _  = strconv.Atoi(fmt.Sprintf("%d", viperConfig.Get("redis.database")))
 	ctx         = context.Background()
 	redisClient = redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("%s", viperConfig.Get("redis.address")),
+		Addr: fmt.Sprintf("%s", viperConfig.Get("redis.address")),
 		// Password: fmt.Sprintf("%s", viperConfig.Get("redis.password")),
-		DB:       redisDb,
+		DB: redisDb,
 	})
 	user account.User
 	cred credentials
@@ -64,7 +64,7 @@ func signIn(w http.ResponseWriter, r *http.Request) {
 	}
 	db.Find(&user, "email = ?", strings.ToLower(cred.Email))
 	if user.Password == "" {
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusUnauthorized)
 		err = json.NewEncoder(w).Encode(core.FourOOne)
 		log.ErrorHandler(err)
 		log.AccessHandler(r, 401)

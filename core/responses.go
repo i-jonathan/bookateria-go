@@ -4,6 +4,15 @@ type response struct {
 	Message string
 }
 
+type ResponseStruct struct {
+	Previous bool          `json:"previous"`
+	Next     bool          `json:"next"`
+	Page     int           `json:"page"`
+	Count    int64         `json:"count"`
+	Result   interface{} `json:"result"`
+}
+
+
 var (
 	// TwoHundred general response for http code 200
 	TwoHundred = response{Message: "OK"}

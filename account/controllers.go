@@ -44,7 +44,7 @@ type otpRequest struct {
 func allUsers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var users []User
-	db.Find(&users)
+	db.Scopes(Paginate(r)).Find(&users)
 	err := json.NewEncoder(w).Encode(users)
 	log.ErrorHandler(err)
 	log.AccessHandler(r, 200)
@@ -81,6 +81,16 @@ func postUser(w http.ResponseWriter, r *http.Request) {
 		safePassword  = passwordValidator(password)
 		similarToUser = similarToUser(fullName, alias, userName, password)
 	)
+
+	duplicateEmail := DuplicateCheck(email)
+
+	if duplicateEmail {
+		w.WriteHeader(http.StatusConflict)
+		err := json.NewEncoder(w).Encode(core.FourONine)
+		log.ErrorHandler(err)
+		log.AccessHandler(r, 409)
+		return
+	}
 
 	safeNames = userDetails(fullName, alias, userName)
 
@@ -152,22 +162,22 @@ func postUser(w http.ResponseWriter, r *http.Request) {
 	err = redisClient.Set(ctx, "new_user_otp_"+email, verifiableToken, 30*time.Minute).Err()
 	log.ErrorHandler(err)
 
-	payload := struct {
-		Token string
-	}{
-		Token: verifiableToken,
-	}
-
-	var status bool
-
-	status, err = core.SendEmailNoAttachment(email, "OTP for Verification", payload, "token.txt")
-	if !status {
-		w.WriteHeader(http.StatusInternalServerError)
-		err = json.NewEncoder(w).Encode(core.FiveHundred)
-		log.ErrorHandler(err)
-		log.AccessHandler(r, 500)
-		return
-	}
+	//payload := struct {
+	//	Token string
+	//}{
+	//	Token: verifiableToken,
+	//}
+	//
+	//var status bool
+	//
+	////status, err = core.SendEmailNoAttachment(email, "OTP for Verification", payload, "token.txt")
+	//if !status {
+	//	w.WriteHeader(http.StatusInternalServerError)
+	//	err = json.NewEncoder(w).Encode(core.FiveHundred)
+	//	log.ErrorHandler(err)
+	//	log.AccessHandler(r, 500)
+	//	return
+	//}
 	log.ErrorHandler(err)
 	log.AccessHandler(r, 200)
 	return
@@ -235,6 +245,8 @@ func requestOTP(w http.ResponseWriter, r *http.Request) {
 	db.Find(&user, "email = ?", data.Email)
 	key := "new_user_otp_" + data.Email
 	storedOTP, err = redisClient.Get(ctx, key).Result()
+
+	log.ErrorHandler(err)
 
 	if storedOTP == "" {
 		verifiableToken := generateOTP()

@@ -8,8 +8,8 @@ import (
 // problem is the model for creating assignment questions or problems
 type problem struct {
 	ID              uint         `json:"id"`
-	CreatedAt       time.Time    `json:"created_at" gorm:"autoCreateTime:nano"`
-	UpdatedAt       time.Time    `json:"updated_at" gorm:"autoUpdateTime:nano"`
+	CreatedAt       time.Time    `json:"created_at"`
+	UpdatedAt       time.Time    `json:"updated_at"`
 	Title           string       `json:"title"`
 	Description     string       `json:"description"`
 	Deadline        time.Time    `json:"deadline"`
@@ -22,8 +22,8 @@ type problem struct {
 // submission is the model for storing submission data
 type submission struct {
 	ID          uint         `json:"id"`
-	CreatedAt   time.Time    `json:"created_at" gorm:"autoCreateTime:nano"`
-	UpdatedAt   time.Time    `json:"updated_at" gorm:"autoUpdateTime:nano"`
+	CreatedAt   time.Time    `json:"created_at"`
+	UpdatedAt   time.Time    `json:"updated_at"`
 	Problem     problem      `json:"problem"`
 	ProblemID   int          `json:"problem_id"`
 	User        account.User `json:"user"`
