@@ -1,0 +1,31 @@
+version: "3.7"
+
+services:
+  sql:
+    image: postgres:13-alpine
+    env_file:
+      - database.env
+    volumes:
+      - bookateria-data:/var/lib/postgresql/data
+  redis:
+    image: redis:6
+    volumes:
+      - redis-data:/data
+    command: redis-server --requirepass ${redis_pass}
+  web:
+    build: .
+    image: bookateria-dock
+    env_file:
+      - .env
+    ports:
+      - "8080:${port}"
+    depends_on:
+      - sql
+      - redis
+    volumes:
+      - log:/log
+
+volumes:
+  bookateria-data:
+  redis-data:
+  log:
