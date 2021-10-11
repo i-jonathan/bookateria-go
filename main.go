@@ -9,6 +9,7 @@ import (
 	"bookateriago/log"
 	"github.com/gorilla/mux"
 	"net/http"
+	"os"
 )
 
 func main() {
@@ -27,7 +28,7 @@ func main() {
 	router.Use(corsMiddleware)
 
 	log.Start("Starting Server")
-	err := http.ListenAndServe(":5000", router)
+	err := http.ListenAndServe(":"+os.Getenv("port"), router)
 	log.ErrorHandler(err)
 
 }
