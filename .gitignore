@@ -19,5 +19,5 @@ config.yaml
 api.http
 log/access.log
 log/error.log
-.env
+**.env
 *.swp
