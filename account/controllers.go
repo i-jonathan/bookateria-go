@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -19,11 +20,10 @@ import (
 
 var (
 	db          = InitDatabase()
-	viperConfig = core.ReadViper()
-	redisDB, _  = strconv.Atoi(fmt.Sprintf("%s", viperConfig.Get("redis.database")))
+	redisDB, _  = strconv.Atoi(fmt.Sprintf("%s", os.Getenv("redis_database")))
 	redisClient = redis.NewClient(&redis.Options{
-		Addr: fmt.Sprintf("%s", viperConfig.Get("redis.address")),
-		//Password: fmt.Sprintf("%s", viperConfig.Get("redis.password")),
+		Addr: fmt.Sprintf("%s", os.Getenv("redis_address")),
+		Password: fmt.Sprintf("%s", os.Getenv("redis_password")),
 		DB: redisDB,
 	})
 	ctx = context.Background()
@@ -58,6 +58,7 @@ func getUser(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	userID := params["id"]
 	db.Find(&user, "id = ?", userID)
+	// TODO if id doesn't exist, return error hm
 	err := json.NewEncoder(w).Encode(user)
 	log.ErrorHandler(err)
 	log.AccessHandler(r, 200)

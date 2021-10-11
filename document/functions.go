@@ -1,29 +1,28 @@
 package document
 
 import (
-	"bookateriago/core"
 	"bookateriago/log"
 	"errors"
 	"fmt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 )
 
 func InitDatabase() *gorm.DB {
-	viperConfig := core.ReadViper()
 
 	var (
-		dbName = viperConfig.Get("database.name")
-		port   = viperConfig.Get("database.port")
-		pass   = viperConfig.Get("database.pass")
-		user   = viperConfig.Get("database.user")
-		host   = viperConfig.Get("database.host")
-		ssl    = viperConfig.Get("database.ssl")
+		dbName = os.Getenv("database_name")
+		port   = os.Getenv("database_port")
+		pass   = os.Getenv("database_pass")
+		user   = os.Getenv("database_user")
+		host   = os.Getenv("database_host")
+		ssl    = os.Getenv("database_ssl")
 	)
-	postgresConnection := fmt.Sprintf("host=%s port=%d user=%s dbname=%s password=%s sslmode=%s", host, port, user, dbName, pass, ssl)
+	postgresConnection := fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=%s", host, port, user, dbName, pass, ssl)
 	db, err := gorm.Open(postgres.Open(postgresConnection), &gorm.Config{})
 	log.ErrorHandler(err)
 

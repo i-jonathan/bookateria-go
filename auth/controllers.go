@@ -10,20 +10,20 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-redis/redis/v8"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
 )
 
 var (
-	viperConfig = core.ReadViper()
-	jwtKey      = []byte(fmt.Sprintf("%s", viperConfig.Get("settings.key")))
+	jwtKey      = []byte(fmt.Sprintf("%s", os.Getenv("settings_key")))
 	db          = account.InitDatabase()
-	redisDb, _  = strconv.Atoi(fmt.Sprintf("%d", viperConfig.Get("redis.database")))
+	redisDb, _  = strconv.Atoi(fmt.Sprintf("%d", os.Getenv("redis_database")))
 	ctx         = context.Background()
 	redisClient = redis.NewClient(&redis.Options{
-		Addr: fmt.Sprintf("%s", viperConfig.Get("redis.address")),
-		// Password: fmt.Sprintf("%s", viperConfig.Get("redis.password")),
+		Addr: fmt.Sprintf("%s", os.Getenv("redis_address")),
+		Password: fmt.Sprintf("%s", os.Getenv("redis_password")),
 		DB: redisDb,
 	})
 	user account.User

@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 )
 
-var key = fmt.Sprintf("%s", viperConfig.Get("email.key"))
+var key = fmt.Sprintf("%s", os.Getenv("email_key"))
 
 // parseTemplate is for preparing the template from the email/templates directory
 func parseTemplate(templateFileName string, data interface{}) (string, error) {

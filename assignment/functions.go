@@ -1,26 +1,25 @@
 package assignment
 
 import (
-	"bookateriago/core"
 	"bookateriago/log"
 	"fmt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"os"
 )
 
 // InitDatabase initializes the models for assignments
 func initDatabase() *gorm.DB {
-	viperConfig := core.ReadViper()
 	var (
-		databaseName = viperConfig.Get("database.name")
-		port         = viperConfig.Get("database.port")
-		pass         = viperConfig.Get("database.pass")
-		user         = viperConfig.Get("database.user")
-		host         = viperConfig.Get("database.host")
-		ssl          = viperConfig.Get("database.ssl")
+		databaseName = os.Getenv("database_name")
+		port         = os.Getenv("database_port")
+		pass         = os.Getenv("database_pass")
+		user         = os.Getenv("database_user")
+		host         = os.Getenv("database_host")
+		ssl          = os.Getenv("database_ssl")
 	)
 
-	postgresConnection := fmt.Sprintf("host=%s port=%d user=%s dbname=%s password=%s sslmode=%s",
+	postgresConnection := fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=%s",
 		host, port, user, databaseName, pass, ssl)
 	db, err := gorm.Open(postgres.Open(postgresConnection), &gorm.Config{})
 	log.ErrorHandler(err)

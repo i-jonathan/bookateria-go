@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"mime/multipart"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -14,7 +15,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-redis/redis/v8"
-	"github.com/spf13/viper"
 )
 
 type tokenClaims struct {
@@ -23,11 +23,10 @@ type tokenClaims struct {
 }
 
 var (
-	viperConfig = ReadViper()
-	redisDB, _  = strconv.Atoi(fmt.Sprintf("%s", viperConfig.Get("redis.database")))
+	redisDB, _  = strconv.Atoi(fmt.Sprintf("%s", os.Getenv("redis_database")))
 	redisClient = redis.NewClient(&redis.Options{
-		Addr: fmt.Sprintf("%s", viperConfig.Get("redis.address")),
-		//Password: fmt.Sprintf("%s", viperConfig.Get("redis.password")),
+		Addr: fmt.Sprintf("%s", os.Getenv("redis_address")),
+		Password: fmt.Sprintf("%s", os.Getenv("redis_password")),
 		DB: redisDB,
 	})
 	ctx = context.Background()
@@ -35,13 +34,13 @@ var (
 
 // ReadViper : A simple function utilizing the viper package for reading from configuration file.
 // Reads specifically from config.yaml located in the root directory.
-func ReadViper() *viper.Viper {
-	viperConfig := viper.New()
-	viperConfig.SetConfigFile("config.yaml")
-	_ = viperConfig.ReadInConfig()
-
-	return viperConfig
-}
+//func ReadViper() *viper.Viper {
+//	viperConfig := viper.New()
+//	viperConfig.SetConfigFile(".env")
+//	_ = viperConfig.ReadInConfig()
+//
+//	return viperConfig
+//}
 
 // GetTokenEmail is used to get the token as well as email address of logged in users
 // It returns both the token and the email if the user is logged in and the token is valid
@@ -49,8 +48,7 @@ func ReadViper() *viper.Viper {
 // Reads the token from the request header and breaks it down to get the user.
 func GetTokenEmail(r *http.Request) (*jwt.Token, string) {
 	authorization := r.Header.Get("Authorization")
-	viperConfig := ReadViper()
-	jwtKey := []byte(fmt.Sprintf("%s", viperConfig.Get("settings.key")))
+	jwtKey := []byte(fmt.Sprintf("%s", os.Getenv("settings_key")))
 	if authorization == "" {
 		//w.WriteHeader(http.StatusUnauthorized)
 		return nil, ""
@@ -82,9 +80,9 @@ func GetTokenEmail(r *http.Request) (*jwt.Token, string) {
 // connectAWS connects to AWS with correct credentials and creates a session
 func connectAWS() *session.Session {
 	// This is used to connect to AWS with the credentials
-	accessKeyID := fmt.Sprintf("%s", viperConfig.Get("aws.accessKeyID"))
-	secretAccessKey := fmt.Sprintf("%s", viperConfig.Get("aws.secretAccessKey"))
-	bucketRegion := fmt.Sprintf("%s", viperConfig.Get("aws.region"))
+	accessKeyID := fmt.Sprintf("%s", os.Getenv("aws_accessKeyID"))
+	secretAccessKey := fmt.Sprintf("%s", os.Getenv("aws_secretAccessKey"))
+	bucketRegion := fmt.Sprintf("%s", os.Getenv("aws_region"))
 
 	sess, err := session.NewSession(
 		&aws.Config{
@@ -106,7 +104,7 @@ func connectAWS() *session.Session {
 func S3Upload(file multipart.File, filename string) (bool, string, error) {
 
 	sess := connectAWS()
-	bucketName := fmt.Sprintf("%s", viperConfig.Get("aws.bucket"))
+	bucketName := fmt.Sprintf("%s", os.Getenv("aws_bucket"))
 
 	uploader := s3manager.NewUploader(sess)
 	_, err := uploader.Upload(&s3manager.UploadInput{
