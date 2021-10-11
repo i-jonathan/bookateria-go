@@ -156,6 +156,7 @@ func GetDocuments(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewEncoder(w).Encode(response)
 	log.ErrorHandler(err)
+	log.AccessHandler(r, 200)
 }
 
 //GetDocument fetches a specific document from the database
@@ -174,6 +175,7 @@ func GetDocument(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		err := json.NewEncoder(w).Encode(core.FourOFour)
 		log.ErrorHandler(err)
+		log.AccessHandler(r, 404)
 		return
 
 	}
@@ -181,6 +183,7 @@ func GetDocument(w http.ResponseWriter, r *http.Request) {
 	db.Preload(clause.Associations).Find(&document, "id = ?", documentID)
 	err := json.NewEncoder(w).Encode(document)
 	log.ErrorHandler(err)
+	log.AccessHandler(r, 200)
 }
 
 //PostDocument puts a provided document into the db
@@ -201,6 +204,7 @@ func PostDocument(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(core.FourOOne)
 		log.ErrorHandler(err)
+		log.AccessHandler(r, 401)
 		return
 	}
 
@@ -219,6 +223,7 @@ func PostDocument(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		err := json.NewEncoder(w).Encode(core.FourTwoTwo)
 		log.ErrorHandler(err)
+		log.AccessHandler(r, 422)
 		return
 	}
 
@@ -230,6 +235,7 @@ func PostDocument(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		err := json.NewEncoder(w).Encode(core.FourTwoTwo)
 		log.ErrorHandler(err)
+		log.AccessHandler(r, 422)
 		return
 	}
 
@@ -241,6 +247,7 @@ func PostDocument(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		err := json.NewEncoder(w).Encode(core.FourTwoTwo)
 		log.ErrorHandler(err)
+		log.AccessHandler(r, 422)
 		return
 	}
 
@@ -253,8 +260,9 @@ func PostDocument(w http.ResponseWriter, r *http.Request) {
 		edition, err = strconv.Atoi(r.FormValue("edition"))
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			err := json.NewEncoder(w).Encode(core.FourONine)
+			err := json.NewEncoder(w).Encode(core.FourHundred)
 			log.ErrorHandler(err)
+			log.AccessHandler(r, 400)
 			return
 		}
 	}
@@ -290,6 +298,7 @@ func PostDocument(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusConflict)
 		err := json.NewEncoder(w).Encode(core.FourONine)
 		log.ErrorHandler(err)
+		log.AccessHandler(r, 409)
 		return
 	}
 	/*
@@ -317,6 +326,7 @@ func PostDocument(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		err := json.NewEncoder(w).Encode(core.FourTwoTwo)
 		log.ErrorHandler(err)
+		log.AccessHandler(r, 422)
 		return
 	}
 
@@ -347,6 +357,7 @@ func PostDocument(w http.ResponseWriter, r *http.Request) {
 	db.Create(&document)
 	err = json.NewEncoder(w).Encode(document)
 	log.ErrorHandler(err)
+	log.AccessHandler(r, 200)
 }
 
 //UpdateDocument overwrites the details of a specified document with the provided ones.
@@ -364,6 +375,7 @@ func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(core.FourOOne)
 		log.ErrorHandler(err)
+		log.AccessHandler(r, 401)
 		return
 	}
 
@@ -379,6 +391,7 @@ func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		err := json.NewEncoder(w).Encode(core.FourTwoTwo)
 		log.ErrorHandler(err)
+		log.AccessHandler(r, 422)
 		return
 	}
 
@@ -390,6 +403,7 @@ func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		err := json.NewEncoder(w).Encode(core.FourOFour)
 		log.ErrorHandler(err)
+		log.AccessHandler(r, 404)
 		return
 
 	}
@@ -402,6 +416,7 @@ func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(core.FourOOne)
 		log.ErrorHandler(err)
+		log.AccessHandler(r, 401)
 		return
 	}
 
@@ -412,6 +427,7 @@ func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		err := json.NewEncoder(w).Encode(core.FourTwoTwo)
 		log.ErrorHandler(err)
+		log.AccessHandler(r, 422)
 		return
 	}
 
@@ -422,6 +438,7 @@ func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 			err := json.NewEncoder(w).Encode(core.FourTwoTwo)
 			log.ErrorHandler(err)
+			log.AccessHandler(r, 422)
 			return
 		}
 		document.Title = title
@@ -436,6 +453,7 @@ func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 			err := json.NewEncoder(w).Encode(core.FourTwoTwo)
 			log.ErrorHandler(err)
+			log.AccessHandler(r, 422)
 			return
 		}
 		document.Author = author
@@ -454,6 +472,7 @@ func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 			err := json.NewEncoder(w).Encode(core.FourTwoTwo)
 			log.ErrorHandler(err)
+			log.AccessHandler(r, 422)
 			return
 		}
 
@@ -486,6 +505,7 @@ func UpdateDocument(w http.ResponseWriter, r *http.Request) {
 	db.Save(&document)
 	err = json.NewEncoder(w).Encode(document)
 	log.ErrorHandler(err)
+	log.AccessHandler(r, 200)
 }
 
 //DeleteDocument removes a specified document from the DB
@@ -509,6 +529,7 @@ func DeleteDocument(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		err := json.NewEncoder(w).Encode(core.FourOFour)
 		log.ErrorHandler(err)
+		log.AccessHandler(r, 404)
 		return
 
 	}
@@ -526,4 +547,5 @@ func DeleteDocument(w http.ResponseWriter, r *http.Request) {
 	//Delete The Document
 	db.Where("id = ?", idToDelete).Delete(&document)
 	w.WriteHeader(http.StatusNoContent)
+	log.AccessHandler(r, 204)
 }
